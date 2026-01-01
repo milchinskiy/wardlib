@@ -1,6 +1,7 @@
 # wardlib
 
-**wardlib** is a community-driven, external extension of Ward's "standard library".
+**wardlib** is a community-driven, external extension of
+[Ward](https://github.com/milchinskiy/ward)'s "standard library".
 
 Ward ships with a small core set of modules. **wardlib** lives outside the Ward
 repository and exists to:
@@ -20,7 +21,7 @@ repository and exists to:
 This repository is intended to be used as a *library* alongside Ward projects.
 Common approaches:
 
-- add it via builtin ward's `ward.module.git(...)`,
+- add it via builtin [Ward](https://github.com/milchinskiy/ward)'s `ward.module.git(...)`,
 - add it as a git submodule,
 - vendor/copy the modules you need,
 - or otherwise place it on your Lua/Ward `package.path` so `require(...)` can find it.
