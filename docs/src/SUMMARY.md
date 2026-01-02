@@ -1,5 +1,11 @@
 # Summary
 
+-[About Ward Library](./about.md)
+
+---
+
+# Apps
+
 - [app.archive](./app.archive.md)
 - [app.dconf](./app.dconf.md)
 - [app.dunst](./app.dunst.md)

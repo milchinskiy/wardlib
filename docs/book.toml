@@ -2,3 +2,7 @@
 title = "WardLib Docs"
 authors = ["Alexander Milchinskiy", "WardLib Contributors"]
 language = "en"
+
+[output.html]
+git-repository-url = "https://github.com/milchinskiy/wardlib"
+additional-css = ["custom.css"]
