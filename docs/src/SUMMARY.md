@@ -4,3 +4,4 @@
 - [app.dunst](./app.dunst.md)
 - [app.systemd](./app.systemd.md)
 - [app.git](./app.git.md)
+- [app.archive](./app.archive.md)
