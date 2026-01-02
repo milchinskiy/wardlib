@@ -28,6 +28,14 @@ Common approaches:
 
 Exact setup may vary by project; see repository folders and module docs for details.
 
+## Tests
+
+Run tests with:
+
+```sh
+ward run run-tests.lua -- "**/*.test.lua"
+```
+
 ## Contributing
 
 Contributions are welcome.
