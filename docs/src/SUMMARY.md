@@ -26,6 +26,7 @@
 - [app.rsync](./app.rsync.md)
 - [app.sfdisk](./app.sfdisk.md)
 - [app.ssh](./app.ssh.md)
+- [app.swap](./app.swap.md)
 - [app.systemd](./app.systemd.md)
 - [app.wget](./app.wget.md)
 - [app.wlcopy](./app.wlcopy.md)
