@@ -13,6 +13,7 @@
 - [app.chroot](./app.chroot.md)
 - [app.dconf](./app.dconf.md)
 - [app.dunst](./app.dunst.md)
+- [app.efibootmgr](./app.efibootmgr.md)
 - [app.git](./app.git.md)
 - [app.gsettings](./app.gsettings.md)
 - [app.mkfs](./app.mkfs.md)

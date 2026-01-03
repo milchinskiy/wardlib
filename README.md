@@ -1,6 +1,6 @@
 # wardlib
 
-**wardlib** is an external extension of
+**wardlib** is an external extension (**early stage**) of
 [Ward](https://github.com/milchinskiy/ward)'s "standard library".
 
 Ward ships with a small core set of modules. **wardlib** lives outside the Ward
