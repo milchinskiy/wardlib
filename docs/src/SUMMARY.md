@@ -24,6 +24,7 @@
 - [app.pacman](./app.pacman.md)
 - [app.playerctl](./app.playerctl.md)
 - [app.rsync](./app.rsync.md)
+- [app.sed](./app.sed.md)
 - [app.sfdisk](./app.sfdisk.md)
 - [app.ssh](./app.ssh.md)
 - [app.swap](./app.swap.md)
