@@ -19,6 +19,7 @@
 - [app.feh](./app.feh.md)
 - [app.git](./app.git.md)
 - [app.gsettings](./app.gsettings.md)
+- [app.kill](./app.kill.md)
 - [app.lsblk](./app.lsblk.md)
 - [app.mkfs](./app.mkfs.md)
 - [app.mount](./app.mount.md)
