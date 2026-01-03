@@ -1,0 +1,298 @@
+---@diagnostic disable: undefined-doc-name
+
+-- wget wrapper module
+--
+-- Thin wrappers around `wget` that construct CLI invocations and return
+-- `ward.process.cmd(...)` objects.
+--
+-- This module intentionally does not parse output; consumers can decide how to
+-- execute returned commands and interpret results.
+
+local _cmd = require("ward.process")
+local _env = require("ward.env")
+local _fs = require("ward.fs")
+
+---@class WgetOpts
+---@field quiet boolean? `-q`
+---@field verbose boolean? `-v`
+---@field no_verbose boolean? `-nv`
+---@field continue boolean? `-c`
+---@field timestamping boolean? `-N`
+---@field no_clobber boolean? `-nc`
+---@field spider boolean? `--spider`
+---@field output_document string? `-O <file>`
+---@field directory_prefix string? `-P <dir>`
+---@field input_file string? `-i <file>`
+---@field user_agent string? `-U <ua>`
+---@field header string|string[]? `--header=<h>` repeated
+---@field post_data string? `--post-data=<data>`
+---@field post_file string? `--post-file=<file>`
+---@field method string? `--method=<method>`
+---@field body_data string? `--body-data=<data>`
+---@field body_file string? `--body-file=<file>`
+---@field no_check_certificate boolean? `--no-check-certificate`
+---@field inet4_only boolean? `-4`
+---@field inet6_only boolean? `-6`
+---@field timeout number? `--timeout=<sec>`
+---@field wait number? `--wait=<sec>`
+---@field tries number? `--tries=<n>`
+---@field recursive boolean? `-r`
+---@field level number? `-l <n>`
+---@field no_parent boolean? `-np`
+---@field mirror boolean? `-m`
+---@field page_requisites boolean? `-p`
+---@field convert_links boolean? `-k`
+---@field adjust_extension boolean? `-E`
+---@field extra string[]? Extra args appended after modeled options
+
+---@class Wget
+---@field bin string Executable name or path to `wget`
+---@field fetch fun(urls: string|string[]|nil, opts: WgetOpts|nil): ward.Cmd
+---@field download fun(url: string, out: string|nil, opts: WgetOpts|nil): ward.Cmd
+---@field mirror_site fun(url: string, dir: string|nil, opts: WgetOpts|nil): ward.Cmd
+local Wget = {
+	bin = "wget",
+}
+
+---@param bin string
+local function validate_bin(bin)
+	assert(type(bin) == "string" and #bin > 0, "wget binary is not set")
+	if bin:find("/", 1, true) then
+		assert(_fs.is_exists(bin), string.format("wget binary does not exist: %s", bin))
+		assert(_fs.is_executable(bin), string.format("wget binary is not executable: %s", bin))
+	else
+		assert(_env.is_in_path(bin), string.format("wget binary is not in PATH: %s", bin))
+	end
+end
+
+---@param s any
+---@param label string
+local function validate_non_empty_string(s, label)
+	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
+end
+
+---@param value string
+---@param label string
+local function validate_not_flag(value, label)
+	validate_non_empty_string(value, label)
+	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
+end
+
+---@param v any
+---@param label string
+local function validate_number(v, label)
+	assert(type(v) == "number" and v >= 0, label .. " must be a non-negative number")
+end
+
+---@param args string[]
+---@param opts WgetOpts|nil
+local function apply_opts(args, opts)
+	opts = opts or {}
+
+	if opts.quiet then
+		table.insert(args, "-q")
+	end
+	if opts.verbose then
+		table.insert(args, "-v")
+	end
+	if opts.no_verbose then
+		table.insert(args, "-nv")
+	end
+	if opts.continue then
+		table.insert(args, "-c")
+	end
+	if opts.timestamping then
+		table.insert(args, "-N")
+	end
+	if opts.no_clobber then
+		table.insert(args, "-nc")
+	end
+	if opts.spider then
+		table.insert(args, "--spider")
+	end
+	if opts.no_check_certificate then
+		table.insert(args, "--no-check-certificate")
+	end
+	if opts.inet4_only then
+		table.insert(args, "-4")
+	end
+	if opts.inet6_only then
+		table.insert(args, "-6")
+	end
+
+	if opts.timeout ~= nil then
+		validate_number(opts.timeout, "timeout")
+		table.insert(args, "--timeout=" .. tostring(opts.timeout))
+	end
+	if opts.wait ~= nil then
+		validate_number(opts.wait, "wait")
+		table.insert(args, "--wait=" .. tostring(opts.wait))
+	end
+	if opts.tries ~= nil then
+		validate_number(opts.tries, "tries")
+		table.insert(args, "--tries=" .. tostring(opts.tries))
+	end
+
+	if opts.output_document ~= nil then
+		validate_non_empty_string(opts.output_document, "output_document")
+		table.insert(args, "-O")
+		table.insert(args, opts.output_document)
+	end
+	if opts.directory_prefix ~= nil then
+		validate_non_empty_string(opts.directory_prefix, "directory_prefix")
+		table.insert(args, "-P")
+		table.insert(args, opts.directory_prefix)
+	end
+	if opts.input_file ~= nil then
+		validate_non_empty_string(opts.input_file, "input_file")
+		table.insert(args, "-i")
+		table.insert(args, opts.input_file)
+	end
+	if opts.user_agent ~= nil then
+		validate_non_empty_string(opts.user_agent, "user_agent")
+		table.insert(args, "-U")
+		table.insert(args, opts.user_agent)
+	end
+
+	if opts.header ~= nil then
+		local headers = {}
+		if type(opts.header) == "string" then
+			headers = { opts.header }
+		elseif type(opts.header) == "table" then
+			assert(#opts.header > 0, "header list must be non-empty")
+			for _, h in ipairs(opts.header) do
+				table.insert(headers, tostring(h))
+			end
+		else
+			error("header must be string or string[]")
+		end
+		for _, h in ipairs(headers) do
+			validate_non_empty_string(h, "header")
+			table.insert(args, "--header=" .. h)
+		end
+	end
+
+	if opts.method ~= nil then
+		validate_not_flag(opts.method, "method")
+		table.insert(args, "--method=" .. opts.method)
+	end
+	if opts.post_data ~= nil then
+		validate_non_empty_string(opts.post_data, "post_data")
+		table.insert(args, "--post-data=" .. opts.post_data)
+	end
+	if opts.post_file ~= nil then
+		validate_non_empty_string(opts.post_file, "post_file")
+		table.insert(args, "--post-file=" .. opts.post_file)
+	end
+	if opts.body_data ~= nil then
+		validate_non_empty_string(opts.body_data, "body_data")
+		table.insert(args, "--body-data=" .. opts.body_data)
+	end
+	if opts.body_file ~= nil then
+		validate_non_empty_string(opts.body_file, "body_file")
+		table.insert(args, "--body-file=" .. opts.body_file)
+	end
+
+	if opts.recursive then
+		table.insert(args, "-r")
+	end
+	if opts.level ~= nil then
+		validate_number(opts.level, "level")
+		table.insert(args, "-l")
+		table.insert(args, tostring(opts.level))
+	end
+	if opts.no_parent then
+		table.insert(args, "-np")
+	end
+	if opts.mirror then
+		table.insert(args, "-m")
+	end
+	if opts.page_requisites then
+		table.insert(args, "-p")
+	end
+	if opts.convert_links then
+		table.insert(args, "-k")
+	end
+	if opts.adjust_extension then
+		table.insert(args, "-E")
+	end
+
+	if opts.extra ~= nil then
+		assert(type(opts.extra) == "table", "extra must be an array")
+		for _, v in ipairs(opts.extra) do
+			table.insert(args, tostring(v))
+		end
+	end
+end
+
+---Construct a wget command.
+---
+---If `urls` is nil, wget will run with only the configured options (useful with `-i`).
+---
+---@param urls string|string[]|nil
+---@param opts WgetOpts|nil
+---@return ward.Cmd
+function Wget.fetch(urls, opts)
+	validate_bin(Wget.bin)
+
+	local args = { Wget.bin }
+	apply_opts(args, opts)
+
+	if urls ~= nil then
+		if type(urls) == "string" then
+			validate_non_empty_string(urls, "url")
+			table.insert(args, urls)
+		elseif type(urls) == "table" then
+			assert(#urls > 0, "urls list must be non-empty")
+			for _, u in ipairs(urls) do
+				validate_non_empty_string(u, "url")
+				table.insert(args, u)
+			end
+		else
+			error("urls must be string, string[], or nil")
+		end
+	end
+
+	return _cmd.cmd(table.unpack(args))
+end
+
+---Convenience: download a single URL.
+---
+---If `out` is provided, sets `-O <out>`.
+---
+---@param url string
+---@param out string|nil
+---@param opts WgetOpts|nil
+---@return ward.Cmd
+function Wget.download(url, out, opts)
+	validate_non_empty_string(url, "url")
+	opts = opts or {}
+	if out ~= nil then
+		validate_non_empty_string(out, "out")
+		opts.output_document = out
+	end
+	return Wget.fetch(url, opts)
+end
+
+---Convenience: mirror a site.
+---
+---Adds `-m` and optionally `-P <dir>`.
+---
+---@param url string
+---@param dir string|nil
+---@param opts WgetOpts|nil
+---@return ward.Cmd
+function Wget.mirror_site(url, dir, opts)
+	validate_non_empty_string(url, "url")
+	opts = opts or {}
+	opts.mirror = true
+	if dir ~= nil then
+		validate_non_empty_string(dir, "dir")
+		opts.directory_prefix = dir
+	end
+	return Wget.fetch(url, opts)
+end
+
+return {
+	Wget = Wget,
+}
