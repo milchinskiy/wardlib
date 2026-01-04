@@ -1,6 +1,6 @@
 # Summary
 
--[About Ward Library](./about.md)
+[About Ward Library](./about.md)
 
 ---
 
@@ -36,3 +36,9 @@
 - [app.wlcopy](./app.wlcopy.md)
 - [app.xbps](./app.xbps.md)
 - [app.yay](./app.yay.md)
+
+---
+
+# Tools
+
+- [tools.with](./tools.with.md)
