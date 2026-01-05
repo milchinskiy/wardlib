@@ -9,6 +9,7 @@
 - [app.apk](./app.apk.md)
 - [app.aptget](./app.aptget.md)
 - [app.archive](./app.archive.md)
+- [app.awk](./app.awk.md)
 - [app.blkid](./app.blkid.md)
 - [app.cfdisk](./app.cfdisk.md)
 - [app.chroot](./app.chroot.md)
