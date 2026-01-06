@@ -56,40 +56,40 @@ local _fs = require("ward.fs")
 ---@field script fun(spec: SfdiskTable): string Build sfdisk script text
 ---@field apply fun(device: string, spec_or_script: SfdiskTable|string, opts: SfdiskOpts|nil): ward.Cmd Build `printf | sfdisk` pipeline
 local Sfdisk = {
-  bin = "sfdisk",
+	bin = "sfdisk",
 }
 
 ---Validate binary name/path.
 ---@param bin string
 ---@param label string
 local function validate_bin(bin, label)
-  assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-  if bin:find("/", 1, true) then
-    assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-    assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-  else
-    assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-  end
+	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
+	if bin:find("/", 1, true) then
+		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
+		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
+	else
+		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
+	end
 end
 
 ---Validate a block device argument.
 ---@param device string
 local function validate_device(device)
-  assert(type(device) == "string" and #device > 0, "device must be a non-empty string")
-  assert(device:sub(1, 1) ~= "-", "device must not start with '-': " .. tostring(device))
-  assert(not device:find("%s"), "device must not contain whitespace: " .. tostring(device))
+	assert(type(device) == "string" and #device > 0, "device must be a non-empty string")
+	assert(device:sub(1, 1) ~= "-", "device must not start with '-': " .. tostring(device))
+	assert(not device:find("%s"), "device must not contain whitespace: " .. tostring(device))
 end
 
 ---@param args string[]
 ---@param extra string[]|nil
 local function append_extra(args, extra)
-  if extra == nil then
-    return
-  end
-  assert(type(extra) == "table", "extra must be an array")
-  for _, v in ipairs(extra) do
-    table.insert(args, tostring(v))
-  end
+	if extra == nil then
+		return
+	end
+	assert(type(extra) == "table", "extra must be an array")
+	for _, v in ipairs(extra) do
+		table.insert(args, tostring(v))
+	end
 end
 
 ---Generic constructor: `sfdisk [opts...] <argv...>`
@@ -97,59 +97,61 @@ end
 ---@param opts SfdiskOpts|nil
 ---@return ward.Cmd
 function Sfdisk.cmd(argv, opts)
-  validate_bin(Sfdisk.bin, "sfdisk")
-  opts = opts or {}
+	validate_bin(Sfdisk.bin, "sfdisk")
+	opts = opts or {}
 
-  local args = { Sfdisk.bin }
-  if opts.force then
-    table.insert(args, "--force")
-  end
-  if opts.no_reread then
-    table.insert(args, "--no-reread")
-  end
-  if opts.no_act then
-    table.insert(args, "--no-act")
-  end
-  if opts.quiet then
-    table.insert(args, "--quiet")
-  end
-  if opts.lock ~= nil then
-    if opts.lock == true or opts.lock == "yes" then
-      table.insert(args, "--lock")
-    elseif opts.lock == false or opts.lock == "no" then
-      table.insert(args, "--lock=no")
-    elseif opts.lock == "nonblock" then
-      table.insert(args, "--lock=nonblock")
-    else
-      error("lock must be boolean or one of: 'yes','no','nonblock'")
-    end
-  end
-  if opts.wipe ~= nil then
-    assert(type(opts.wipe) == "string" and #opts.wipe > 0, "wipe must be a non-empty string")
-    table.insert(args, "--wipe")
-    table.insert(args, opts.wipe)
-  end
-  if opts.label ~= nil then
-    assert(type(opts.label) == "string" and #opts.label > 0, "label must be a non-empty string")
-    table.insert(args, "--label")
-    table.insert(args, opts.label)
-  end
-  if opts.sector_size ~= nil then
-    assert(
-      type(opts.sector_size) == "number" and opts.sector_size > 0 and math.floor(opts.sector_size) == opts.sector_size,
-      "sector_size must be a positive integer"
-    )
-    table.insert(args, "--sector-size")
-    table.insert(args, tostring(opts.sector_size))
-  end
-  append_extra(args, opts.extra)
-  if argv ~= nil then
-    assert(type(argv) == "table", "argv must be an array")
-    for _, v in ipairs(argv) do
-      table.insert(args, tostring(v))
-    end
-  end
-  return _proc.cmd(table.unpack(args))
+	local args = { Sfdisk.bin }
+	if opts.force then
+		table.insert(args, "--force")
+	end
+	if opts.no_reread then
+		table.insert(args, "--no-reread")
+	end
+	if opts.no_act then
+		table.insert(args, "--no-act")
+	end
+	if opts.quiet then
+		table.insert(args, "--quiet")
+	end
+	if opts.lock ~= nil then
+		if opts.lock == true or opts.lock == "yes" then
+			table.insert(args, "--lock")
+		elseif opts.lock == false or opts.lock == "no" then
+			table.insert(args, "--lock=no")
+		elseif opts.lock == "nonblock" then
+			table.insert(args, "--lock=nonblock")
+		else
+			error("lock must be boolean or one of: 'yes','no','nonblock'")
+		end
+	end
+	if opts.wipe ~= nil then
+		assert(type(opts.wipe) == "string" and #opts.wipe > 0, "wipe must be a non-empty string")
+		table.insert(args, "--wipe")
+		table.insert(args, opts.wipe)
+	end
+	if opts.label ~= nil then
+		assert(type(opts.label) == "string" and #opts.label > 0, "label must be a non-empty string")
+		table.insert(args, "--label")
+		table.insert(args, opts.label)
+	end
+	if opts.sector_size ~= nil then
+		assert(
+			type(opts.sector_size) == "number"
+				and opts.sector_size > 0
+				and math.floor(opts.sector_size) == opts.sector_size,
+			"sector_size must be a positive integer"
+		)
+		table.insert(args, "--sector-size")
+		table.insert(args, tostring(opts.sector_size))
+	end
+	append_extra(args, opts.extra)
+	if argv ~= nil then
+		assert(type(argv) == "table", "argv must be an array")
+		for _, v in ipairs(argv) do
+			table.insert(args, tostring(v))
+		end
+	end
+	return _proc.cmd(table.unpack(args))
 end
 
 ---Dump partition table: `sfdisk --dump <device>`
@@ -157,8 +159,8 @@ end
 ---@param opts SfdiskOpts|nil
 ---@return ward.Cmd
 function Sfdisk.dump(device, opts)
-  validate_device(device)
-  return Sfdisk.cmd({ "--dump", device }, opts)
+	validate_device(device)
+	return Sfdisk.cmd({ "--dump", device }, opts)
 end
 
 ---Dump partition table as JSON: `sfdisk --json <device>`
@@ -166,8 +168,8 @@ end
 ---@param opts SfdiskOpts|nil
 ---@return ward.Cmd
 function Sfdisk.json(device, opts)
-  validate_device(device)
-  return Sfdisk.cmd({ "--json", device }, opts)
+	validate_device(device)
+	return Sfdisk.cmd({ "--json", device }, opts)
 end
 
 ---List partitions: `sfdisk --list <device>`
@@ -175,8 +177,8 @@ end
 ---@param opts SfdiskOpts|nil
 ---@return ward.Cmd
 function Sfdisk.list(device, opts)
-  validate_device(device)
-  return Sfdisk.cmd({ "--list", device }, opts)
+	validate_device(device)
+	return Sfdisk.cmd({ "--list", device }, opts)
 end
 
 ---Apply partition table script to device: `sfdisk [opts...] <device>`
@@ -186,118 +188,118 @@ end
 ---@param opts SfdiskOpts|nil
 ---@return ward.Cmd
 function Sfdisk.write(device, opts)
-  validate_device(device)
-  return Sfdisk.cmd({ device }, opts)
+	validate_device(device)
+	return Sfdisk.cmd({ device }, opts)
 end
 
 local function _kv(v)
-  if v == nil then
-    return nil
-  end
-  if type(v) == "number" then
-    return tostring(v)
-  end
-  if type(v) == "string" then
-    return v
-  end
-  if type(v) == "boolean" then
-    return v and true or nil
-  end
-  return tostring(v)
+	if v == nil then
+		return nil
+	end
+	if type(v) == "number" then
+		return tostring(v)
+	end
+	if type(v) == "string" then
+		return v
+	end
+	if type(v) == "boolean" then
+		return v and true or nil
+	end
+	return tostring(v)
 end
 
 local function _sorted_keys(tbl)
-  local keys = {}
-  for k, _ in pairs(tbl) do
-    table.insert(keys, k)
-  end
-  table.sort(keys)
-  return keys
+	local keys = {}
+	for k, _ in pairs(tbl) do
+		table.insert(keys, k)
+	end
+	table.sort(keys)
+	return keys
 end
 
 ---Encode a single partition line.
 ---@param part SfdiskPartition
 ---@return string
 local function encode_partition(part)
-  assert(type(part) == "table", "partition must be a table")
+	assert(type(part) == "table", "partition must be a table")
 
-  local fields = {}
+	local fields = {}
 
-  local function add_kv(key, val)
-    local vv = _kv(val)
-    if vv == nil then
-      return
-    end
-    if vv == true then
-      table.insert(fields, key)
-    else
-      table.insert(fields, string.format("%s=%s", key, vv))
-    end
-  end
+	local function add_kv(key, val)
+		local vv = _kv(val)
+		if vv == nil then
+			return
+		end
+		if vv == true then
+			table.insert(fields, key)
+		else
+			table.insert(fields, string.format("%s=%s", key, vv))
+		end
+	end
 
-  -- Stable, explicit ordering for common keys.
-  add_kv("start", part.start)
-  add_kv("size", part.size)
-  add_kv("type", part.type)
-  add_kv("uuid", part.uuid)
-  add_kv("name", part.name)
-  add_kv("attrs", part.attrs)
-  if part.bootable then
-    add_kv("bootable", true)
-  end
+	-- Stable, explicit ordering for common keys.
+	add_kv("start", part.start)
+	add_kv("size", part.size)
+	add_kv("type", part.type)
+	add_kv("uuid", part.uuid)
+	add_kv("name", part.name)
+	add_kv("attrs", part.attrs)
+	if part.bootable then
+		add_kv("bootable", true)
+	end
 
-  if part.extra ~= nil then
-    assert(type(part.extra) == "table", "partition.extra must be a table")
-    for _, k in ipairs(_sorted_keys(part.extra)) do
-      add_kv(k, part.extra[k])
-    end
-  end
+	if part.extra ~= nil then
+		assert(type(part.extra) == "table", "partition.extra must be a table")
+		for _, k in ipairs(_sorted_keys(part.extra)) do
+			add_kv(k, part.extra[k])
+		end
+	end
 
-  return table.concat(fields, ", ")
+	return table.concat(fields, ", ")
 end
 
 ---Encode an sfdisk table script.
 ---@param spec SfdiskTable
 ---@return string
 function Sfdisk.script(spec)
-  assert(type(spec) == "table", "spec must be a table")
-  assert(type(spec.partitions) == "table", "spec.partitions must be an array")
+	assert(type(spec) == "table", "spec must be a table")
+	assert(type(spec.partitions) == "table", "spec.partitions must be an array")
 
-  local out = {}
+	local out = {}
 
-  local function add_header(key, val)
-    local vv = _kv(val)
-    if vv == nil then
-      return
-    end
-    if vv == true then
-      vv = "yes"
-    end
-    table.insert(out, string.format("%s: %s", key, vv))
-  end
+	local function add_header(key, val)
+		local vv = _kv(val)
+		if vv == nil then
+			return
+		end
+		if vv == true then
+			vv = "yes"
+		end
+		table.insert(out, string.format("%s: %s", key, vv))
+	end
 
-  add_header("label", spec.label)
-  add_header("label-id", spec.label_id)
-  add_header("unit", spec.unit)
-  add_header("first-lba", spec.first_lba)
-  add_header("last-lba", spec.last_lba)
+	add_header("label", spec.label)
+	add_header("label-id", spec.label_id)
+	add_header("unit", spec.unit)
+	add_header("first-lba", spec.first_lba)
+	add_header("last-lba", spec.last_lba)
 
-  if spec.extra_header ~= nil then
-    assert(type(spec.extra_header) == "table", "spec.extra_header must be a table")
-    for _, k in ipairs(_sorted_keys(spec.extra_header)) do
-      add_header(k, spec.extra_header[k])
-    end
-  end
+	if spec.extra_header ~= nil then
+		assert(type(spec.extra_header) == "table", "spec.extra_header must be a table")
+		for _, k in ipairs(_sorted_keys(spec.extra_header)) do
+			add_header(k, spec.extra_header[k])
+		end
+	end
 
-  if #out > 0 then
-    table.insert(out, "") -- blank line between header and partitions
-  end
+	if #out > 0 then
+		table.insert(out, "") -- blank line between header and partitions
+	end
 
-  for _, p in ipairs(spec.partitions) do
-    table.insert(out, encode_partition(p))
-  end
+	for _, p in ipairs(spec.partitions) do
+		table.insert(out, encode_partition(p))
+	end
 
-  return table.concat(out, "\n") .. "\n"
+	return table.concat(out, "\n") .. "\n"
 end
 
 ---Build a single-call pipeline: `printf "%s" <script> | sfdisk ... <device>`
@@ -310,24 +312,23 @@ end
 ---@param opts SfdiskOpts|nil
 ---@return ward.Cmd
 function Sfdisk.apply(device, spec_or_script, opts)
-  validate_device(device)
+	validate_device(device)
 
-  local script
-  if type(spec_or_script) == "string" then
-    script = spec_or_script
-    if not script:match("\n$") then
-      script = script .. "\n"
-    end
-  else
-    script = Sfdisk.script(spec_or_script)
-  end
+	local script
+	if type(spec_or_script) == "string" then
+		script = spec_or_script
+		if not script:match("\n$") then
+			script = script .. "\n"
+		end
+	else
+		script = Sfdisk.script(spec_or_script)
+	end
 
-  -- `printf "%s"` avoids interpreting `%` sequences inside user scripts.
-  local feeder = _proc.cmd("printf", "%s", script)
-  return feeder | Sfdisk.write(device, opts)
+	-- `printf "%s"` avoids interpreting `%` sequences inside user scripts.
+	local feeder = _proc.cmd("printf", "%s", script)
+	return feeder | Sfdisk.write(device, opts)
 end
 
 return {
-  Sfdisk = Sfdisk,
+	Sfdisk = Sfdisk,
 }
-

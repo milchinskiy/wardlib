@@ -16,8 +16,9 @@
 --   If you need stricter portability, set `extra` explicitly.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
+local tbl = require("util.table")
 
 ---@class SedOpts
 ---@field extended boolean? `-E` (extended regex)
@@ -41,50 +42,6 @@ local _fs = require("ward.fs")
 local Sed = {
 	bin = "sed",
 }
-
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "sed binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("sed binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("sed binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("sed binary is not in PATH: %s", bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
----@param value string
----@param label string
-local function validate_not_flag(value, label)
-	validate_non_empty_string(value, label)
-	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
-end
-
----@param scripts string|string[]
----@param flag string
----@param label string
----@param args string[]
-local function add_repeatable(args, scripts, flag, label)
-	if type(scripts) == "string" then
-		validate_non_empty_string(scripts, label)
-		table.insert(args, flag)
-		table.insert(args, scripts)
-		return
-	end
-	assert(type(scripts) == "table", label .. " must be a string or string[]")
-	assert(#scripts > 0, label .. " must be non-empty")
-	for _, s in ipairs(scripts) do
-		validate_non_empty_string(s, label)
-		table.insert(args, flag)
-		table.insert(args, s)
-	end
-end
 
 ---@param args string[]
 ---@param opts SedOpts|nil
@@ -113,7 +70,7 @@ local function apply_opts(args, opts)
 	-- in-place handling
 	local in_place = opts.in_place
 	if opts.backup_suffix ~= nil then
-		validate_non_empty_string(opts.backup_suffix, "backup_suffix")
+		validate.non_empty_string(opts.backup_suffix, "backup_suffix")
 		in_place = opts.backup_suffix
 	end
 	if in_place ~= nil then
@@ -122,7 +79,7 @@ local function apply_opts(args, opts)
 		elseif type(in_place) == "string" then
 			-- Use GNU-compatible concatenated form.
 			-- For strict BSD compatibility, callers may pass extra = {"-i", ".bak"}.
-			validate_non_empty_string(in_place, "in_place")
+			validate.non_empty_string(in_place, "in_place")
 			if in_place:sub(1, 1) == "-" then
 				error("in_place suffix must not start with '-'")
 			end
@@ -133,18 +90,13 @@ local function apply_opts(args, opts)
 	end
 
 	if opts.expression ~= nil then
-		add_repeatable(args, opts.expression, "-e", "expression")
+		args_util.add_repeatable(args, opts.expression, "-e", "expression")
 	end
 	if opts.file ~= nil then
-		add_repeatable(args, opts.file, "-f", "file")
+		args_util.add_repeatable(args, opts.file, "-f", "file")
 	end
 
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---@param args string[]
@@ -154,14 +106,14 @@ local function apply_inputs(args, inputs)
 		return
 	end
 	if type(inputs) == "string" then
-		validate_not_flag(inputs, "input")
+		validate.not_flag(inputs, "input")
 		table.insert(args, inputs)
 		return
 	end
 	if type(inputs) == "table" then
 		assert(#inputs > 0, "inputs list must be non-empty")
 		for _, p in ipairs(inputs) do
-			validate_not_flag(p, "input")
+			validate.not_flag(p, "input")
 			table.insert(args, p)
 		end
 		return
@@ -176,7 +128,7 @@ end
 ---@param opts SedOpts|nil
 ---@return ward.Cmd
 function Sed.run(inputs, opts)
-	validate_bin(Sed.bin)
+	validate.bin(Sed.bin, "sed binary")
 
 	local args = { Sed.bin }
 	apply_opts(args, opts)
@@ -191,19 +143,21 @@ end
 ---@param opts SedOpts|nil
 ---@return ward.Cmd
 function Sed.script(script, inputs, opts)
-	validate_non_empty_string(script, "script")
-	opts = opts or {}
-	if opts.expression == nil then
-		opts.expression = script
+	validate.non_empty_string(script, "script")
+	local o = args_util.clone_opts(opts, { "expression", "file", "extra" })
+	if o.expression == nil then
+		o.expression = script
 	else
 		-- merge with existing expression(s)
-		if type(opts.expression) == "string" then
-			opts.expression = { opts.expression, script }
+		if type(o.expression) == "string" then
+			o.expression = { o.expression, script }
 		else
-			table.insert(opts.expression, script)
+			local e = tbl.clone_array_value(o.expression) or {}
+			e[#e + 1] = script
+			o.expression = e
 		end
 	end
-	return Sed.run(inputs, opts)
+	return Sed.run(inputs, o)
 end
 
 ---Convenience: substitution `s/pattern/repl/g`.
@@ -215,8 +169,8 @@ end
 ---@param opts SedOpts|nil
 ---@return ward.Cmd
 function Sed.replace(pattern, repl, inputs, opts)
-	validate_non_empty_string(pattern, "pattern")
-	validate_non_empty_string(repl, "repl")
+	validate.non_empty_string(pattern, "pattern")
+	validate.non_empty_string(repl, "repl")
 	local script = "s/" .. pattern .. "/" .. repl .. "/g"
 	return Sed.script(script, inputs, opts)
 end
@@ -229,14 +183,14 @@ end
 ---@param opts SedOpts|nil
 ---@return ward.Cmd
 function Sed.inplace_replace(pattern, repl, inputs, backup_suffix, opts)
-	opts = opts or {}
+	local o = args_util.clone_opts(opts, { "expression", "file", "extra" })
 	if backup_suffix ~= nil then
-		validate_non_empty_string(backup_suffix, "backup_suffix")
-		opts.in_place = backup_suffix
+		validate.non_empty_string(backup_suffix, "backup_suffix")
+		o.in_place = backup_suffix
 	else
-		opts.in_place = true
+		o.in_place = true
 	end
-	return Sed.replace(pattern, repl, inputs, opts)
+	return Sed.replace(pattern, repl, inputs, o)
 end
 
 return {

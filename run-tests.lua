@@ -79,6 +79,12 @@ local function parse_argv(argv)
 	local patterns = { "**/*.test.lua" }
 	local specs = {}
 
+	local function require_value(flag, idx)
+		local v = argv[idx]
+		assert(v ~= nil and v ~= "", flag .. " requires a value")
+		return v
+	end
+
 	local i = 1
 	while i <= #argv do
 		local a = argv[i]
@@ -86,15 +92,13 @@ local function parse_argv(argv)
 			opts.list = true
 		elseif a == "--only" then
 			i = i + 1
-			opts.only = argv[i]
+			opts.only = require_value("--only", i)
 		elseif a == "--fail-fast" then
 			opts.fail_fast = true
 		elseif a == "--pattern" then
 			i = i + 1
-			local pat = argv[i]
-			if pat and pat ~= "" then
-				patterns[#patterns + 1] = pat
-			end
+			local pat = require_value("--pattern", i)
+			patterns[#patterns + 1] = pat
 		else
 			specs[#specs + 1] = a
 		end
@@ -131,8 +135,7 @@ local function main(argv)
 	if (not opts.list) and r.failed > 0 then
 		require("ward.process").exit(1)
 	end
-
-    return r
+	return r
 end
 
 return main(arg)

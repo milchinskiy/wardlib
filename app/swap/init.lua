@@ -12,6 +12,7 @@
 local _cmd = require("ward.process")
 local _env = require("ward.env")
 local _fs = require("ward.fs")
+local tbl = require("util.table")
 
 ---@class MkswapOpts
 ---@field label string? `-L <label>`
@@ -280,18 +281,18 @@ end
 ---@param opts SwaponOpts|nil
 ---@return ward.Cmd
 function Swap.status(opts)
-	opts = opts or {}
-	opts.show = true
-	return Swap.swapon(nil, opts)
+	local o = tbl.shallow_copy(opts)
+	o.show = true
+	return Swap.swapon(nil, o)
 end
 
 ---Convenience: `swapoff -a`.
 ---@param opts SwapoffOpts|nil
 ---@return ward.Cmd
 function Swap.disable_all(opts)
-	opts = opts or {}
-	opts.all = true
-	return Swap.swapoff(nil, opts)
+	local o = tbl.shallow_copy(opts)
+	o.all = true
+	return Swap.swapoff(nil, o)
 end
 
 return {

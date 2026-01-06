@@ -9,8 +9,9 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
+local tbl = require("util.table")
 
 ---@class CurlOpts
 ---@field silent boolean? `-s`
@@ -55,36 +56,6 @@ local _fs = require("ward.fs")
 local Curl = {
 	bin = "curl",
 }
-
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "curl binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("curl binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("curl binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("curl binary is not in PATH: %s", bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
----@param value string
----@param label string
-local function validate_not_flag(value, label)
-	validate_non_empty_string(value, label)
-	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
-end
-
----@param v any
----@param label string
-local function validate_number(v, label)
-	assert(type(v) == "number" and v >= 0, label .. " must be a non-negative number")
-end
 
 ---@param args string[]
 ---@param opts CurlOpts|nil
@@ -135,29 +106,29 @@ local function apply_opts(args, opts)
 	end
 
 	if opts.request ~= nil then
-		validate_not_flag(opts.request, "request")
+		validate.not_flag(opts.request, "request")
 		table.insert(args, "-X")
 		table.insert(args, opts.request)
 	end
 
 	if opts.connect_timeout ~= nil then
-		validate_number(opts.connect_timeout, "connect_timeout")
+		validate.number_non_negative(opts.connect_timeout, "connect_timeout")
 		table.insert(args, "--connect-timeout")
 		table.insert(args, tostring(opts.connect_timeout))
 	end
 	if opts.max_time ~= nil then
-		validate_number(opts.max_time, "max_time")
+		validate.number_non_negative(opts.max_time, "max_time")
 		table.insert(args, "--max-time")
 		table.insert(args, tostring(opts.max_time))
 	end
 	if opts.retry ~= nil then
-		validate_number(opts.retry, "retry")
+		validate.number_non_negative(opts.retry, "retry")
 		table.insert(args, "--retry")
 		table.insert(args, tostring(opts.retry))
 	end
 
 	if opts.user_agent ~= nil then
-		validate_non_empty_string(opts.user_agent, "user_agent")
+		validate.non_empty_string(opts.user_agent, "user_agent")
 		table.insert(args, "-A")
 		table.insert(args, opts.user_agent)
 	end
@@ -175,36 +146,36 @@ local function apply_opts(args, opts)
 			error("header must be string or string[]")
 		end
 		for _, h in ipairs(headers) do
-			validate_non_empty_string(h, "header")
+			validate.non_empty_string(h, "header")
 			table.insert(args, "-H")
 			table.insert(args, h)
 		end
 	end
 
 	if opts.cookie ~= nil then
-		validate_non_empty_string(opts.cookie, "cookie")
+		validate.non_empty_string(opts.cookie, "cookie")
 		table.insert(args, "-b")
 		table.insert(args, opts.cookie)
 	end
 	if opts.cookie_jar ~= nil then
-		validate_non_empty_string(opts.cookie_jar, "cookie_jar")
+		validate.non_empty_string(opts.cookie_jar, "cookie_jar")
 		table.insert(args, "-c")
 		table.insert(args, opts.cookie_jar)
 	end
 
 	if opts.output ~= nil then
-		validate_non_empty_string(opts.output, "output")
+		validate.non_empty_string(opts.output, "output")
 		table.insert(args, "-o")
 		table.insert(args, opts.output)
 	end
 
 	if opts.data ~= nil then
-		validate_non_empty_string(opts.data, "data")
+		validate.non_empty_string(opts.data, "data")
 		table.insert(args, "-d")
 		table.insert(args, opts.data)
 	end
 	if opts.data_raw ~= nil then
-		validate_non_empty_string(opts.data_raw, "data_raw")
+		validate.non_empty_string(opts.data_raw, "data_raw")
 		table.insert(args, "--data-raw")
 		table.insert(args, opts.data_raw)
 	end
@@ -222,40 +193,35 @@ local function apply_opts(args, opts)
 			error("form must be string or string[]")
 		end
 		for _, f in ipairs(forms) do
-			validate_non_empty_string(f, "form")
+			validate.non_empty_string(f, "form")
 			table.insert(args, "-F")
 			table.insert(args, f)
 		end
 	end
 
 	if opts.cacert ~= nil then
-		validate_non_empty_string(opts.cacert, "cacert")
+		validate.non_empty_string(opts.cacert, "cacert")
 		table.insert(args, "--cacert")
 		table.insert(args, opts.cacert)
 	end
 	if opts.cert ~= nil then
-		validate_non_empty_string(opts.cert, "cert")
+		validate.non_empty_string(opts.cert, "cert")
 		table.insert(args, "--cert")
 		table.insert(args, opts.cert)
 	end
 	if opts.key ~= nil then
-		validate_non_empty_string(opts.key, "key")
+		validate.non_empty_string(opts.key, "key")
 		table.insert(args, "--key")
 		table.insert(args, opts.key)
 	end
 
 	if opts.write_out ~= nil then
-		validate_non_empty_string(opts.write_out, "write_out")
+		validate.non_empty_string(opts.write_out, "write_out")
 		table.insert(args, "-w")
 		table.insert(args, opts.write_out)
 	end
 
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Construct a curl command.
@@ -266,19 +232,19 @@ end
 ---@param opts CurlOpts|nil
 ---@return ward.Cmd
 function Curl.request(urls, opts)
-	validate_bin(Curl.bin)
+	validate.bin(Curl.bin, "curl binary")
 
 	local args = { Curl.bin }
 	apply_opts(args, opts)
 
 	if urls ~= nil then
 		if type(urls) == "string" then
-			validate_non_empty_string(urls, "url")
+			validate.non_empty_string(urls, "url")
 			table.insert(args, urls)
 		elseif type(urls) == "table" then
 			assert(#urls > 0, "urls list must be non-empty")
 			for _, u in ipairs(urls) do
-				validate_non_empty_string(u, "url")
+				validate.non_empty_string(u, "url")
 				table.insert(args, u)
 			end
 		else
@@ -293,7 +259,7 @@ end
 ---@param opts CurlOpts|nil
 ---@return ward.Cmd
 function Curl.get(url, opts)
-	validate_non_empty_string(url, "url")
+	validate.non_empty_string(url, "url")
 	return Curl.request(url, opts)
 end
 
@@ -301,10 +267,10 @@ end
 ---@param opts CurlOpts|nil
 ---@return ward.Cmd
 function Curl.head(url, opts)
-	validate_non_empty_string(url, "url")
-	opts = opts or {}
-	opts.head = true
-	return Curl.request(url, opts)
+	validate.non_empty_string(url, "url")
+	local o = tbl.shallow_copy(opts)
+	o.head = true
+	return Curl.request(url, o)
 end
 
 ---Convenience: download a URL.
@@ -316,16 +282,16 @@ end
 ---@param opts CurlOpts|nil
 ---@return ward.Cmd
 function Curl.download(url, out, opts)
-	validate_non_empty_string(url, "url")
-	opts = opts or {}
-	opts.location = (opts.location ~= false) and true or false
+	validate.non_empty_string(url, "url")
+	local o = tbl.shallow_copy(opts)
+	o.location = (o.location ~= false) and true or false
 	if out ~= nil then
-		validate_non_empty_string(out, "out")
-		opts.output = out
+		validate.non_empty_string(out, "out")
+		o.output = out
 	else
-		opts.remote_name = true
+		o.remote_name = true
 	end
-	return Curl.request(url, opts)
+	return Curl.request(url, o)
 end
 
 ---Convenience: POST a body.
@@ -335,14 +301,14 @@ end
 ---@param opts CurlOpts|nil
 ---@return ward.Cmd
 function Curl.post(url, data, opts)
-	validate_non_empty_string(url, "url")
-	opts = opts or {}
-	opts.request = opts.request or "POST"
+	validate.non_empty_string(url, "url")
+	local o = tbl.shallow_copy(opts)
+	o.request = o.request or "POST"
 	if data ~= nil then
-		validate_non_empty_string(data, "data")
-		opts.data = data
+		validate.non_empty_string(data, "data")
+		o.data = data
 	end
-	return Curl.request(url, opts)
+	return Curl.request(url, o)
 end
 
 return {

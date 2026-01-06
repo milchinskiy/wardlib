@@ -96,12 +96,12 @@ end
 --- @return ... returns fn(...) results
 function M.scope(mw, fn, ...)
 	process.push_middleware(mw)
-	local ok, r1, r2, r3, r4, r5, r6 = pcall(fn, ...)
+	local packed = table.pack(pcall(fn, ...))
 	process.pop_middleware()
-	if ok then
-		return r1, r2, r3, r4, r5, r6
+	if packed[1] then
+		return table.unpack(packed, 2, packed.n)
 	end
-	error(r1, 0)
+	error(packed[2], 0)
 end
 
 --- Middleware constructors.
@@ -197,7 +197,7 @@ end
 --- @param mw_or_prefix function|table|string
 --- @param cmd any table-like object
 --- @param opts table|nil options for prefix middleware (only used if mw_or_prefix is not a function)
---- @return proxy table
+--- @return table
 function M.wrap(mw_or_prefix, cmd, opts)
 	local mw
 	if type(mw_or_prefix) == "function" then

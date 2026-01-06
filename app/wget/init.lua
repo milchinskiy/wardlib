@@ -9,8 +9,9 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
+local tbl = require("util.table")
 
 ---@class WgetOpts
 ---@field quiet boolean? `-q`
@@ -54,36 +55,6 @@ local Wget = {
 	bin = "wget",
 }
 
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "wget binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("wget binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("wget binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("wget binary is not in PATH: %s", bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
----@param value string
----@param label string
-local function validate_not_flag(value, label)
-	validate_non_empty_string(value, label)
-	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
-end
-
----@param v any
----@param label string
-local function validate_number(v, label)
-	assert(type(v) == "number" and v >= 0, label .. " must be a non-negative number")
-end
-
 ---@param args string[]
 ---@param opts WgetOpts|nil
 local function apply_opts(args, opts)
@@ -121,35 +92,35 @@ local function apply_opts(args, opts)
 	end
 
 	if opts.timeout ~= nil then
-		validate_number(opts.timeout, "timeout")
+		validate.number_non_negative(opts.timeout, "timeout")
 		table.insert(args, "--timeout=" .. tostring(opts.timeout))
 	end
 	if opts.wait ~= nil then
-		validate_number(opts.wait, "wait")
+		validate.number_non_negative(opts.wait, "wait")
 		table.insert(args, "--wait=" .. tostring(opts.wait))
 	end
 	if opts.tries ~= nil then
-		validate_number(opts.tries, "tries")
+		validate.number_non_negative(opts.tries, "tries")
 		table.insert(args, "--tries=" .. tostring(opts.tries))
 	end
 
 	if opts.output_document ~= nil then
-		validate_non_empty_string(opts.output_document, "output_document")
+		validate.non_empty_string(opts.output_document, "output_document")
 		table.insert(args, "-O")
 		table.insert(args, opts.output_document)
 	end
 	if opts.directory_prefix ~= nil then
-		validate_non_empty_string(opts.directory_prefix, "directory_prefix")
+		validate.non_empty_string(opts.directory_prefix, "directory_prefix")
 		table.insert(args, "-P")
 		table.insert(args, opts.directory_prefix)
 	end
 	if opts.input_file ~= nil then
-		validate_non_empty_string(opts.input_file, "input_file")
+		validate.non_empty_string(opts.input_file, "input_file")
 		table.insert(args, "-i")
 		table.insert(args, opts.input_file)
 	end
 	if opts.user_agent ~= nil then
-		validate_non_empty_string(opts.user_agent, "user_agent")
+		validate.non_empty_string(opts.user_agent, "user_agent")
 		table.insert(args, "-U")
 		table.insert(args, opts.user_agent)
 	end
@@ -167,29 +138,29 @@ local function apply_opts(args, opts)
 			error("header must be string or string[]")
 		end
 		for _, h in ipairs(headers) do
-			validate_non_empty_string(h, "header")
+			validate.non_empty_string(h, "header")
 			table.insert(args, "--header=" .. h)
 		end
 	end
 
 	if opts.method ~= nil then
-		validate_not_flag(opts.method, "method")
+		validate.not_flag(opts.method, "method")
 		table.insert(args, "--method=" .. opts.method)
 	end
 	if opts.post_data ~= nil then
-		validate_non_empty_string(opts.post_data, "post_data")
+		validate.non_empty_string(opts.post_data, "post_data")
 		table.insert(args, "--post-data=" .. opts.post_data)
 	end
 	if opts.post_file ~= nil then
-		validate_non_empty_string(opts.post_file, "post_file")
+		validate.non_empty_string(opts.post_file, "post_file")
 		table.insert(args, "--post-file=" .. opts.post_file)
 	end
 	if opts.body_data ~= nil then
-		validate_non_empty_string(opts.body_data, "body_data")
+		validate.non_empty_string(opts.body_data, "body_data")
 		table.insert(args, "--body-data=" .. opts.body_data)
 	end
 	if opts.body_file ~= nil then
-		validate_non_empty_string(opts.body_file, "body_file")
+		validate.non_empty_string(opts.body_file, "body_file")
 		table.insert(args, "--body-file=" .. opts.body_file)
 	end
 
@@ -197,7 +168,7 @@ local function apply_opts(args, opts)
 		table.insert(args, "-r")
 	end
 	if opts.level ~= nil then
-		validate_number(opts.level, "level")
+		validate.number_non_negative(opts.level, "level")
 		table.insert(args, "-l")
 		table.insert(args, tostring(opts.level))
 	end
@@ -217,12 +188,7 @@ local function apply_opts(args, opts)
 		table.insert(args, "-E")
 	end
 
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Construct a wget command.
@@ -233,19 +199,19 @@ end
 ---@param opts WgetOpts|nil
 ---@return ward.Cmd
 function Wget.fetch(urls, opts)
-	validate_bin(Wget.bin)
+	validate.bin(Wget.bin, "wget binary")
 
 	local args = { Wget.bin }
 	apply_opts(args, opts)
 
 	if urls ~= nil then
 		if type(urls) == "string" then
-			validate_non_empty_string(urls, "url")
+			validate.non_empty_string(urls, "url")
 			table.insert(args, urls)
 		elseif type(urls) == "table" then
 			assert(#urls > 0, "urls list must be non-empty")
 			for _, u in ipairs(urls) do
-				validate_non_empty_string(u, "url")
+				validate.non_empty_string(u, "url")
 				table.insert(args, u)
 			end
 		else
@@ -265,13 +231,13 @@ end
 ---@param opts WgetOpts|nil
 ---@return ward.Cmd
 function Wget.download(url, out, opts)
-	validate_non_empty_string(url, "url")
-	opts = opts or {}
+	validate.non_empty_string(url, "url")
+	local o = tbl.shallow_copy(opts)
 	if out ~= nil then
-		validate_non_empty_string(out, "out")
-		opts.output_document = out
+		validate.non_empty_string(out, "out")
+		o.output_document = out
 	end
-	return Wget.fetch(url, opts)
+	return Wget.fetch(url, o)
 end
 
 ---Convenience: mirror a site.
@@ -283,14 +249,14 @@ end
 ---@param opts WgetOpts|nil
 ---@return ward.Cmd
 function Wget.mirror_site(url, dir, opts)
-	validate_non_empty_string(url, "url")
-	opts = opts or {}
-	opts.mirror = true
+	validate.non_empty_string(url, "url")
+	local o = tbl.shallow_copy(opts)
+	o.mirror = true
 	if dir ~= nil then
-		validate_non_empty_string(dir, "dir")
-		opts.directory_prefix = dir
+		validate.non_empty_string(dir, "dir")
+		o.directory_prefix = dir
 	end
-	return Wget.fetch(url, opts)
+	return Wget.fetch(url, o)
 end
 
 return {

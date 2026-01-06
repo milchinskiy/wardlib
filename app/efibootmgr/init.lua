@@ -9,8 +9,8 @@
 -- passed through via `opts.extra`.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class EfibootmgrOpts
 ---@field bin string? Override binary (name or absolute path)
@@ -58,30 +58,10 @@ local Efibootmgr = {
 	bin = "efibootmgr",
 }
 
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
-
 local function validate_token(value, label)
 	assert(type(value) == "string" and #value > 0, label .. " must be a non-empty string")
 	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
 	assert(not value:find("%s"), label .. " must not contain whitespace: " .. tostring(value))
-end
-
-local function append_extra(args, extra)
-	if extra == nil then
-		return
-	end
-	assert(type(extra) == "table", "extra must be an array")
-	for _, v in ipairs(extra) do
-		table.insert(args, tostring(v))
-	end
 end
 
 local function to_hex4(v, label)
@@ -114,7 +94,7 @@ end
 function Efibootmgr.cmd(opts)
 	opts = opts or {}
 	local bin = opts.bin or Efibootmgr.bin
-	validate_bin(bin, "efibootmgr")
+	validate.bin(bin, "efibootmgr binary")
 
 	local args = { bin }
 
@@ -228,7 +208,7 @@ function Efibootmgr.cmd(opts)
 		table.insert(args, opts.append_binary_args)
 	end
 
-	append_extra(args, opts.extra)
+	args_util.append_extra(args, opts.extra)
 	return _cmd.cmd(table.unpack(args))
 end
 
@@ -237,46 +217,46 @@ function Efibootmgr.list(opts)
 end
 
 function Efibootmgr.set_bootnext(bootnum, opts)
-	opts = opts or {}
-	opts.bootnext = bootnum
-	return Efibootmgr.cmd(opts)
+	local o = args_util.clone_opts(opts, { "extra" })
+	o.bootnext = bootnum
+	return Efibootmgr.cmd(o)
 end
 
 function Efibootmgr.delete_bootnext(opts)
-	opts = opts or {}
-	opts.delete_bootnext = true
-	return Efibootmgr.cmd(opts)
+	local o = args_util.clone_opts(opts, { "extra" })
+	o.delete_bootnext = true
+	return Efibootmgr.cmd(o)
 end
 
 function Efibootmgr.set_bootorder(order, opts)
-	opts = opts or {}
-	opts.bootorder = order
-	return Efibootmgr.cmd(opts)
+	local o = args_util.clone_opts(opts, { "extra" })
+	o.bootorder = order
+	return Efibootmgr.cmd(o)
 end
 
 function Efibootmgr.delete_bootorder(opts)
-	opts = opts or {}
-	opts.delete_bootorder = true
-	return Efibootmgr.cmd(opts)
+	local o = args_util.clone_opts(opts, { "extra" })
+	o.delete_bootorder = true
+	return Efibootmgr.cmd(o)
 end
 
 function Efibootmgr.set_timeout(seconds, opts)
-	opts = opts or {}
-	opts.timeout = seconds
-	return Efibootmgr.cmd(opts)
+	local o = args_util.clone_opts(opts, { "extra" })
+	o.timeout = seconds
+	return Efibootmgr.cmd(o)
 end
 
 function Efibootmgr.delete_timeout(opts)
-	opts = opts or {}
-	opts.delete_timeout = true
-	return Efibootmgr.cmd(opts)
+	local o = args_util.clone_opts(opts, { "extra" })
+	o.delete_timeout = true
+	return Efibootmgr.cmd(o)
 end
 
 function Efibootmgr.delete(bootnum, opts)
-	opts = opts or {}
-	opts.bootnum = bootnum
-	opts.delete_bootnum = true
-	return Efibootmgr.cmd(opts)
+	local o = args_util.clone_opts(opts, { "extra" })
+	o.bootnum = bootnum
+	o.delete_bootnum = true
+	return Efibootmgr.cmd(o)
 end
 
 ---Convenience helper for creating an entry.
@@ -287,8 +267,9 @@ end
 ---@return ward.Cmd
 function Efibootmgr.create_entry(opts)
 	assert(type(opts) == "table", "opts must be a table")
-	opts.create = true
-	return Efibootmgr.cmd(opts)
+	local o = args_util.clone_opts(opts, { "extra" })
+	o.create = true
+	return Efibootmgr.cmd(o)
 end
 
 return {
