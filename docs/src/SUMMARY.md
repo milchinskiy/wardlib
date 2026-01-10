@@ -20,6 +20,7 @@
 - [app.feh](./app.feh.md)
 - [app.git](./app.git.md)
 - [app.gsettings](./app.gsettings.md)
+- [app.ip](./app.ip.md)
 - [app.kill](./app.kill.md)
 - [app.lsblk](./app.lsblk.md)
 - [app.mkfs](./app.mkfs.md)
