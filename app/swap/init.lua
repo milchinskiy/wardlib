@@ -10,9 +10,9 @@
 -- Wrappers construct `ward.process.cmd(...)` invocations; they do not parse output.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
 local tbl = require("util.table")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class MkswapOpts
 ---@field label string? `-L <label>`
@@ -54,31 +54,6 @@ local Swap = {
 	swapoff_bin = "swapoff",
 }
 
----@param bin string
----@param label string
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
----@param value string
----@param label string
-local function validate_not_flag(value, label)
-	validate_non_empty_string(value, label)
-	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
-end
-
 ---@param v any
 ---@param label string
 local function validate_number(v, label)
@@ -89,14 +64,14 @@ end
 ---@return string
 local function normalize_cols(cols)
 	if type(cols) == "string" then
-		validate_non_empty_string(cols, "output")
+		validate.non_empty_string(cols, "output")
 		return cols
 	end
 	assert(type(cols) == "table", "output must be a string or string[]")
 	assert(#cols > 0, "output must be non-empty")
 	local parts = {}
 	for _, c in ipairs(cols) do
-		validate_non_empty_string(c, "output col")
+		validate.non_empty_string(c, "output col")
 		table.insert(parts, c)
 	end
 	return table.concat(parts, ",")
@@ -113,12 +88,12 @@ local function apply_mkswap_opts(args, opts)
 		table.insert(args, "-c")
 	end
 	if opts.label ~= nil then
-		validate_not_flag(opts.label, "label")
+		validate.not_flag(opts.label, "label")
 		table.insert(args, "-L")
 		table.insert(args, opts.label)
 	end
 	if opts.uuid ~= nil then
-		validate_not_flag(opts.uuid, "uuid")
+		validate.not_flag(opts.uuid, "uuid")
 		table.insert(args, "-U")
 		table.insert(args, opts.uuid)
 	end
@@ -128,12 +103,7 @@ local function apply_mkswap_opts(args, opts)
 		table.insert(args, "--pagesize")
 		table.insert(args, tostring(opts.pagesize))
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---@param args string[]
@@ -169,7 +139,7 @@ local function apply_swapon_opts(args, opts)
 		if opts.discard == "" then
 			table.insert(args, "--discard")
 		else
-			validate_not_flag(opts.discard, "discard")
+			validate.not_flag(opts.discard, "discard")
 			table.insert(args, "--discard=" .. opts.discard)
 		end
 	end
@@ -177,12 +147,7 @@ local function apply_swapon_opts(args, opts)
 		table.insert(args, "--output")
 		table.insert(args, normalize_cols(opts.output))
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---@param args string[]
@@ -195,12 +160,7 @@ local function apply_swapoff_opts(args, opts)
 	if opts.verbose then
 		table.insert(args, "-v")
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Construct a mkswap command.
@@ -208,8 +168,8 @@ end
 ---@param opts MkswapOpts|nil
 ---@return ward.Cmd
 function Swap.mkswap(target, opts)
-	validate_bin(Swap.mkswap_bin, "mkswap")
-	validate_non_empty_string(target, "target")
+	validate.bin(Swap.mkswap_bin, "mkswap binary")
+	validate.non_empty_string(target, "target")
 
 	local args = { Swap.mkswap_bin }
 	apply_mkswap_opts(args, opts)
@@ -224,19 +184,19 @@ end
 ---@param opts SwaponOpts|nil
 ---@return ward.Cmd
 function Swap.swapon(targets, opts)
-	validate_bin(Swap.swapon_bin, "swapon")
+	validate.bin(Swap.swapon_bin, "swapon binary")
 
 	local args = { Swap.swapon_bin }
 	apply_swapon_opts(args, opts)
 
 	if targets ~= nil then
 		if type(targets) == "string" then
-			validate_non_empty_string(targets, "target")
+			validate.non_empty_string(targets, "target")
 			table.insert(args, targets)
 		elseif type(targets) == "table" then
 			assert(#targets > 0, "targets list must be non-empty")
 			for _, t in ipairs(targets) do
-				validate_non_empty_string(t, "target")
+				validate.non_empty_string(t, "target")
 				table.insert(args, t)
 			end
 		else
@@ -254,19 +214,19 @@ end
 ---@param opts SwapoffOpts|nil
 ---@return ward.Cmd
 function Swap.swapoff(targets, opts)
-	validate_bin(Swap.swapoff_bin, "swapoff")
+	validate.bin(Swap.swapoff_bin, "swapoff binary")
 
 	local args = { Swap.swapoff_bin }
 	apply_swapoff_opts(args, opts)
 
 	if targets ~= nil then
 		if type(targets) == "string" then
-			validate_non_empty_string(targets, "target")
+			validate.non_empty_string(targets, "target")
 			table.insert(args, targets)
 		elseif type(targets) == "table" then
 			assert(#targets > 0, "targets list must be non-empty")
 			for _, t in ipairs(targets) do
-				validate_non_empty_string(t, "target")
+				validate.non_empty_string(t, "target")
 				table.insert(args, t)
 			end
 		else

@@ -9,8 +9,8 @@
 -- prefix commands with `sudo`.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class AptGetCommonOpts
 ---@field sudo boolean? Prefix with `sudo`
@@ -40,38 +40,13 @@ local AptGet = {
 	sudo_bin = "sudo",
 }
 
----@param bin string
----@param label string
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
 ---@param pkgs string|string[]
 ---@return string[]
+
+--- @param pkgs string|string[]
+--- @return string[]
 local function normalize_pkgs(pkgs)
-	if type(pkgs) == "string" then
-		validate_non_empty_string(pkgs, "pkg")
-		return { pkgs }
-	end
-	assert(type(pkgs) == "table" and #pkgs > 0, "pkgs must be a non-empty string[]")
-	local out = {}
-	for _, p in ipairs(pkgs) do
-		validate_non_empty_string(p, "pkg")
-		table.insert(out, p)
-	end
-	return out
+	return args_util.normalize_string_or_array(pkgs, "pkg")
 end
 
 ---@param args string[]
@@ -98,12 +73,7 @@ local function apply_common(args, opts)
 			table.insert(args, "-q")
 		end
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---@param subcmd string
@@ -111,14 +81,14 @@ end
 ---@param opts AptGetCommonOpts|nil
 ---@return ward.Cmd
 function AptGet.cmd(subcmd, argv, opts)
-	validate_bin(AptGet.bin, "apt-get")
+	validate.bin(AptGet.bin, "apt-get binary")
 
 	opts = opts or {}
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
 	local args = {}
 	if opts.sudo then
-		validate_bin(AptGet.sudo_bin, "sudo")
+		validate.bin(AptGet.sudo_bin, "sudo binary")
 		table.insert(args, AptGet.sudo_bin)
 	end
 

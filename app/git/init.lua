@@ -9,8 +9,8 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class GitCommonOpts
 ---@field dir string? Run in repository directory via `-C <dir>`
@@ -43,26 +43,6 @@ local Git = {
 	bin = "git",
 }
 
----Validate binary
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "git binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("git binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("git binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("git binary is not in PATH: %s", bin))
-	end
-end
-
----Validate non-empty string and avoid flag-like accidental usage.
----@param value string
----@param label string
-local function validate_not_flag(value, label)
-	assert(type(value) == "string" and #value > 0, label .. " must be a non-empty string")
-	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
-end
-
 ---@param args string[]
 ---@param opts GitCommonOpts|nil
 local function apply_common(args, opts)
@@ -80,7 +60,7 @@ end
 ---@param opts GitCommonOpts|nil
 ---@return ward.Cmd
 function Git.cmd(subcmd, argv, opts)
-	validate_bin(Git.bin)
+	validate.bin(Git.bin, 'git binary')
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
 	local args = { Git.bin }
@@ -109,11 +89,7 @@ function Git.status(opts)
 	if opts.porcelain then
 		table.insert(argv, "--porcelain=v1")
 	end
-	if opts.extra ~= nil then
-		for _, v in ipairs(opts.extra) do
-			table.insert(argv, v)
-		end
-	end
+	args_util.append_extra(argv, opts.extra)
 	return Git.cmd("status", argv, opts)
 end
 
@@ -150,18 +126,14 @@ function Git.clone(url, dest, opts)
 		table.insert(argv, tostring(opts.depth))
 	end
 	if opts.branch ~= nil then
-		validate_not_flag(opts.branch, "branch")
+		validate.not_flag(opts.branch, "branch")
 		table.insert(argv, "--branch")
 		table.insert(argv, opts.branch)
 	end
 	if opts.recursive then
 		table.insert(argv, "--recursive")
 	end
-	if opts.extra ~= nil then
-		for _, v in ipairs(opts.extra) do
-			table.insert(argv, v)
-		end
-	end
+	args_util.append_extra(argv, opts.extra)
 	table.insert(argv, url)
 	if dest ~= nil then
 		assert(type(dest) == "string" and #dest > 0, "dest must be a non-empty string")
@@ -183,13 +155,9 @@ function Git.push(remote, branch, opts)
 	if opts.upstream then
 		table.insert(argv, "-u")
 	end
-	if opts.extra ~= nil then
-		for _, v in ipairs(opts.extra) do
-			table.insert(argv, v)
-		end
-	end
+	args_util.append_extra(argv, opts.extra)
 	if remote ~= nil then
-		validate_not_flag(remote, "remote")
+		validate.not_flag(remote, "remote")
 		table.insert(argv, remote)
 	end
 	if branch ~= nil then

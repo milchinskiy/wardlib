@@ -13,7 +13,8 @@
 
 local _cmd = require("ward.process")
 local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class MkfsOpts
 ---@field bin string? Override binary (name or absolute path). When set, it is used directly and no `-t` is added.
@@ -31,16 +32,6 @@ local Mkfs = {
 	bin = "mkfs",
 }
 
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
-
 local function validate_token(value, label)
 	assert(type(value) == "string" and #value > 0, label .. " must be a non-empty string")
 	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
@@ -48,13 +39,7 @@ local function validate_token(value, label)
 end
 
 local function append_extra(args, extra)
-	if extra == nil then
-		return
-	end
-	assert(type(extra) == "table", "extra must be an array")
-	for _, v in ipairs(extra) do
-		table.insert(args, tostring(v))
-	end
+	args_util.append_extra(args, extra)
 end
 
 ---@param fstype string
@@ -64,7 +49,7 @@ end
 local function choose_bin(fstype, opts)
 	opts = opts or {}
 	if opts.bin ~= nil then
-		validate_bin(opts.bin, "mkfs")
+		validate.bin(opts.bin, "mkfs binary")
 		return opts.bin, false
 	end
 
@@ -73,7 +58,7 @@ local function choose_bin(fstype, opts)
 		return specific, false
 	end
 
-	validate_bin(Mkfs.bin, "mkfs")
+	validate.bin(Mkfs.bin, "mkfs binary")
 	return Mkfs.bin, true
 end
 

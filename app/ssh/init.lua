@@ -8,8 +8,8 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class SshCommonOpts
 ---@field user string? Username (prepended as `user@host`)
@@ -40,18 +40,6 @@ local Ssh = {
 	ssh_bin = "ssh",
 	scp_bin = "scp",
 }
-
----@param bin string
----@param label string
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
 
 ---@param host string
 local function validate_host(host)
@@ -120,12 +108,7 @@ local function apply_common(args, opts, port_flag)
 		table.insert(args, "ConnectTimeout=" .. tostring(opts.connect_timeout))
 	end
 
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array of strings")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Build target string `user@host` (or just host).
@@ -163,7 +146,7 @@ end
 ---@param opts SshCommonOpts|nil
 ---@return ward.Cmd
 function Ssh.exec(host, remote, opts)
-	validate_bin(Ssh.ssh_bin, "ssh")
+	validate.bin(Ssh.ssh_bin, "ssh binary")
 	validate_host(host)
 	opts = opts or {}
 
@@ -194,7 +177,7 @@ end
 ---@param opts ScpOpts|nil
 ---@return ward.Cmd
 function Ssh.scp(src, dst, opts)
-	validate_bin(Ssh.scp_bin, "scp")
+	validate.bin(Ssh.scp_bin, "scp binary")
 	validate_not_empty(src, "src")
 	validate_not_empty(dst, "dst")
 	opts = opts or {}

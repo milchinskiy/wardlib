@@ -48,4 +48,26 @@ function M.number_non_negative(v, label)
 	assert(type(v) == "number" and v >= 0, label .. " must be a non-negative number")
 end
 
+-- @param v any
+-- @param label string
+function M.integer(v, label)
+	assert(type(v) == "number" and math.floor(v) == v, label .. " must be an integer")
+end
+
+-- @param v any
+-- @param label string
+-- @param min integer|nil
+function M.integer_min(v, label, min)
+	M.integer(v, label)
+	if min ~= nil then
+		assert(v >= min, label .. " must be >= " .. tostring(min))
+	end
+end
+
+-- @param v any
+-- @param label string
+function M.integer_non_negative(v, label)
+	M.integer_min(v, label, 0)
+end
+
 return M

@@ -10,8 +10,8 @@
 -- Wrappers construct `ward.process.cmd(...)` invocations; they do not parse output.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@alias Signal string|number
 
@@ -69,24 +69,6 @@ local Kill = {
 	pkill_bin = "pkill",
 }
 
----@param bin string
----@param label string
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
 ---@param v any
 ---@param label string
 local function validate_number(v, label)
@@ -101,7 +83,7 @@ local function normalize_signal(sig)
 		return tostring(sig)
 	end
 	if t == "string" then
-		validate_non_empty_string(sig, "signal")
+		validate.non_empty_string(sig, "signal")
 		-- allow "TERM" or "SIGTERM"; do not force prefix
 		return sig
 	end
@@ -124,12 +106,7 @@ local function apply_kill_opts(args, opts)
 		table.insert(args, "-s")
 		table.insert(args, sig)
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---@param args string[]
@@ -163,16 +140,11 @@ local function apply_killall_opts(args, opts)
 		table.insert(args, "-q")
 	end
 	if opts.user ~= nil then
-		validate_non_empty_string(opts.user, "user")
+		validate.non_empty_string(opts.user, "user")
 		table.insert(args, "-u")
 		table.insert(args, opts.user)
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---@param args string[]
@@ -224,12 +196,12 @@ local function apply_pkill_opts(args, opts)
 		table.insert(args, tostring(opts.session))
 	end
 	if opts.terminal ~= nil then
-		validate_non_empty_string(opts.terminal, "terminal")
+		validate.non_empty_string(opts.terminal, "terminal")
 		table.insert(args, "-t")
 		table.insert(args, opts.terminal)
 	end
 	if opts.user ~= nil then
-		validate_non_empty_string(opts.user, "user")
+		validate.non_empty_string(opts.user, "user")
 		table.insert(args, "-u")
 		table.insert(args, opts.user)
 	end
@@ -244,16 +216,11 @@ local function apply_pkill_opts(args, opts)
 		table.insert(args, tostring(opts.euid))
 	end
 	if opts.delimiter ~= nil then
-		validate_non_empty_string(opts.delimiter, "delimiter")
+		validate.non_empty_string(opts.delimiter, "delimiter")
 		table.insert(args, "-d")
 		table.insert(args, opts.delimiter)
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Construct a kill command.
@@ -263,7 +230,7 @@ end
 ---@param opts KillOpts|nil
 ---@return ward.Cmd
 function Kill.kill(pids, opts)
-	validate_bin(Kill.kill_bin, "kill")
+	validate.bin(Kill.kill_bin, "kill binary")
 
 	local args = { Kill.kill_bin }
 	apply_kill_opts(args, opts)
@@ -273,7 +240,7 @@ function Kill.kill(pids, opts)
 		if tp == "number" then
 			table.insert(args, tostring(pids))
 		elseif tp == "string" then
-			validate_non_empty_string(pids, "pid")
+			validate.non_empty_string(pids, "pid")
 			table.insert(args, pids)
 		elseif tp == "table" then
 			assert(#pids > 0, "pids list must be non-empty")
@@ -282,7 +249,7 @@ function Kill.kill(pids, opts)
 				if tpid == "number" then
 					table.insert(args, tostring(pid))
 				elseif tpid == "string" then
-					validate_non_empty_string(pid, "pid")
+					validate.non_empty_string(pid, "pid")
 					table.insert(args, pid)
 				else
 					error("pid must be number or string")
@@ -303,19 +270,19 @@ end
 ---@param opts KillallOpts|nil
 ---@return ward.Cmd
 function Kill.killall(names, opts)
-	validate_bin(Kill.killall_bin, "killall")
+	validate.bin(Kill.killall_bin, "killall binary")
 
 	local args = { Kill.killall_bin }
 	apply_killall_opts(args, opts)
 
 	if names ~= nil then
 		if type(names) == "string" then
-			validate_non_empty_string(names, "name")
+			validate.non_empty_string(names, "name")
 			table.insert(args, names)
 		elseif type(names) == "table" then
 			assert(#names > 0, "names list must be non-empty")
 			for _, n in ipairs(names) do
-				validate_non_empty_string(n, "name")
+				validate.non_empty_string(n, "name")
 				table.insert(args, n)
 			end
 		else
@@ -333,13 +300,13 @@ end
 ---@param opts PkillOpts|nil
 ---@return ward.Cmd
 function Kill.pkill(pattern, opts)
-	validate_bin(Kill.pkill_bin, "pkill")
+	validate.bin(Kill.pkill_bin, "pkill binary")
 
 	local args = { Kill.pkill_bin }
 	apply_pkill_opts(args, opts)
 
 	if pattern ~= nil then
-		validate_non_empty_string(pattern, "pattern")
+		validate.non_empty_string(pattern, "pattern")
 		table.insert(args, pattern)
 	end
 
@@ -363,7 +330,7 @@ end
 ---@param sig Signal|nil
 ---@return ward.Cmd
 function Kill.by_name(name, sig)
-	validate_non_empty_string(name, "name")
+	validate.non_empty_string(name, "name")
 	local opts = {}
 	if sig ~= nil then
 		opts.signal = sig
@@ -377,7 +344,7 @@ end
 ---@param full boolean|nil
 ---@return ward.Cmd
 function Kill.by_pattern(pattern, sig, full)
-	validate_non_empty_string(pattern, "pattern")
+	validate.non_empty_string(pattern, "pattern")
 	local opts = {}
 	if sig ~= nil then
 		opts.signal = sig

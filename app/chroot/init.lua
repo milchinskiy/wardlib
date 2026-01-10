@@ -13,8 +13,8 @@
 -- Everything else can be passed through via `opts.extra`.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class ChrootOpts
 ---@field userspec string? Add `--userspec=<user>:<group>`
@@ -28,16 +28,6 @@ local _fs = require("ward.fs")
 local Chroot = {
 	bin = "chroot",
 }
-
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
 
 local function validate_token(value, label)
 	assert(type(value) == "string" and #value > 0, label .. " must be a non-empty string")
@@ -62,13 +52,7 @@ local function join_groups(value)
 end
 
 local function append_extra(args, extra)
-	if extra == nil then
-		return
-	end
-	assert(type(extra) == "table", "extra must be an array")
-	for _, v in ipairs(extra) do
-		table.insert(args, tostring(v))
-	end
+	args_util.append_extra(args, extra)
 end
 
 ---`chroot [opts] <newroot> [command [args...]]`
@@ -77,7 +61,7 @@ end
 ---@param opts ChrootOpts|nil
 ---@return ward.Cmd
 function Chroot.run(root, argv, opts)
-	validate_bin(Chroot.bin, "chroot")
+	validate.bin(Chroot.bin, "chroot binary")
 	validate_token(root, "root")
 	opts = opts or {}
 

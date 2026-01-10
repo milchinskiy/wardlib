@@ -8,8 +8,8 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@alias SwaybgMode "stretch"|"fill"|"fit"|"center"|"tile"
 
@@ -31,23 +31,6 @@ local Swaybg = {
 	bin = "swaybg",
 }
 
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "swaybg binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("swaybg binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("swaybg binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("swaybg binary is not in PATH: %s", bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
 ---@param mode string
 local function validate_mode(mode)
 	local ok = {
@@ -64,10 +47,10 @@ end
 ---@param args string[]
 local function apply_output(out, args)
 	assert(type(out) == "table", "output must be a table")
-	validate_non_empty_string(out.image, "image")
+	validate.non_empty_string(out.image, "image")
 
 	if out.name ~= nil then
-		validate_non_empty_string(out.name, "name")
+		validate.non_empty_string(out.name, "name")
 		table.insert(args, "-o")
 		table.insert(args, out.name)
 	end
@@ -76,14 +59,14 @@ local function apply_output(out, args)
 	table.insert(args, out.image)
 
 	if out.mode ~= nil then
-		validate_non_empty_string(out.mode, "mode")
+		validate.non_empty_string(out.mode, "mode")
 		validate_mode(out.mode)
 		table.insert(args, "-m")
 		table.insert(args, out.mode)
 	end
 
 	if out.color ~= nil then
-		validate_non_empty_string(out.color, "color")
+		validate.non_empty_string(out.color, "color")
 		table.insert(args, "-c")
 		table.insert(args, out.color)
 	end
@@ -111,12 +94,7 @@ local function apply_opts(args, opts)
 		error("opts.outputs is required")
 	end
 
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Convenience: set wallpaper for default output.
@@ -125,16 +103,16 @@ end
 ---@param color string|nil
 ---@return ward.Cmd
 function Swaybg.set(image, mode, color)
-	validate_bin(Swaybg.bin)
-	validate_non_empty_string(image, "image")
+	validate.bin(Swaybg.bin, 'swaybg binary')
+	validate.non_empty_string(image, "image")
 	local out = { image = image }
 	if mode ~= nil then
-		validate_non_empty_string(mode, "mode")
+		validate.non_empty_string(mode, "mode")
 		validate_mode(mode)
 		out.mode = mode
 	end
 	if color ~= nil then
-		validate_non_empty_string(color, "color")
+		validate.non_empty_string(color, "color")
 		out.color = color
 	end
 	return Swaybg.run({ outputs = out })
@@ -144,7 +122,7 @@ end
 ---@param opts SwaybgOpts
 ---@return ward.Cmd
 function Swaybg.run(opts)
-	validate_bin(Swaybg.bin)
+	validate.bin(Swaybg.bin, 'swaybg binary')
 	local args = { Swaybg.bin }
 	apply_opts(args, opts)
 	return _cmd.cmd(table.unpack(args))

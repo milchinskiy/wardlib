@@ -9,8 +9,8 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@alias BlkidOutputFmt "full"|"value"|"device"|"export"|"udev"
 
@@ -33,30 +33,6 @@ local Blkid = {
 	bin = "blkid",
 }
 
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "blkid binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("blkid binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("blkid binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("blkid binary is not in PATH: %s", bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
----@param value string
----@param label string
-local function validate_not_flag(value, label)
-	validate_non_empty_string(value, label)
-	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
-end
-
 ---@param args string[]
 ---@param opts BlkidOpts|nil
 local function apply_opts(args, opts)
@@ -72,19 +48,19 @@ local function apply_opts(args, opts)
 		table.insert(args, "-g")
 	end
 	if opts.cache_file ~= nil then
-		validate_non_empty_string(opts.cache_file, "cache_file")
+		validate.non_empty_string(opts.cache_file, "cache_file")
 		table.insert(args, "-c")
 		table.insert(args, opts.cache_file)
 	end
 	if opts.output ~= nil then
-		validate_not_flag(opts.output, "output")
+		validate.not_flag(opts.output, "output")
 		table.insert(args, "-o")
 		table.insert(args, opts.output)
 	end
 	if opts.tags ~= nil then
 		assert(type(opts.tags) == "table", "tags must be an array")
 		for _, tag in ipairs(opts.tags) do
-			validate_not_flag(tag, "tag")
+			validate.not_flag(tag, "tag")
 			table.insert(args, "-s")
 			table.insert(args, tag)
 		end
@@ -102,17 +78,12 @@ local function apply_opts(args, opts)
 			error("match must be string or string[]")
 		end
 		for _, tok in ipairs(tokens) do
-			validate_not_flag(tok, "match")
+			validate.not_flag(tok, "match")
 			table.insert(args, "-t")
 			table.insert(args, tok)
 		end
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Construct a blkid command.
@@ -123,19 +94,19 @@ end
 ---@param opts BlkidOpts|nil
 ---@return ward.Cmd
 function Blkid.id(devices, opts)
-	validate_bin(Blkid.bin)
+	validate.bin(Blkid.bin, 'blkid binary')
 
 	local args = { Blkid.bin }
 	apply_opts(args, opts)
 
 	if devices ~= nil then
 		if type(devices) == "string" then
-			validate_non_empty_string(devices, "device")
+			validate.non_empty_string(devices, "device")
 			table.insert(args, devices)
 		elseif type(devices) == "table" then
 			assert(#devices > 0, "devices list must be non-empty")
 			for _, d in ipairs(devices) do
-				validate_non_empty_string(d, "device")
+				validate.non_empty_string(d, "device")
 				table.insert(args, d)
 			end
 		else
@@ -150,8 +121,8 @@ end
 ---@param label string
 ---@return ward.Cmd
 function Blkid.by_label(label)
-	validate_bin(Blkid.bin)
-	validate_not_flag(label, "label")
+	validate.bin(Blkid.bin, 'blkid binary')
+	validate.not_flag(label, "label")
 	return _cmd.cmd(Blkid.bin, "-L", label)
 end
 
@@ -159,8 +130,8 @@ end
 ---@param uuid string
 ---@return ward.Cmd
 function Blkid.by_uuid(uuid)
-	validate_bin(Blkid.bin)
-	validate_not_flag(uuid, "uuid")
+	validate.bin(Blkid.bin, 'blkid binary')
+	validate.not_flag(uuid, "uuid")
 	return _cmd.cmd(Blkid.bin, "-U", uuid)
 end
 

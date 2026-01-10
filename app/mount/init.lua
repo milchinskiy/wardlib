@@ -9,8 +9,8 @@
 -- can be passed through with `opts.extra`.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class MountCommonOpts
 ---@field extra string[]? Extra args appended before positional args
@@ -41,16 +41,6 @@ local Mount = {
 	umount_bin = "umount",
 }
 
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
-
 local function validate_token(value, label)
 	assert(type(value) == "string" and #value > 0, label .. " must be a non-empty string")
 	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
@@ -74,13 +64,7 @@ local function join_options(value)
 end
 
 local function append_extra(args, extra)
-	if extra == nil then
-		return
-	end
-	assert(type(extra) == "table", "extra must be an array")
-	for _, v in ipairs(extra) do
-		table.insert(args, tostring(v))
-	end
+	args_util.append_extra(args, extra)
 end
 
 ---`mount [opts] [source] [target]`
@@ -91,7 +75,7 @@ end
 ---@param opts MountOpts|nil
 ---@return ward.Cmd
 function Mount.mount(source, target, opts)
-	validate_bin(Mount.mount_bin, "mount")
+	validate.bin(Mount.mount_bin, "mount binary")
 	opts = opts or {}
 
 	local args = { Mount.mount_bin }
@@ -150,7 +134,7 @@ end
 ---@param opts UmountOpts|nil
 ---@return ward.Cmd
 function Mount.umount(target, opts)
-	validate_bin(Mount.umount_bin, "umount")
+	validate.bin(Mount.umount_bin, "umount binary")
 	validate_token(target, "target")
 	opts = opts or {}
 

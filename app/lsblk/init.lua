@@ -9,8 +9,8 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class LsblkOpts
 ---@field json boolean? `-J` / `--json`
@@ -34,35 +34,18 @@ local Lsblk = {
 	bin = "lsblk",
 }
 
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "lsblk binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("lsblk binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("lsblk binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("lsblk binary is not in PATH: %s", bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
 ---@param cols string|string[]
 ---@return string
 local function normalize_output_cols(cols)
 	if type(cols) == "string" then
-		validate_non_empty_string(cols, "output")
+		validate.non_empty_string(cols, "output")
 		return cols
 	end
 	assert(type(cols) == "table", "output must be a string or string[]")
 	assert(#cols > 0, "output must be non-empty")
 	local parts = {}
 	for _, c in ipairs(cols) do
-		validate_non_empty_string(c, "output col")
+		validate.non_empty_string(c, "output col")
 		table.insert(parts, c)
 	end
 	return table.concat(parts, ",")
@@ -103,7 +86,7 @@ local function apply_opts(args, opts)
 		table.insert(args, "--tree")
 	end
 	if opts.sort ~= nil then
-		validate_non_empty_string(opts.sort, "sort")
+		validate.non_empty_string(opts.sort, "sort")
 		assert(opts.sort:sub(1, 1) ~= "-", "sort must not start with '-': " .. tostring(opts.sort))
 		table.insert(args, "--sort")
 		table.insert(args, opts.sort)
@@ -112,12 +95,7 @@ local function apply_opts(args, opts)
 		table.insert(args, "-o")
 		table.insert(args, normalize_output_cols(opts.output))
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Construct an lsblk command.
@@ -128,19 +106,19 @@ end
 ---@param opts LsblkOpts|nil
 ---@return ward.Cmd
 function Lsblk.list(devices, opts)
-	validate_bin(Lsblk.bin)
+	validate.bin(Lsblk.bin, 'lsblk binary')
 
 	local args = { Lsblk.bin }
 	apply_opts(args, opts)
 
 	if devices ~= nil then
 		if type(devices) == "string" then
-			validate_non_empty_string(devices, "device")
+			validate.non_empty_string(devices, "device")
 			table.insert(args, devices)
 		elseif type(devices) == "table" then
 			assert(#devices > 0, "devices list must be non-empty")
 			for _, d in ipairs(devices) do
-				validate_non_empty_string(d, "device")
+				validate.non_empty_string(d, "device")
 				table.insert(args, d)
 			end
 		else

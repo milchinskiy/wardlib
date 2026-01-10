@@ -11,8 +11,8 @@
 --   * xbps-query
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class XbpsCommonOpts
 ---@field sudo boolean? Prefix with `sudo`
@@ -58,38 +58,13 @@ local Xbps = {
 	sudo_bin = "sudo",
 }
 
----@param bin string
----@param label string
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
 ---@param pkgs string|string[]
 ---@return string[]
+
+--- @param pkgs string|string[]
+--- @return string[]
 local function normalize_pkgs(pkgs)
-	if type(pkgs) == "string" then
-		validate_non_empty_string(pkgs, "pkg")
-		return { pkgs }
-	end
-	assert(type(pkgs) == "table" and #pkgs > 0, "pkgs must be a non-empty string[]")
-	local out = {}
-	for _, p in ipairs(pkgs) do
-		validate_non_empty_string(p, "pkg")
-		table.insert(out, p)
-	end
-	return out
+	return args_util.normalize_string_or_array(pkgs, "pkg")
 end
 
 ---@param args string[]
@@ -97,34 +72,29 @@ end
 local function apply_common(args, opts)
 	opts = opts or {}
 	if opts.rootdir ~= nil then
-		validate_non_empty_string(opts.rootdir, "rootdir")
+		validate.non_empty_string(opts.rootdir, "rootdir")
 		table.insert(args, "-r")
 		table.insert(args, opts.rootdir)
 	end
 	if opts.config ~= nil then
-		validate_non_empty_string(opts.config, "config")
+		validate.non_empty_string(opts.config, "config")
 		table.insert(args, "-C")
 		table.insert(args, opts.config)
 	end
 	if opts.cachedir ~= nil then
-		validate_non_empty_string(opts.cachedir, "cachedir")
+		validate.non_empty_string(opts.cachedir, "cachedir")
 		table.insert(args, "-c")
 		table.insert(args, opts.cachedir)
 	end
 	if opts.repositories ~= nil then
 		assert(type(opts.repositories) == "table", "repositories must be an array")
 		for _, url in ipairs(opts.repositories) do
-			validate_non_empty_string(url, "repository")
+			validate.non_empty_string(url, "repository")
 			table.insert(args, "--repository")
 			table.insert(args, url)
 		end
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---@param bin string
@@ -133,11 +103,11 @@ end
 ---@param opts XbpsCommonOpts|nil
 ---@return ward.Cmd
 local function build(bin, label, argv, opts)
-	validate_bin(bin, label)
+	validate.bin(bin, tostring(label) .. " binary")
 	opts = opts or {}
 	local args = {}
 	if opts.sudo then
-		validate_bin(Xbps.sudo_bin, "sudo")
+		validate.bin(Xbps.sudo_bin, "sudo binary")
 		table.insert(args, Xbps.sudo_bin)
 	end
 	table.insert(args, bin)
@@ -263,7 +233,7 @@ end
 ---@return ward.Cmd
 function Xbps.search(pattern, opts)
 	opts = opts or {}
-	validate_non_empty_string(pattern, "pattern")
+	validate.non_empty_string(pattern, "pattern")
 	local argv = {}
 	apply_common(argv, opts)
 	if opts.regex then
@@ -280,7 +250,7 @@ end
 ---@return ward.Cmd
 function Xbps.info(pkg, opts)
 	opts = opts or {}
-	validate_non_empty_string(pkg, "pkg")
+	validate.non_empty_string(pkg, "pkg")
 	local argv = {}
 	apply_common(argv, opts)
 	table.insert(argv, "-S")

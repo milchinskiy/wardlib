@@ -9,8 +9,8 @@
 -- packages. This module focuses on the common package-management flows.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class YayCommonOpts
 ---@field sudo boolean? Prefix with `sudo`
@@ -40,38 +40,13 @@ local Yay = {
 	sudo_bin = "sudo",
 }
 
----@param bin string
----@param label string
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
 ---@param pkgs string|string[]
 ---@return string[]
+
+--- @param pkgs string|string[]
+--- @return string[]
 local function normalize_pkgs(pkgs)
-	if type(pkgs) == "string" then
-		validate_non_empty_string(pkgs, "pkg")
-		return { pkgs }
-	end
-	assert(type(pkgs) == "table" and #pkgs > 0, "pkgs must be a non-empty string[]")
-	local out = {}
-	for _, p in ipairs(pkgs) do
-		validate_non_empty_string(p, "pkg")
-		table.insert(out, p)
-	end
-	return out
+	return args_util.normalize_string_or_array(pkgs, "pkg")
 end
 
 ---@param args string[]
@@ -84,23 +59,18 @@ local function apply_common(args, opts)
 	if opts.noconfirm then
 		table.insert(args, "--noconfirm")
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---@param argv string[]
 ---@param opts YayCommonOpts|nil
 ---@return ward.Cmd
 local function build(argv, opts)
-	validate_bin(Yay.bin, "yay")
+	validate.bin(Yay.bin, "yay binary")
 	opts = opts or {}
 	local args = {}
 	if opts.sudo then
-		validate_bin(Yay.sudo_bin, "sudo")
+		validate.bin(Yay.sudo_bin, "sudo binary")
 		table.insert(args, Yay.sudo_bin)
 	end
 	table.insert(args, Yay.bin)
@@ -176,7 +146,7 @@ end
 ---@return ward.Cmd
 function Yay.search(pattern, opts)
 	opts = opts or {}
-	validate_non_empty_string(pattern, "pattern")
+	validate.non_empty_string(pattern, "pattern")
 	local argv = { "-Ss" }
 	apply_common(argv, opts)
 	table.insert(argv, pattern)
@@ -189,7 +159,7 @@ end
 ---@return ward.Cmd
 function Yay.info(pkg, opts)
 	opts = opts or {}
-	validate_non_empty_string(pkg, "pkg")
+	validate.non_empty_string(pkg, "pkg")
 	local argv = { "-Qi" }
 	apply_common(argv, opts)
 	table.insert(argv, pkg)

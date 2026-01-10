@@ -13,8 +13,8 @@
 -- helper below builds `printf "%s" <script> | sfdisk ...` for you.
 
 local _proc = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class SfdiskOpts
 ---@field force boolean? Add `--force`
@@ -59,19 +59,6 @@ local Sfdisk = {
 	bin = "sfdisk",
 }
 
----Validate binary name/path.
----@param bin string
----@param label string
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
-
 ---Validate a block device argument.
 ---@param device string
 local function validate_device(device)
@@ -82,14 +69,9 @@ end
 
 ---@param args string[]
 ---@param extra string[]|nil
+
 local function append_extra(args, extra)
-	if extra == nil then
-		return
-	end
-	assert(type(extra) == "table", "extra must be an array")
-	for _, v in ipairs(extra) do
-		table.insert(args, tostring(v))
-	end
+	args_util.append_extra(args, extra)
 end
 
 ---Generic constructor: `sfdisk [opts...] <argv...>`
@@ -97,7 +79,7 @@ end
 ---@param opts SfdiskOpts|nil
 ---@return ward.Cmd
 function Sfdisk.cmd(argv, opts)
-	validate_bin(Sfdisk.bin, "sfdisk")
+	validate.bin(Sfdisk.bin, "sfdisk binary")
 	opts = opts or {}
 
 	local args = { Sfdisk.bin }

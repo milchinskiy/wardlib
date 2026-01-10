@@ -6,8 +6,7 @@
 -- `ward.process.cmd(...)` objects.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
 
 ---@class Gsettings
 ---@field bin string
@@ -21,17 +20,6 @@ local Gsettings = {
 	bin = "gsettings",
 }
 
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "gsettings binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("gsettings binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("gsettings binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("gsettings binary is not in PATH: %s", bin))
-	end
-end
-
 ---@param s any
 ---@param label string
 local function validate_token(s, label)
@@ -43,7 +31,7 @@ end
 ---@param args string[]
 ---@return ward.Cmd
 local function cmd(args)
-	validate_bin(Gsettings.bin)
+	validate.bin(Gsettings.bin, 'gsettings binary')
 	local argv = { Gsettings.bin }
 	for _, v in ipairs(args) do
 		table.insert(argv, v)

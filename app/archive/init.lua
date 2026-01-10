@@ -13,8 +13,8 @@
 -- The module does not parse output.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class ArchiveCommonOpts
 ---@field dir string? For create: `-C <dir>` before the input paths
@@ -34,29 +34,6 @@ local _fs = require("ward.fs")
 local Archive = {
 	bin = "tar",
 }
-
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "tar binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("tar binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("tar binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("tar binary is not in PATH: %s", bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
----@param n any
----@param label string
-local function validate_nonneg_int(n, label)
-	assert(type(n) == "number" and n >= 0 and math.floor(n) == n, label .. " must be a non-negative integer")
-end
 
 ---@param args string[]
 ---@param opts ArchiveCommonOpts|nil
@@ -83,17 +60,12 @@ local function apply_common(args, opts, allow_dir, for_extract)
 	end
 
 	if allow_dir and opts.dir ~= nil and not for_extract then
-		validate_non_empty_string(opts.dir, "dir")
+		validate.non_empty_string(opts.dir, "dir")
 		table.insert(args, "-C")
 		table.insert(args, opts.dir)
 	end
 
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array of strings")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Create archive from inputs.
@@ -102,8 +74,8 @@ end
 ---@param opts ArchiveCommonOpts|nil
 ---@return ward.Cmd
 function Archive.create(archive_path, inputs, opts)
-	validate_bin(Archive.bin)
-	validate_non_empty_string(archive_path, "archive_path")
+	validate.bin(Archive.bin, 'tar binary')
+	validate.non_empty_string(archive_path, "archive_path")
 	assert(type(inputs) == "table" and #inputs > 0, "inputs must be a non-empty array")
 
 	local args = { Archive.bin, "-c" }
@@ -112,7 +84,7 @@ function Archive.create(archive_path, inputs, opts)
 	table.insert(args, archive_path)
 
 	for _, p in ipairs(inputs) do
-		validate_non_empty_string(p, "input")
+		validate.non_empty_string(p, "input")
 		table.insert(args, p)
 	end
 
@@ -124,8 +96,8 @@ end
 ---@param opts ArchiveExtractOpts|nil
 ---@return ward.Cmd
 function Archive.extract(archive_path, opts)
-	validate_bin(Archive.bin)
-	validate_non_empty_string(archive_path, "archive_path")
+	validate.bin(Archive.bin, 'tar binary')
+	validate.non_empty_string(archive_path, "archive_path")
 	opts = opts or {}
 
 	local args = { Archive.bin, "-x" }
@@ -134,12 +106,12 @@ function Archive.extract(archive_path, opts)
 	table.insert(args, archive_path)
 
 	if opts.strip_components ~= nil then
-		validate_nonneg_int(opts.strip_components, "strip_components")
+		validate.integer_non_negative(opts.strip_components, "strip_components")
 		table.insert(args, "--strip-components=" .. tostring(opts.strip_components))
 	end
 
 	if opts.to ~= nil then
-		validate_non_empty_string(opts.to, "to")
+		validate.non_empty_string(opts.to, "to")
 		table.insert(args, "-C")
 		table.insert(args, opts.to)
 	end
@@ -152,8 +124,8 @@ end
 ---@param opts ArchiveCommonOpts|nil
 ---@return ward.Cmd
 function Archive.list(archive_path, opts)
-	validate_bin(Archive.bin)
-	validate_non_empty_string(archive_path, "archive_path")
+	validate.bin(Archive.bin, 'tar binary')
+	validate.non_empty_string(archive_path, "archive_path")
 
 	local args = { Archive.bin, "-t" }
 	apply_common(args, opts, false, false)

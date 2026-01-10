@@ -8,8 +8,8 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@alias FehBgMode "center"|"fill"|"max"|"scale"|"tile"
 
@@ -47,23 +47,6 @@ local _fs = require("ward.fs")
 local Feh = {
 	bin = "feh",
 }
-
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "feh binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("feh binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("feh binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("feh binary is not in PATH: %s", bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
 
 ---@param v any
 ---@param label string
@@ -105,17 +88,17 @@ local function apply_view_opts(args, opts)
 	end
 
 	if opts.title ~= nil then
-		validate_non_empty_string(opts.title, "title")
+		validate.non_empty_string(opts.title, "title")
 		table.insert(args, "--title")
 		table.insert(args, opts.title)
 	end
 	if opts.caption_path ~= nil then
-		validate_non_empty_string(opts.caption_path, "caption_path")
+		validate.non_empty_string(opts.caption_path, "caption_path")
 		table.insert(args, "--caption-path")
 		table.insert(args, opts.caption_path)
 	end
 	if opts.geometry ~= nil then
-		validate_non_empty_string(opts.geometry, "geometry")
+		validate.non_empty_string(opts.geometry, "geometry")
 		table.insert(args, "-g")
 		table.insert(args, opts.geometry)
 	end
@@ -130,7 +113,7 @@ local function apply_view_opts(args, opts)
 		table.insert(args, tostring(opts.slideshow_delay))
 	end
 	if opts.sort ~= nil then
-		validate_non_empty_string(opts.sort, "sort")
+		validate.non_empty_string(opts.sort, "sort")
 		table.insert(args, "--sort")
 		table.insert(args, opts.sort)
 	end
@@ -152,12 +135,7 @@ local function apply_view_opts(args, opts)
 		table.insert(args, tostring(opts.zoom_percent))
 	end
 
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---@param args string[]
@@ -167,14 +145,14 @@ local function apply_inputs(args, inputs)
 		return
 	end
 	if type(inputs) == "string" then
-		validate_non_empty_string(inputs, "input")
+		validate.non_empty_string(inputs, "input")
 		table.insert(args, inputs)
 		return
 	end
 	if type(inputs) == "table" then
 		assert(#inputs > 0, "inputs list must be non-empty")
 		for _, p in ipairs(inputs) do
-			validate_non_empty_string(p, "input")
+			validate.non_empty_string(p, "input")
 			table.insert(args, p)
 		end
 		return
@@ -203,12 +181,7 @@ local function apply_bg_opts(args, opts)
 	if opts.no_fehbg then
 		table.insert(args, "--no-fehbg")
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Construct a feh viewing command.
@@ -218,7 +191,7 @@ end
 ---@param opts FehOpts|nil
 ---@return ward.Cmd
 function Feh.view(inputs, opts)
-	validate_bin(Feh.bin)
+	validate.bin(Feh.bin, 'feh binary')
 	local args = { Feh.bin }
 	apply_view_opts(args, opts)
 	apply_inputs(args, inputs)
@@ -230,8 +203,8 @@ end
 ---@param opts FehBgOpts|nil
 ---@return ward.Cmd
 function Feh.bg(image, opts)
-	validate_bin(Feh.bin)
-	validate_non_empty_string(image, "image")
+	validate.bin(Feh.bin, 'feh binary')
+	validate.non_empty_string(image, "image")
 	local args = { Feh.bin }
 	apply_bg_opts(args, opts)
 	table.insert(args, image)
@@ -243,7 +216,7 @@ end
 ---@param opts FehBgOpts|nil
 ---@return ward.Cmd
 function Feh.bg_multi(images, opts)
-	validate_bin(Feh.bin)
+	validate.bin(Feh.bin, 'feh binary')
 	local args = { Feh.bin }
 	apply_bg_opts(args, opts)
 	apply_inputs(args, images)

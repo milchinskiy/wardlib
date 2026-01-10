@@ -9,8 +9,8 @@
 -- command; feeding stdin is the caller's responsibility.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class ClipboardSelectionOpts
 ---@field selection "clipboard"|"primary"|nil
@@ -38,18 +38,6 @@ local Clipboard = {
 	wl_paste_bin = "wl-paste",
 }
 
----@param bin string
----@param label string
-local function validate_bin(bin, label)
-	assert(type(bin) == "string" and #bin > 0, label .. " binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("%s binary does not exist: %s", label, bin))
-		assert(_fs.is_executable(bin), string.format("%s binary is not executable: %s", label, bin))
-	else
-		assert(_env.is_in_path(bin), string.format("%s binary is not in PATH: %s", label, bin))
-	end
-end
-
 ---@param args string[]
 ---@param selection "clipboard"|"primary"|nil
 local function apply_selection(args, selection)
@@ -67,7 +55,7 @@ end
 ---@param opts ClipboardCopyOpts|nil
 ---@return ward.Cmd
 function Clipboard.copy(opts)
-	validate_bin(Clipboard.wl_copy_bin, "wl-copy")
+	validate.bin(Clipboard.wl_copy_bin, "wl-copy binary")
 	opts = opts or {}
 	local args = { Clipboard.wl_copy_bin }
 	apply_selection(args, opts.selection)
@@ -86,12 +74,7 @@ function Clipboard.copy(opts)
 	if opts.clear then
 		table.insert(args, "--clear")
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array of strings")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 	return _cmd.cmd(table.unpack(args))
 end
 
@@ -110,7 +93,7 @@ end
 ---@param opts ClipboardPasteOpts|nil
 ---@return ward.Cmd
 function Clipboard.paste(opts)
-	validate_bin(Clipboard.wl_paste_bin, "wl-paste")
+	validate.bin(Clipboard.wl_paste_bin, "wl-paste binary")
 	opts = opts or {}
 	local args = { Clipboard.wl_paste_bin }
 	apply_selection(args, opts.selection)
@@ -123,12 +106,7 @@ function Clipboard.paste(opts)
 	if opts.no_newline then
 		table.insert(args, "--no-newline")
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array of strings")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 	return _cmd.cmd(table.unpack(args))
 end
 

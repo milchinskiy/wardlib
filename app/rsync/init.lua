@@ -6,8 +6,8 @@
 -- `ward.process.cmd(...)` objects.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class RsyncOpts
 ---@field archive boolean? `-a`
@@ -29,23 +29,6 @@ local _fs = require("ward.fs")
 local Rsync = {
 	bin = "rsync",
 }
-
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "rsync binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("rsync binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("rsync binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("rsync binary is not in PATH: %s", bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
 
 ---@param args string[]
 ---@param opts RsyncOpts|nil
@@ -76,14 +59,14 @@ local function apply_opts(args, opts)
 		table.insert(args, "--partial")
 	end
 	if opts.rsh ~= nil then
-		validate_non_empty_string(opts.rsh, "rsh")
+		validate.non_empty_string(opts.rsh, "rsh")
 		table.insert(args, "-e")
 		table.insert(args, opts.rsh)
 	end
 	if opts.excludes ~= nil then
 		assert(type(opts.excludes) == "table", "excludes must be an array")
 		for _, p in ipairs(opts.excludes) do
-			validate_non_empty_string(p, "exclude")
+			validate.non_empty_string(p, "exclude")
 			table.insert(args, "--exclude")
 			table.insert(args, p)
 		end
@@ -91,17 +74,12 @@ local function apply_opts(args, opts)
 	if opts.include ~= nil then
 		assert(type(opts.include) == "table", "include must be an array")
 		for _, p in ipairs(opts.include) do
-			validate_non_empty_string(p, "include")
+			validate.non_empty_string(p, "include")
 			table.insert(args, "--include")
 			table.insert(args, p)
 		end
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---Construct an rsync command.
@@ -110,17 +88,17 @@ end
 ---@param opts RsyncOpts|nil
 ---@return ward.Cmd
 function Rsync.sync(src, dest, opts)
-	validate_bin(Rsync.bin)
-	validate_non_empty_string(dest, "dest")
+	validate.bin(Rsync.bin, 'rsync binary')
+	validate.non_empty_string(dest, "dest")
 
 	local sources = {}
 	if type(src) == "string" then
-		validate_non_empty_string(src, "src")
+		validate.non_empty_string(src, "src")
 		sources = { src }
 	elseif type(src) == "table" then
 		assert(#src > 0, "src list must be non-empty")
 		for _, s in ipairs(src) do
-			validate_non_empty_string(s, "src")
+			validate.non_empty_string(s, "src")
 			table.insert(sources, s)
 		end
 	else

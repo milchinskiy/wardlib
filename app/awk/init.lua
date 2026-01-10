@@ -9,8 +9,7 @@
 -- Consumers decide how to execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
 
 ---@class AwkOptKV
 ---@field [string] any
@@ -50,23 +49,6 @@ local Awk = {
 	bin = "awk",
 }
 
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "awk binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("awk binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("awk binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("awk binary is not in PATH: %s", bin))
-	end
-end
-
----@param s any
----@param label string
-local function validate_non_empty_string(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-end
-
 ---@param t any
 ---@return boolean
 local function is_array(t)
@@ -99,7 +81,7 @@ local function as_string_list(v, label)
 	assert(type(v) == "table", label .. " must be a string or array")
 	assert(is_array(v), label .. " must be an array")
 	for _, s in ipairs(v) do
-		validate_non_empty_string(s, label)
+		validate.non_empty_string(s, label)
 	end
 	return v
 end
@@ -107,7 +89,7 @@ end
 ---@param kv any
 ---@param label string
 local function validate_kv_string(kv, label)
-	validate_non_empty_string(kv, label)
+	validate.non_empty_string(kv, label)
 	-- We deliberately do NOT enforce presence of '=' because some awk variants
 	-- accept values that may be produced dynamically; consumer responsibility.
 end
@@ -120,7 +102,7 @@ local function apply_opts(args, opts)
 	if opts.extra ~= nil then
 		assert(type(opts.extra) == "table" and is_array(opts.extra), "extra must be an array")
 		for _, x in ipairs(opts.extra) do
-			validate_non_empty_string(x, "extra")
+			validate.non_empty_string(x, "extra")
 			table.insert(args, x)
 		end
 	end
@@ -169,7 +151,7 @@ local function apply_opts(args, opts)
 			table.insert(args, flag)
 			return
 		end
-		validate_non_empty_string(v, flag)
+		validate.non_empty_string(v, flag)
 		table.insert(args, flag .. "=" .. v)
 	end
 	opt_val("--debug", opts.debug)
@@ -188,7 +170,7 @@ local function apply_opts(args, opts)
 	if opts.includes ~= nil then
 		assert(type(opts.includes) == "table" and is_array(opts.includes), "includes must be an array")
 		for _, inc in ipairs(opts.includes) do
-			validate_non_empty_string(inc, "include")
+			validate.non_empty_string(inc, "include")
 			table.insert(args, "-i")
 			table.insert(args, inc)
 		end
@@ -206,7 +188,7 @@ local function apply_opts(args, opts)
 		else
 			local keys = {}
 			for k, _ in pairs(opts.vars) do
-				validate_non_empty_string(k, "var name")
+				validate.non_empty_string(k, "var name")
 				table.insert(keys, k)
 			end
 			table.sort(keys)
@@ -234,7 +216,7 @@ local function apply_assigns(args, assigns)
 
 	local keys = {}
 	for k, _ in pairs(assigns) do
-		validate_non_empty_string(k, "assign name")
+		validate.non_empty_string(k, "assign name")
 		table.insert(keys, k)
 	end
 	table.sort(keys)
@@ -249,12 +231,12 @@ end
 ---@param argv string[]|nil
 ---@return ward.Cmd
 function Awk.cmd(argv)
-	validate_bin(Awk.bin)
+	validate.bin(Awk.bin, 'awk binary')
 	argv = argv or {}
 	assert(type(argv) == "table" and is_array(argv), "argv must be an array")
 	local args = { Awk.bin }
 	for _, a in ipairs(argv) do
-		validate_non_empty_string(a, "argv")
+		validate.non_empty_string(a, "argv")
 		table.insert(args, a)
 	end
 	return _cmd.cmd(table.unpack(args))
@@ -266,8 +248,8 @@ end
 ---@param opts AwkOpts|nil
 ---@return ward.Cmd
 function Awk.eval(program, inputs, opts)
-	validate_bin(Awk.bin)
-	validate_non_empty_string(program, "program")
+	validate.bin(Awk.bin, 'awk binary')
+	validate.non_empty_string(program, "program")
 
 	local args = { Awk.bin }
 	apply_opts(args, opts)
@@ -291,7 +273,7 @@ end
 ---@param opts AwkOpts|nil
 ---@return ward.Cmd
 function Awk.source(programs, inputs, opts)
-	validate_bin(Awk.bin)
+	validate.bin(Awk.bin, 'awk binary')
 	local ps = as_string_list(programs, "programs")
 	assert(#ps > 0, "programs must not be empty")
 
@@ -299,7 +281,7 @@ function Awk.source(programs, inputs, opts)
 	apply_opts(args, opts)
 
 	for _, p in ipairs(ps) do
-		validate_non_empty_string(p, "program")
+		validate.non_empty_string(p, "program")
 		table.insert(args, "-e")
 		table.insert(args, p)
 	end
@@ -321,7 +303,7 @@ end
 ---@param opts AwkOpts|nil
 ---@return ward.Cmd
 function Awk.file(scripts, inputs, opts)
-	validate_bin(Awk.bin)
+	validate.bin(Awk.bin, 'awk binary')
 	local ss = as_string_list(scripts, "scripts")
 	assert(#ss > 0, "scripts must not be empty")
 
@@ -329,7 +311,7 @@ function Awk.file(scripts, inputs, opts)
 	apply_opts(args, opts)
 
 	for _, s in ipairs(ss) do
-		validate_non_empty_string(s, "script")
+		validate.non_empty_string(s, "script")
 		table.insert(args, "-f")
 		table.insert(args, s)
 	end

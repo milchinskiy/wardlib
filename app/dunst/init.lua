@@ -1,8 +1,7 @@
 ---@diagnostic disable: undefined-doc-name
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
 
 local URGENCY_MAP = { low = true, normal = true, critical = true }
 
@@ -44,18 +43,6 @@ local Dunst = {
 	bin = "dunstify",
 }
 
----Validate binary
----@param bin string
-local validate_bin = function(bin)
-	assert(type(bin) == "string" and #bin > 0, "Dunstify binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("Dunstify binary is not exists: %s", bin))
-		assert(_fs.is_executable(bin), string.format("Dunstify binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("Dunstify binary is not in PATH: %s", bin))
-	end
-end
-
 ---Send notification
 ---@param summary string
 ---@param opts DunstifyOptions?
@@ -63,7 +50,7 @@ end
 function Dunst.notify(summary, opts)
 	opts = opts or {}
 	local args = { Dunst.bin }
-	validate_bin(Dunst.bin)
+	validate.bin(Dunst.bin, 'Dunstify binary')
 	assert(type(summary) == "string" and #summary > 0, "summary must be a non-empty string")
 
 	local app_name = opts.app_name or DunstifyOptions.app_name
@@ -146,21 +133,21 @@ end
 ---@param id number|string
 ---@return ward.Cmd
 function Dunst.close(id)
-	validate_bin(Dunst.bin)
+	validate.bin(Dunst.bin, 'Dunstify binary')
 	return _cmd.cmd(Dunst.bin, "-C", tostring(id))
 end
 
 ---Dunst capabilities
 ---@return ward.Cmd
 function Dunst.capabilities()
-	validate_bin(Dunst.bin)
+	validate.bin(Dunst.bin, 'Dunstify binary')
 	return _cmd.cmd(Dunst.bin, "--capabilities")
 end
 
 ---Dunst server info
 ---@return ward.Cmd
 function Dunst.serverInfo()
-	validate_bin(Dunst.bin)
+	validate.bin(Dunst.bin, 'Dunstify binary')
 	return _cmd.cmd(Dunst.bin, "--serverinfo")
 end
 

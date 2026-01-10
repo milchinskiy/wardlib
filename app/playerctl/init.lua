@@ -6,8 +6,8 @@
 -- `ward.process.cmd(...)` objects.
 
 local _cmd = require("ward.process")
-local _env = require("ward.env")
-local _fs = require("ward.fs")
+local validate = require("util.validate")
+local args_util = require("util.args")
 
 ---@class PlayerctlOpts
 ---@field player string? `--player <name>`
@@ -32,17 +32,6 @@ local _fs = require("ward.fs")
 local Playerctl = {
 	bin = "playerctl",
 }
-
----@param bin string
-local function validate_bin(bin)
-	assert(type(bin) == "string" and #bin > 0, "playerctl binary is not set")
-	if bin:find("/", 1, true) then
-		assert(_fs.is_exists(bin), string.format("playerctl binary does not exist: %s", bin))
-		assert(_fs.is_executable(bin), string.format("playerctl binary is not executable: %s", bin))
-	else
-		assert(_env.is_in_path(bin), string.format("playerctl binary is not in PATH: %s", bin))
-	end
-end
 
 ---@param s any
 ---@param label string
@@ -72,12 +61,7 @@ local function apply_opts(args, opts)
 			table.insert(args, p)
 		end
 	end
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table", "extra must be an array")
-		for _, v in ipairs(opts.extra) do
-			table.insert(args, tostring(v))
-		end
-	end
+	args_util.append_extra(args, opts.extra)
 end
 
 ---@param subcmd string
@@ -85,7 +69,7 @@ end
 ---@param opts PlayerctlOpts|nil
 ---@return ward.Cmd
 function Playerctl.cmd(subcmd, argv, opts)
-	validate_bin(Playerctl.bin)
+	validate.bin(Playerctl.bin, 'playerctl binary')
 	validate_token(subcmd, "subcmd")
 	local args = { Playerctl.bin }
 	apply_opts(args, opts)

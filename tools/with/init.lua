@@ -18,6 +18,7 @@
 ---
 --- ```lua
 --- local process = require("ward.process")
+local tbl = require("util.table")
 --- local w = require("tools.with")
 ---
 --- -- 1) Scope a middleware around any block:
@@ -41,19 +42,16 @@
 ---   local Ward build, pass prefix argv as an array instead.
 ---
 local process = require("ward.process")
+local tbl = require("util.table")
 
 local M = {}
 
 local function _is_array(t)
-	return type(t) == "table" and t[1] ~= nil
+	return tbl.is_array(t)
 end
 
 local function _clone_array(t)
-	local out = {}
-	for i = 1, #t do
-		out[i] = t[i]
-	end
-	return out
+	return tbl.clone_array(t)
 end
 
 --- Best-effort extraction of argv from a Ward cmd object or argv array.
