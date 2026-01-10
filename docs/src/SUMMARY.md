@@ -22,6 +22,7 @@
 - [app.grep](./app.grep.md)
 - [app.gsettings](./app.gsettings.md)
 - [app.ip](./app.ip.md)
+- [app.jq](./app.jq.md)
 - [app.kill](./app.kill.md)
 - [app.lsblk](./app.lsblk.md)
 - [app.mkfs](./app.mkfs.md)
