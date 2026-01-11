@@ -20,6 +20,7 @@
 - [app.curl](./app.curl.md)
 - [app.dconf](./app.dconf.md)
 - [app.dnf](./app.dnf.md)
+- [app.docker](./app.docker.md)
 - [app.dunst](./app.dunst.md)
 - [app.efibootmgr](./app.efibootmgr.md)
 - [app.fd](./app.fd.md)
