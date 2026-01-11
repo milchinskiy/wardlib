@@ -19,6 +19,7 @@
 - [app.cp](./app.cp.md)
 - [app.curl](./app.curl.md)
 - [app.dconf](./app.dconf.md)
+- [app.dnf](./app.dnf.md)
 - [app.dunst](./app.dunst.md)
 - [app.efibootmgr](./app.efibootmgr.md)
 - [app.fd](./app.fd.md)
@@ -59,6 +60,7 @@
 - [app.xbps](./app.xbps.md)
 - [app.xz](./app.xz.md)
 - [app.yay](./app.yay.md)
+- [app.zypper](./app.zypper.md)
 
 ---
 
