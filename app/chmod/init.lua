@@ -104,7 +104,7 @@ end
 function Chmod.reference(paths, ref, opts)
 	validate.bin(Chmod.bin, "chmod binary")
 	validate.non_empty_string(ref, "ref")
-	local o = opts or {}
+	local o = args_util.clone_opts(opts)
 	o.reference = ref
 
 	local args = { Chmod.bin }

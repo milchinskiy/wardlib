@@ -119,7 +119,7 @@ end
 ---@return ward.Cmd
 function Cp.into(src, dir, opts)
 	validate.non_empty_string(dir, "dir")
-	local o = opts or {}
+	local o = args_util.clone_opts(opts)
 	o.target_directory = dir
 
 	validate.bin(Cp.bin, "cp binary")

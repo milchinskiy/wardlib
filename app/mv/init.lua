@@ -118,7 +118,7 @@ end
 ---@return ward.Cmd
 function Mv.into(src, dir, opts)
 	validate.non_empty_string(dir, "dir")
-	local o = opts or {}
+	local o = args_util.clone_opts(opts)
 	o.target_directory = dir
 
 	validate.bin(Mv.bin, "mv binary")
