@@ -18,6 +18,8 @@
 - [app.dunst](./app.dunst.md)
 - [app.efibootmgr](./app.efibootmgr.md)
 - [app.feh](./app.feh.md)
+- [app.fd](./app.fd.md)
+- [app.find](./app.find.md)
 - [app.git](./app.git.md)
 - [app.grep](./app.grep.md)
 - [app.gsettings](./app.gsettings.md)
