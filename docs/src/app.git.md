@@ -3,7 +3,7 @@
 ## Status in a specific repo directory
 
 ```lua
-local Git = require("wardlib.app.git").Git
+local Git = require("app.git").Git
 
 -- Equivalent to: git -C /home/me/project status -s -b
 local cmd = Git.status({

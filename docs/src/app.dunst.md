@@ -3,7 +3,7 @@
 Examples:
 
 ```lua
-local Dunst = require("wardlib.app.dunst").Dunst
+local Dunst = require("app.dunst").Dunst
 
 -- Show a notification
 local cmd1 = Dunst.notify("title", { body = "message" })

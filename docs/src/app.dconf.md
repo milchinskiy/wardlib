@@ -3,7 +3,7 @@
 Examples:
 
 ```lua
-local Dconf = require("wardlib.app.dconf").Dconf
+local Dconf = require("app.dconf").Dconf
 
 -- Read a key
 local cmd1 = Dconf.read("/org/gnome/desktop/interface/gtk-theme")
