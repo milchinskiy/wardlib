@@ -16,6 +16,7 @@
 - [app.chmod](./app.chmod.md)
 - [app.chown](./app.chown.md)
 - [app.chroot](./app.chroot.md)
+- [app.compose](./app.compose.md)
 - [app.cp](./app.cp.md)
 - [app.curl](./app.curl.md)
 - [app.dconf](./app.dconf.md)
