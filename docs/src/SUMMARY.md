@@ -45,6 +45,7 @@
 - [app.rsync](./app.rsync.md)
 - [app.sed](./app.sed.md)
 - [app.sfdisk](./app.sfdisk.md)
+- [app.sha256sum](./app.sha256sum.md)
 - [app.ss](./app.ss.md)
 - [app.ssh](./app.ssh.md)
 - [app.swap](./app.swap.md)
