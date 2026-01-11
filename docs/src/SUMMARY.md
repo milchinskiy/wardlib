@@ -42,6 +42,7 @@
 - [app.pacman](./app.pacman.md)
 - [app.ping](./app.ping.md)
 - [app.playerctl](./app.playerctl.md)
+- [app.podman](./app.podman.md)
 - [app.rg](./app.rg.md)
 - [app.rm](./app.rm.md)
 - [app.rsync](./app.rsync.md)
