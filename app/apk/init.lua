@@ -1,4 +1,4 @@
----@diagnostic disable: undefined-doc-name
+---@diagnostic disable: undefined-doc-name, undefined-doc-param
 
 -- apk wrapper module (Alpine Linux)
 --
@@ -38,9 +38,6 @@ local Apk = {
 	bin = "apk",
 	sudo_bin = "sudo",
 }
-
----@param pkgs string|string[]
----@return string[]
 
 --- @param pkgs string|string[]
 --- @return string[]
