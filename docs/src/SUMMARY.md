@@ -70,3 +70,4 @@
 # Tools
 
 - [tools.with](./tools.with.md)
+- [tools.ensure](./tools.ensure.md)
