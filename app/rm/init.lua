@@ -8,7 +8,6 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
@@ -35,22 +34,14 @@ local function apply_opts(args, opts)
 	if opts.force and opts.interactive then
 		error("force and interactive are mutually exclusive")
 	end
-	if opts.force then
-		args[#args + 1] = "-f"
-	end
-	if opts.interactive then
-		args[#args + 1] = "-i"
-	end
-	if opts.recursive then
-		args[#args + 1] = "-r"
-	end
-	if opts.dir then
-		args[#args + 1] = "-d"
-	end
-	if opts.verbose then
-		args[#args + 1] = "-v"
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("force", "-f")
+		:flag("interactive", "-i")
+		:flag("recursive", "-r")
+		:flag("dir", "-d")
+		:flag("verbose", "-v")
+		:extra()
 end
 
 ---Remove file(s) / dir(s).

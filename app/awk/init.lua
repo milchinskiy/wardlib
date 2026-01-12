@@ -11,6 +11,7 @@
 local _cmd = require("ward.process")
 local validate = require("util.validate")
 local ensure = require("tools.ensure")
+local args_util = require("util.args")
 
 ---@class AwkOptKV
 ---@field [string] any
@@ -100,105 +101,54 @@ end
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.extra ~= nil then
-		assert(type(opts.extra) == "table" and is_array(opts.extra), "extra must be an array")
-		for _, x in ipairs(opts.extra) do
-			validate.non_empty_string(x, "extra")
-			table.insert(args, x)
-		end
-	end
+	local p = args_util.parser(args, opts)
+	-- extra argv before the program/scripts
+	p:extra("extra")
 
 	-- boolean long flags
-	if opts.posix then
-		table.insert(args, "--posix")
-	end
-	if opts.traditional then
-		table.insert(args, "--traditional")
-	end
-	if opts.lint then
-		table.insert(args, "--lint")
-	end
-	if opts.interval then
-		table.insert(args, "--interval")
-	end
-	if opts.bignum then
-		table.insert(args, "--bignum")
-	end
-	if opts.sandbox then
-		table.insert(args, "--sandbox")
-	end
-	if opts.csv then
-		table.insert(args, "--csv")
-	end
-	if opts.optimize then
-		table.insert(args, "--optimize")
-	end
-	if opts.ignore_case then
-		table.insert(args, "--ignore-case")
-	end
-	if opts.characters_as_bytes then
-		table.insert(args, "--characters-as-bytes")
-	end
-	if opts.use_lc_numeric then
-		table.insert(args, "--use-lc-numeric")
-	end
+	p:flag("posix", "--posix")
+		:flag("traditional", "--traditional")
+		:flag("lint", "--lint")
+		:flag("interval", "--interval")
+		:flag("bignum", "--bignum")
+		:flag("sandbox", "--sandbox")
+		:flag("csv", "--csv")
+		:flag("optimize", "--optimize")
+		:flag("ignore_case", "--ignore-case")
+		:flag("characters_as_bytes", "--characters-as-bytes")
+		:flag("use_lc_numeric", "--use-lc-numeric")
 
 	-- optional-value long flags
-	local function opt_val(flag, v)
-		if v == nil then
-			return
-		end
-		if v == true then
-			table.insert(args, flag)
-			return
-		end
-		validate.non_empty_string(v, flag)
-		table.insert(args, flag .. "=" .. v)
-	end
-	opt_val("--debug", opts.debug)
-	opt_val("--profile", opts.profile)
-	opt_val("--pretty-print", opts.pretty_print)
-	opt_val("--dump-variables", opts.dump_variables)
+	p:bool_or_equals("debug", "--debug", { label = "debug", validate = validate.non_empty_string })
+		:bool_or_equals("profile", "--profile", { label = "profile", validate = validate.non_empty_string })
+		:bool_or_equals(
+			"pretty_print",
+			"--pretty-print",
+			{ label = "pretty_print", validate = validate.non_empty_string }
+		)
+		:bool_or_equals(
+			"dump_variables",
+			"--dump-variables",
+			{ label = "dump_variables", validate = validate.non_empty_string }
+		)
 
 	-- -F
 	if opts.field_sep ~= nil then
 		assert(type(opts.field_sep) == "string", "field_sep must be a string")
-		table.insert(args, "-F")
-		table.insert(args, opts.field_sep)
+		args[#args + 1] = "-F"
+		args[#args + 1] = opts.field_sep
 	end
 
 	-- -i (gawk)
-	if opts.includes ~= nil then
-		assert(type(opts.includes) == "table" and is_array(opts.includes), "includes must be an array")
-		for _, inc in ipairs(opts.includes) do
-			validate.non_empty_string(inc, "include")
-			table.insert(args, "-i")
-			table.insert(args, inc)
-		end
-	end
+	p:repeatable("includes", "-i", { label = "include", validate = validate.non_empty_string })
 
 	-- -v vars
 	if opts.vars ~= nil then
-		assert(type(opts.vars) == "table", "vars must be a table")
-		if is_array(opts.vars) then
-			for _, kv in ipairs(opts.vars) do
-				validate_kv_string(kv, "var")
-				table.insert(args, "-v")
-				table.insert(args, kv)
-			end
-		else
-			local keys = {}
-			for k, _ in pairs(opts.vars) do
-				validate.non_empty_string(k, "var name")
-				table.insert(keys, k)
-			end
-			table.sort(keys)
-			for _, k in ipairs(keys) do
-				local v = opts.vars[k]
-				assert(v ~= nil, "vars['" .. k .. "'] is nil")
-				table.insert(args, "-v")
-				table.insert(args, k .. "=" .. tostring(v))
-			end
+		local vars_list = args_util.kv_list(opts.vars, "var")
+		for _, kv in ipairs(vars_list) do
+			validate_kv_string(kv, "var")
+			args[#args + 1] = "-v"
+			args[#args + 1] = kv
 		end
 	end
 end
@@ -206,25 +156,10 @@ end
 ---@param args string[]
 ---@param assigns table
 local function apply_assigns(args, assigns)
-	assert(type(assigns) == "table", "assigns must be a table")
-	if is_array(assigns) then
-		for _, kv in ipairs(assigns) do
-			validate_kv_string(kv, "assign")
-			table.insert(args, kv)
-		end
-		return
-	end
-
-	local keys = {}
-	for k, _ in pairs(assigns) do
-		validate.non_empty_string(k, "assign name")
-		table.insert(keys, k)
-	end
-	table.sort(keys)
-	for _, k in ipairs(keys) do
-		local v = assigns[k]
-		assert(v ~= nil, "assigns['" .. k .. "'] is nil")
-		table.insert(args, k .. "=" .. tostring(v))
+	local list = args_util.kv_list(assigns, "assign")
+	for _, kv in ipairs(list) do
+		validate_kv_string(kv, "assign")
+		args[#args + 1] = kv
 	end
 end
 
@@ -232,7 +167,7 @@ end
 ---@param argv string[]|nil
 ---@return ward.Cmd
 function Awk.cmd(argv)
-	ensure.bin(Awk.bin, { label = 'awk binary' })
+	ensure.bin(Awk.bin, { label = "awk binary" })
 	argv = argv or {}
 	assert(type(argv) == "table" and is_array(argv), "argv must be an array")
 	local args = { Awk.bin }
@@ -249,7 +184,7 @@ end
 ---@param opts AwkOpts|nil
 ---@return ward.Cmd
 function Awk.eval(program, inputs, opts)
-	ensure.bin(Awk.bin, { label = 'awk binary' })
+	ensure.bin(Awk.bin, { label = "awk binary" })
 	validate.non_empty_string(program, "program")
 
 	local args = { Awk.bin }
@@ -274,7 +209,7 @@ end
 ---@param opts AwkOpts|nil
 ---@return ward.Cmd
 function Awk.source(programs, inputs, opts)
-	ensure.bin(Awk.bin, { label = 'awk binary' })
+	ensure.bin(Awk.bin, { label = "awk binary" })
 	local ps = as_string_list(programs, "programs")
 	assert(#ps > 0, "programs must not be empty")
 
@@ -304,7 +239,7 @@ end
 ---@param opts AwkOpts|nil
 ---@return ward.Cmd
 function Awk.file(scripts, inputs, opts)
-	ensure.bin(Awk.bin, { label = 'awk binary' })
+	ensure.bin(Awk.bin, { label = "awk binary" })
 	local ss = as_string_list(scripts, "scripts")
 	assert(#ss > 0, "scripts must not be empty")
 

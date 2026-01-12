@@ -9,7 +9,6 @@
 -- can be passed through with `opts.extra`.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
@@ -42,32 +41,6 @@ local Mount = {
 	umount_bin = "umount",
 }
 
-local function validate_token(value, label)
-	assert(type(value) == "string" and #value > 0, label .. " must be a non-empty string")
-	assert(value:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(value))
-	assert(not value:find("%s"), label .. " must not contain whitespace: " .. tostring(value))
-end
-
-local function join_options(value)
-	if value == nil then
-		return nil
-	end
-	if type(value) == "string" then
-		assert(#value > 0, "options must be a non-empty string")
-		return value
-	end
-	assert(type(value) == "table", "options must be a string or string[]")
-	local out = {}
-	for _, v in ipairs(value) do
-		out[#out + 1] = tostring(v)
-	end
-	return table.concat(out, ",")
-end
-
-local function append_extra(args, extra)
-	args_util.append_extra(args, extra)
-end
-
 ---`mount [opts] [source] [target]`
 ---
 ---If both `source` and `target` are nil, this corresponds to plain `mount`.
@@ -80,30 +53,15 @@ function Mount.mount(source, target, opts)
 	opts = opts or {}
 
 	local args = { Mount.mount_bin }
-
-	if opts.verbose then
-		table.insert(args, "-v")
-	end
-	if opts.fake then
-		table.insert(args, "-f")
-	end
-	if opts.bind then
-		table.insert(args, "--bind")
-	end
-	if opts.rbind then
-		table.insert(args, "--rbind")
-	end
-	if opts.move then
-		table.insert(args, "--move")
-	end
+	local p = args_util.parser(args, opts)
+	p:flag("verbose", "-v"):flag("fake", "-f"):flag("bind", "--bind"):flag("rbind", "--rbind"):flag("move", "--move")
 
 	if opts.fstype ~= nil then
-		validate_token(opts.fstype, "fstype")
-		table.insert(args, "-t")
-		table.insert(args, opts.fstype)
+		args[#args + 1] = "-t"
+		args[#args + 1] = args_util.token(opts.fstype, "fstype")
 	end
 
-	local o = join_options(opts.options)
+	local o = args_util.join_csv(opts.options, "options")
 	if opts.readonly then
 		if o == nil or #o == 0 then
 			o = "ro"
@@ -112,19 +70,17 @@ function Mount.mount(source, target, opts)
 		end
 	end
 	if o ~= nil then
-		table.insert(args, "-o")
-		table.insert(args, o)
+		args[#args + 1] = "-o"
+		args[#args + 1] = o
 	end
 
-	append_extra(args, opts.extra)
+	p:extra()
 
 	if source ~= nil then
-		validate_token(source, "source")
-		table.insert(args, source)
+		args[#args + 1] = args_util.token(source, "source")
 	end
 	if target ~= nil then
-		validate_token(target, "target")
-		table.insert(args, target)
+		args[#args + 1] = args_util.token(target, "target")
 	end
 
 	return _cmd.cmd(table.unpack(args))
@@ -136,26 +92,19 @@ end
 ---@return ward.Cmd
 function Mount.umount(target, opts)
 	ensure.bin(Mount.umount_bin, { label = "umount binary" })
-	validate_token(target, "target")
+	args_util.token(target, "target")
 	opts = opts or {}
 
 	local args = { Mount.umount_bin }
-	if opts.lazy then
-		table.insert(args, "-l")
-	end
-	if opts.force then
-		table.insert(args, "-f")
-	end
-	if opts.recursive then
-		table.insert(args, "-R")
-	end
-	if opts.verbose then
-		table.insert(args, "-v")
-	end
+	args_util
+		.parser(args, opts)
+		:flag("lazy", "-l")
+		:flag("force", "-f")
+		:flag("recursive", "-R")
+		:flag("verbose", "-v")
+		:extra()
 
-	append_extra(args, opts.extra)
-	table.insert(args, target)
-
+	args[#args + 1] = target
 	return _cmd.cmd(table.unpack(args))
 end
 

@@ -7,8 +7,8 @@
 -- them and how to capture output.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
+local args_util = require("util.args")
 
 ---@class wardlib.DconfRaw
 ---@field __raw true
@@ -94,7 +94,7 @@ end
 ---@param key string
 ---@return ward.Cmd
 function Dconf.read(key)
-	ensure.bin(Dconf.bin, { label = 'dconf binary' })
+	ensure.bin(Dconf.bin, { label = "dconf binary" })
 	validate_key(key)
 	return _cmd.cmd(Dconf.bin, "read", key)
 end
@@ -104,7 +104,7 @@ end
 ---@param value any
 ---@return ward.Cmd
 function Dconf.write(key, value)
-	ensure.bin(Dconf.bin, { label = 'dconf binary' })
+	ensure.bin(Dconf.bin, { label = "dconf binary" })
 	validate_key(key)
 	local encoded = Dconf.encode(value)
 	return _cmd.cmd(Dconf.bin, "write", key, encoded)
@@ -115,7 +115,7 @@ end
 ---@param opts {force: boolean?}?
 ---@return ward.Cmd
 function Dconf.reset(key_or_dir, opts)
-	ensure.bin(Dconf.bin, { label = 'dconf binary' })
+	ensure.bin(Dconf.bin, { label = "dconf binary" })
 	opts = opts or {}
 
 	assert(type(key_or_dir) == "string" and #key_or_dir > 0, "path must be a non-empty string")
@@ -123,18 +123,22 @@ function Dconf.reset(key_or_dir, opts)
 
 	if opts.force then
 		validate_dir(key_or_dir)
-		return _cmd.cmd(Dconf.bin, "reset", "-f", key_or_dir)
+		local args = { Dconf.bin, "reset" }
+		args_util.parser(args, { force = true }):flag("force", "-f")
+		args[#args + 1] = key_or_dir
+		return _cmd.cmd(table.unpack(args))
 	end
 
 	validate_key(key_or_dir)
-	return _cmd.cmd(Dconf.bin, "reset", key_or_dir)
+	local args = { Dconf.bin, "reset", key_or_dir }
+	return _cmd.cmd(table.unpack(args))
 end
 
 ---List keys and subdirs under a directory
 ---@param dir string
 ---@return ward.Cmd
 function Dconf.list(dir)
-	ensure.bin(Dconf.bin, { label = 'dconf binary' })
+	ensure.bin(Dconf.bin, { label = "dconf binary" })
 	validate_dir(dir)
 	return _cmd.cmd(Dconf.bin, "list", dir)
 end
@@ -143,7 +147,7 @@ end
 ---@param dir string
 ---@return ward.Cmd
 function Dconf.dump(dir)
-	ensure.bin(Dconf.bin, { label = 'dconf binary' })
+	ensure.bin(Dconf.bin, { label = "dconf binary" })
 	validate_dir(dir)
 	return _cmd.cmd(Dconf.bin, "dump", dir)
 end
@@ -158,7 +162,7 @@ end
 ---@param data string|nil
 ---@return ward.Cmd
 function Dconf.load(dir, data)
-	ensure.bin(Dconf.bin, { label = 'dconf binary' })
+	ensure.bin(Dconf.bin, { label = "dconf binary" })
 	validate_dir(dir)
 
 	local c = _cmd.cmd(Dconf.bin, "load", dir)

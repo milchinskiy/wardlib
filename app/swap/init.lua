@@ -61,79 +61,37 @@ local function validate_number(v, label)
 	assert(type(v) == "number", label .. " must be a number")
 end
 
----@param cols string|string[]
----@return string
-local function normalize_cols(cols)
-	if type(cols) == "string" then
-		validate.non_empty_string(cols, "output")
-		return cols
-	end
-	assert(type(cols) == "table", "output must be a string or string[]")
-	assert(#cols > 0, "output must be non-empty")
-	local parts = {}
-	for _, c in ipairs(cols) do
-		validate.non_empty_string(c, "output col")
-		table.insert(parts, c)
-	end
-	return table.concat(parts, ",")
-end
-
 ---@param args string[]
 ---@param opts MkswapOpts|nil
 local function apply_mkswap_opts(args, opts)
 	opts = opts or {}
-	if opts.force then
-		table.insert(args, "-f")
-	end
-	if opts.check then
-		table.insert(args, "-c")
-	end
-	if opts.label ~= nil then
-		validate.not_flag(opts.label, "label")
-		table.insert(args, "-L")
-		table.insert(args, opts.label)
-	end
-	if opts.uuid ~= nil then
-		validate.not_flag(opts.uuid, "uuid")
-		table.insert(args, "-U")
-		table.insert(args, opts.uuid)
-	end
+	args_util
+		.parser(args, opts)
+		:flag("force", "-f")
+		:flag("check", "-c")
+		:value_token("label", "-L", "label")
+		:value_token("uuid", "-U", "uuid")
+		:value_number("pagesize", "--pagesize", { label = "pagesize", min = 0 })
+		:extra("extra")
+
 	if opts.pagesize ~= nil then
-		validate_number(opts.pagesize, "pagesize")
 		assert(opts.pagesize > 0, "pagesize must be > 0")
-		table.insert(args, "--pagesize")
-		table.insert(args, tostring(opts.pagesize))
 	end
-	args_util.append_extra(args, opts.extra)
 end
 
 ---@param args string[]
 ---@param opts SwaponOpts|nil
 local function apply_swapon_opts(args, opts)
 	opts = opts or {}
-	if opts.all then
-		table.insert(args, "-a")
-	end
-	if opts.fixpgsz then
-		table.insert(args, "--fixpgsz")
-	end
-	if opts.show then
-		table.insert(args, "--show")
-	end
-	if opts.noheadings then
-		table.insert(args, "--noheadings")
-	end
-	if opts.raw then
-		table.insert(args, "--raw")
-	end
-	if opts.bytes then
-		table.insert(args, "--bytes")
-	end
-	if opts.priority ~= nil then
-		validate_number(opts.priority, "priority")
-		table.insert(args, "-p")
-		table.insert(args, tostring(opts.priority))
-	end
+	local p = args_util.parser(args, opts)
+	p:flag("all", "-a")
+		:flag("fixpgsz", "--fixpgsz")
+		:flag("show", "--show")
+		:flag("noheadings", "--noheadings")
+		:flag("raw", "--raw")
+		:flag("bytes", "--bytes")
+		:value_number("priority", "-p", { label = "priority" })
+
 	if opts.discard ~= nil then
 		-- allow empty string meaning bare flag "--discard"
 		assert(type(opts.discard) == "string", "discard must be a string")
@@ -144,24 +102,20 @@ local function apply_swapon_opts(args, opts)
 			table.insert(args, "--discard=" .. opts.discard)
 		end
 	end
+
 	if opts.output ~= nil then
 		table.insert(args, "--output")
-		table.insert(args, normalize_cols(opts.output))
+		table.insert(args, args_util.join_csv(opts.output, "output"))
 	end
-	args_util.append_extra(args, opts.extra)
+
+	p:extra("extra")
 end
 
 ---@param args string[]
 ---@param opts SwapoffOpts|nil
 local function apply_swapoff_opts(args, opts)
 	opts = opts or {}
-	if opts.all then
-		table.insert(args, "-a")
-	end
-	if opts.verbose then
-		table.insert(args, "-v")
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util.parser(args, opts):flag("all", "-a"):flag("verbose", "-v"):extra("extra")
 end
 
 ---Construct a mkswap command.

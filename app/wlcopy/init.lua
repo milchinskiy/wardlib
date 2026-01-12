@@ -9,7 +9,6 @@
 -- command; feeding stdin is the caller's responsibility.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
@@ -61,21 +60,14 @@ function Clipboard.copy(opts)
 	local args = { Clipboard.wl_copy_bin }
 	apply_selection(args, opts.selection)
 
-	if opts.type ~= nil then
-		assert(type(opts.type) == "string" and #opts.type > 0, "type must be a non-empty string")
-		table.insert(args, "--type")
-		table.insert(args, opts.type)
-	end
-	if opts.foreground then
-		table.insert(args, "--foreground")
-	end
-	if opts.paste_once then
-		table.insert(args, "--paste-once")
-	end
-	if opts.clear then
-		table.insert(args, "--clear")
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:value_string("type", "--type", "type")
+		:flag("foreground", "--foreground")
+		:flag("paste_once", "--paste-once")
+		:flag("clear", "--clear")
+		:extra()
+
 	return _cmd.cmd(table.unpack(args))
 end
 
@@ -99,15 +91,8 @@ function Clipboard.paste(opts)
 	local args = { Clipboard.wl_paste_bin }
 	apply_selection(args, opts.selection)
 
-	if opts.type ~= nil then
-		assert(type(opts.type) == "string" and #opts.type > 0, "type must be a non-empty string")
-		table.insert(args, "--type")
-		table.insert(args, opts.type)
-	end
-	if opts.no_newline then
-		table.insert(args, "--no-newline")
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util.parser(args, opts):value_string("type", "--type", "type"):flag("no_newline", "--no-newline"):extra()
+
 	return _cmd.cmd(table.unpack(args))
 end
 

@@ -13,7 +13,6 @@
 -- Everything else can be passed through via `opts.extra`.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 

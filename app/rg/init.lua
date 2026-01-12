@@ -62,130 +62,51 @@ local Rg = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.fixed then
-		args[#args + 1] = "-F"
-	end
-
-	if opts.ignore_case then
-		args[#args + 1] = "-i"
-	end
-	if opts.smart_case then
-		args[#args + 1] = "-S"
-	end
-	if opts.case_sensitive then
-		args[#args + 1] = "-s"
-	end
-	if opts.word then
-		args[#args + 1] = "-w"
-	end
-	if opts.line then
-		args[#args + 1] = "-x"
-	end
-	if opts.invert then
-		args[#args + 1] = "-v"
-	end
-
-	if opts.count then
-		args[#args + 1] = "-c"
-	end
-	if opts.count_matches then
-		args[#args + 1] = "--count-matches"
-	end
-	if opts.quiet then
-		args[#args + 1] = "-q"
-	end
-
-	if opts.line_number then
-		args[#args + 1] = "-n"
-	end
-	if opts.column then
-		args[#args + 1] = "--column"
-	end
-	if opts.heading then
-		args[#args + 1] = "--heading"
-	end
 	if opts.no_filename and opts.with_filename then
 		error("no_filename and with_filename are mutually exclusive")
-	end
-	if opts.no_filename then
-		args[#args + 1] = "--no-filename"
-	end
-	if opts.with_filename then
-		args[#args + 1] = "--with-filename"
-	end
-	if opts.vimgrep then
-		args[#args + 1] = "--vimgrep"
-	end
-	if opts.json then
-		args[#args + 1] = "--json"
 	end
 
 	-- context
 	if opts.context ~= nil and (opts.after_context ~= nil or opts.before_context ~= nil) then
 		error("context is mutually exclusive with after_context/before_context")
 	end
-	if opts.after_context ~= nil then
-		validate.number_min(opts.after_context, "after_context", 0)
-		args[#args + 1] = "-A"
-		args[#args + 1] = tostring(opts.after_context)
-	end
-	if opts.before_context ~= nil then
-		validate.number_min(opts.before_context, "before_context", 0)
-		args[#args + 1] = "-B"
-		args[#args + 1] = tostring(opts.before_context)
-	end
-	if opts.context ~= nil then
-		validate.number_min(opts.context, "context", 0)
-		args[#args + 1] = "-C"
-		args[#args + 1] = tostring(opts.context)
-	end
-	if opts.max_count ~= nil then
-		validate.number_min(opts.max_count, "max_count", 1)
-		args[#args + 1] = "-m"
-		args[#args + 1] = tostring(opts.max_count)
-	end
-	if opts.threads ~= nil then
-		validate.number_min(opts.threads, "threads", 1)
-		args[#args + 1] = "-j"
-		args[#args + 1] = tostring(opts.threads)
-	end
 
-	if opts.follow then
-		args[#args + 1] = "-L"
-	end
-	if opts.hidden then
-		args[#args + 1] = "--hidden"
-	end
-	if opts.no_ignore then
-		args[#args + 1] = "--no-ignore"
-	end
-	if opts.no_ignore_vcs then
-		args[#args + 1] = "--no-ignore-vcs"
-	end
+	local p = args_util.parser(args, opts)
 
-	if opts.glob ~= nil then
-		args_util.add_repeatable(args, opts.glob, "-g", "glob")
-	end
-	if opts.type ~= nil then
-		args_util.add_repeatable(args, opts.type, "--type", "type")
-	end
-	if opts.type_not ~= nil then
-		args_util.add_repeatable(args, opts.type_not, "--type-not", "type_not")
-	end
+	p:flag("fixed", "-F")
+		:flag("ignore_case", "-i")
+		:flag("smart_case", "-S")
+		:flag("case_sensitive", "-s")
+		:flag("word", "-w")
+		:flag("line", "-x")
+		:flag("invert", "-v")
+		:flag("count", "-c")
+		:flag("count_matches", "--count-matches")
+		:flag("quiet", "-q")
+		:flag("line_number", "-n")
+		:flag("column", "--column")
+		:flag("heading", "--heading")
+		:flag("no_filename", "--no-filename")
+		:flag("with_filename", "--with-filename")
+		:flag("vimgrep", "--vimgrep")
+		:flag("json", "--json")
+		:value_number("after_context", "-A", { label = "after_context", integer = true, min = 0 })
+		:value_number("before_context", "-B", { label = "before_context", integer = true, min = 0 })
+		:value_number("context", "-C", { label = "context", integer = true, min = 0 })
+		:value_number("max_count", "-m", { label = "max_count", integer = true, min = 1 })
+		:value_number("threads", "-j", { label = "threads", integer = true, min = 1 })
+		:flag("follow", "-L")
+		:flag("hidden", "--hidden")
+		:flag("no_ignore", "--no-ignore")
+		:flag("no_ignore_vcs", "--no-ignore-vcs")
+		:repeatable("glob", "-g", { label = "glob" })
+		:repeatable("type", "--type", { label = "type" })
+		:repeatable("type_not", "--type-not", { label = "type_not" })
+		:flag("files_with_matches", "--files-with-matches")
+		:flag("files_without_match", "--files-without-match")
+		:value_string("replace", "-r", "replace")
 
-	if opts.files_with_matches then
-		args[#args + 1] = "--files-with-matches"
-	end
-	if opts.files_without_match then
-		args[#args + 1] = "--files-without-match"
-	end
-
-	if opts.replace ~= nil then
-		validate.non_empty_string(opts.replace, "replace")
-		args[#args + 1] = "-r"
-		args[#args + 1] = tostring(opts.replace)
-	end
-
+	-- color
 	if opts.color ~= nil then
 		if opts.color == true then
 			args[#args + 1] = "--color=auto"
@@ -197,7 +118,7 @@ local function apply_opts(args, opts)
 		end
 	end
 
-	args_util.append_extra(args, opts.extra)
+	p:extra("extra")
 end
 
 ---@param args string[]

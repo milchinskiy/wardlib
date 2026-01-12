@@ -59,56 +59,31 @@ local function apply_opts(args, opts)
 		error("sort_time, sort_size, and no_sort are mutually exclusive")
 	end
 
-	if opts.all then
-		args[#args + 1] = "-a"
-	end
-	if opts.almost_all then
-		args[#args + 1] = "-A"
-	end
-	if opts.long then
-		args[#args + 1] = "-l"
-	end
-	if opts.human then
-		args[#args + 1] = "-h"
-	end
-	if opts.classify then
-		args[#args + 1] = "-F"
-	end
-	if opts.one_per_line then
-		args[#args + 1] = "-1"
-	end
-	if opts.recursive then
-		args[#args + 1] = "-R"
-	end
-	if opts.directory then
-		args[#args + 1] = "-d"
-	end
-	if opts.reverse then
-		args[#args + 1] = "-r"
-	end
-	if opts.sort_time then
-		args[#args + 1] = "-t"
-	end
-	if opts.sort_size then
-		args[#args + 1] = "-S"
-	end
-	if opts.no_sort then
-		args[#args + 1] = "-U"
-	end
+	local p = args_util.parser(args, opts)
+	p:flag("all", "-a")
+		:flag("almost_all", "-A")
+		:flag("long", "-l")
+		:flag("human", "-h")
+		:flag("classify", "-F")
+		:flag("one_per_line", "-1")
+		:flag("recursive", "-R")
+		:flag("directory", "-d")
+		:flag("reverse", "-r")
+		:flag("sort_time", "-t")
+		:flag("sort_size", "-S")
+		:flag("no_sort", "-U")
 
-	if opts.color ~= nil then
-		local v = tostring(opts.color)
-		if v ~= "auto" and v ~= "always" and v ~= "never" then
-			error("color must be one of: 'auto', 'always', 'never'")
-		end
-		args[#args + 1] = "--color=" .. v
-	end
-	if opts.time_style ~= nil then
-		validate.non_empty_string(opts.time_style, "time_style")
-		args[#args + 1] = "--time-style=" .. tostring(opts.time_style)
-	end
-
-	args_util.append_extra(args, opts.extra)
+	p:value("color", "--color", {
+		mode = "equals",
+		validate = function(v, _)
+			local s = tostring(v)
+			if s ~= "auto" and s ~= "always" and s ~= "never" then
+				error("color must be one of: 'auto', 'always', 'never'")
+			end
+		end,
+	})
+	p:value("time_style", "--time-style", { mode = "equals", validate = validate.non_empty_string })
+	p:extra()
 end
 
 ---List directory contents.

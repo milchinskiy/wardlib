@@ -49,94 +49,42 @@ local Feh = {
 	bin = "feh",
 }
 
----@param v any
----@param label string
-local function validate_number(v, label)
-	assert(type(v) == "number" and v >= 0, label .. " must be a non-negative number")
-end
-
 ---@param args string[]
 ---@param opts FehOpts|nil
 local function apply_view_opts(args, opts)
 	opts = opts or {}
 
-	if opts.fullscreen then
-		table.insert(args, "-F")
-	end
-	if opts.borderless then
-		table.insert(args, "-x")
-	end
-	if opts.keep_zoom_vp then
-		table.insert(args, "--keep-zoom-vp")
-	end
-	if opts.auto_rotate then
-		table.insert(args, "--auto-rotate")
-	end
-	if opts.draw_filename then
-		table.insert(args, "-d")
-	end
-	if opts.recursive then
-		table.insert(args, "-r")
-	end
-	if opts.reverse then
-		table.insert(args, "--reverse")
-	end
-	if opts.randomize then
-		table.insert(args, "--randomize")
-	end
-	if opts.preload then
-		table.insert(args, "--preload")
-	end
+	-- preserve original ordering
+	local p = args_util.parser(args, opts)
+	p:flag("fullscreen", "-F")
+		:flag("borderless", "-x")
+		:flag("keep_zoom_vp", "--keep-zoom-vp")
+		:flag("auto_rotate", "--auto-rotate")
+		:flag("draw_filename", "-d")
+		:flag("recursive", "-r")
+		:flag("reverse", "--reverse")
+		:flag("randomize", "--randomize")
+		:flag("preload", "--preload")
 
-	if opts.title ~= nil then
-		validate.non_empty_string(opts.title, "title")
-		table.insert(args, "--title")
-		table.insert(args, opts.title)
-	end
-	if opts.caption_path ~= nil then
-		validate.non_empty_string(opts.caption_path, "caption_path")
-		table.insert(args, "--caption-path")
-		table.insert(args, opts.caption_path)
-	end
-	if opts.geometry ~= nil then
-		validate.non_empty_string(opts.geometry, "geometry")
-		table.insert(args, "-g")
-		table.insert(args, opts.geometry)
-	end
-	if opts.reload ~= nil then
-		validate_number(opts.reload, "reload")
-		table.insert(args, "--reload")
-		table.insert(args, tostring(opts.reload))
-	end
-	if opts.slideshow_delay ~= nil then
-		validate_number(opts.slideshow_delay, "slideshow_delay")
-		table.insert(args, "-D")
-		table.insert(args, tostring(opts.slideshow_delay))
-	end
-	if opts.sort ~= nil then
-		validate.non_empty_string(opts.sort, "sort")
-		table.insert(args, "--sort")
-		table.insert(args, opts.sort)
-	end
-	if opts.cache_size ~= nil then
-		validate_number(opts.cache_size, "cache_size")
-		table.insert(args, "--cache-size")
-		table.insert(args, tostring(opts.cache_size))
-	end
+	p:value_string("title", "--title", "title")
+		:value_string("caption_path", "--caption-path", "caption_path")
+		:value_string("geometry", "-g", "geometry")
+		:value_number("reload", "--reload", { non_negative = true, label = "reload" })
+		:value_number("slideshow_delay", "-D", { non_negative = true, label = "slideshow_delay" })
+		:value_string("sort", "--sort", "sort")
+		:value_number("cache_size", "--cache-size", { non_negative = true, label = "cache_size" })
 
 	-- zoom: feh has -Z for auto-zoom, and --zoom <percent>.
-	-- Here we model --zoom as zoom_percent.
-	if opts.zoom then
-		table.insert(args, "-Z")
-	end
-	if opts.zoom_percent ~= nil then
-		validate_number(opts.zoom_percent, "zoom_percent")
-		assert(opts.zoom_percent > 0, "zoom_percent must be > 0")
-		table.insert(args, "--zoom")
-		table.insert(args, tostring(opts.zoom_percent))
-	end
+	p:flag("zoom", "-Z")
+	p:value("zoom_percent", "--zoom", {
+		label = "zoom_percent",
+		validate = function(v, l)
+			assert(type(v) == "number" and v >= 0, l .. " must be a non-negative number")
+			assert(v > 0, "zoom_percent must be > 0")
+		end,
+	})
 
-	args_util.append_extra(args, opts.extra)
+	p:extra()
 end
 
 ---@param args string[]
@@ -145,20 +93,12 @@ local function apply_inputs(args, inputs)
 	if inputs == nil then
 		return
 	end
-	if type(inputs) == "string" then
-		validate.non_empty_string(inputs, "input")
-		table.insert(args, inputs)
-		return
+	local list = args_util.normalize_string_or_array(inputs, "inputs")
+	assert(#list > 0, "inputs list must be non-empty")
+	for _, p in ipairs(list) do
+		validate.non_empty_string(p, "input")
+		table.insert(args, p)
 	end
-	if type(inputs) == "table" then
-		assert(#inputs > 0, "inputs list must be non-empty")
-		for _, p in ipairs(inputs) do
-			validate.non_empty_string(p, "input")
-			table.insert(args, p)
-		end
-		return
-	end
-	error("inputs must be string, string[], or nil")
 end
 
 ---@param args string[]
@@ -179,10 +119,8 @@ local function apply_bg_opts(args, opts)
 		assert(flag ~= nil, "unknown bg mode: " .. tostring(mode))
 		table.insert(args, flag)
 	end
-	if opts.no_fehbg then
-		table.insert(args, "--no-fehbg")
-	end
-	args_util.append_extra(args, opts.extra)
+
+	args_util.parser(args, opts):flag("no_fehbg", "--no-fehbg"):extra()
 end
 
 ---Construct a feh viewing command.
@@ -192,7 +130,7 @@ end
 ---@param opts FehOpts|nil
 ---@return ward.Cmd
 function Feh.view(inputs, opts)
-	ensure.bin(Feh.bin, { label = 'feh binary' })
+	ensure.bin(Feh.bin, { label = "feh binary" })
 	local args = { Feh.bin }
 	apply_view_opts(args, opts)
 	apply_inputs(args, inputs)
@@ -204,7 +142,7 @@ end
 ---@param opts FehBgOpts|nil
 ---@return ward.Cmd
 function Feh.bg(image, opts)
-	ensure.bin(Feh.bin, { label = 'feh binary' })
+	ensure.bin(Feh.bin, { label = "feh binary" })
 	validate.non_empty_string(image, "image")
 	local args = { Feh.bin }
 	apply_bg_opts(args, opts)
@@ -217,7 +155,7 @@ end
 ---@param opts FehBgOpts|nil
 ---@return ward.Cmd
 function Feh.bg_multi(images, opts)
-	ensure.bin(Feh.bin, { label = 'feh binary' })
+	ensure.bin(Feh.bin, { label = "feh binary" })
 	local args = { Feh.bin }
 	apply_bg_opts(args, opts)
 	apply_inputs(args, images)

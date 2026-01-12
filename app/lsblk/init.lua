@@ -35,68 +35,30 @@ local Lsblk = {
 	bin = "lsblk",
 }
 
----@param cols string|string[]
----@return string
-local function normalize_output_cols(cols)
-	if type(cols) == "string" then
-		validate.non_empty_string(cols, "output")
-		return cols
-	end
-	assert(type(cols) == "table", "output must be a string or string[]")
-	assert(#cols > 0, "output must be non-empty")
-	local parts = {}
-	for _, c in ipairs(cols) do
-		validate.non_empty_string(c, "output col")
-		table.insert(parts, c)
-	end
-	return table.concat(parts, ",")
-end
-
 ---@param args string[]
 ---@param opts LsblkOpts|nil
 local function apply_opts(args, opts)
 	opts = opts or {}
-	if opts.json then
-		table.insert(args, "-J")
-	end
-	if opts.bytes then
-		table.insert(args, "-b")
-	end
-	if opts.paths then
-		table.insert(args, "-p")
-	end
-	if opts.fs then
-		table.insert(args, "-f")
-	end
-	if opts.all then
-		table.insert(args, "-a")
-	end
-	if opts.nodeps then
-		table.insert(args, "-d")
-	end
-	if opts.list then
-		table.insert(args, "-l")
-	end
-	if opts.raw then
-		table.insert(args, "-r")
-	end
-	if opts.noheadings then
-		table.insert(args, "-n")
-	end
-	if opts.tree then
-		table.insert(args, "--tree")
-	end
-	if opts.sort ~= nil then
-		validate.non_empty_string(opts.sort, "sort")
-		assert(opts.sort:sub(1, 1) ~= "-", "sort must not start with '-': " .. tostring(opts.sort))
-		table.insert(args, "--sort")
-		table.insert(args, opts.sort)
-	end
+
+	local p = args_util.parser(args, opts)
+	p:flag("json", "-J")
+		:flag("bytes", "-b")
+		:flag("paths", "-p")
+		:flag("fs", "-f")
+		:flag("all", "-a")
+		:flag("nodeps", "-d")
+		:flag("list", "-l")
+		:flag("raw", "-r")
+		:flag("noheadings", "-n")
+		:flag("tree", "--tree")
+		:value_token("sort", "--sort", "sort")
+
 	if opts.output ~= nil then
-		table.insert(args, "-o")
-		table.insert(args, normalize_output_cols(opts.output))
+		args[#args + 1] = "-o"
+		args[#args + 1] = args_util.join_csv(opts.output, "output")
 	end
-	args_util.append_extra(args, opts.extra)
+
+	p:extra("extra")
 end
 
 ---Construct an lsblk command.
@@ -107,7 +69,7 @@ end
 ---@param opts LsblkOpts|nil
 ---@return ward.Cmd
 function Lsblk.list(devices, opts)
-	ensure.bin(Lsblk.bin, { label = 'lsblk binary' })
+	ensure.bin(Lsblk.bin, { label = "lsblk binary" })
 
 	local args = { Lsblk.bin }
 	apply_opts(args, opts)

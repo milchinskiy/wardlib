@@ -10,7 +10,6 @@
 -- anything not modeled here.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
@@ -56,6 +55,7 @@ local Find = {
 ---@param opts FindOpts|nil
 local function apply_start_opts(args, opts)
 	opts = opts or {}
+
 	if opts.follow_mode ~= nil then
 		assert(type(opts.follow_mode) == "string", "follow_mode must be a string")
 		if opts.follow_mode == "P" then
@@ -68,7 +68,9 @@ local function apply_start_opts(args, opts)
 			error("follow_mode must be one of: 'P', 'L', 'H'")
 		end
 	end
-	args_util.append_extra(args, opts.extra)
+
+	-- extra argv inserted after the binary and traversal mode, before `--`
+	args_util.parser(args, opts):extra("extra")
 end
 
 ---@param opts FindOpts|nil
@@ -77,119 +79,34 @@ local function build_expr(opts)
 	opts = opts or {}
 	local e = {}
 
-	if opts.maxdepth ~= nil then
-		validate.integer_min(opts.maxdepth, "maxdepth", 0)
-		e[#e + 1] = "-maxdepth"
-		e[#e + 1] = tostring(opts.maxdepth)
-	end
-	if opts.mindepth ~= nil then
-		validate.integer_min(opts.mindepth, "mindepth", 0)
-		e[#e + 1] = "-mindepth"
-		e[#e + 1] = tostring(opts.mindepth)
-	end
-	if opts.xdev then
-		e[#e + 1] = "-xdev"
-	end
-	if opts.depth then
-		e[#e + 1] = "-depth"
-	end
+	local p = args_util.parser(e, opts)
 
-	if opts.type ~= nil then
-		validate.non_empty_string(opts.type, "type")
-		e[#e + 1] = "-type"
-		e[#e + 1] = tostring(opts.type)
-	end
-	if opts.name ~= nil then
-		validate.non_empty_string(opts.name, "name")
-		e[#e + 1] = "-name"
-		e[#e + 1] = tostring(opts.name)
-	end
-	if opts.iname ~= nil then
-		validate.non_empty_string(opts.iname, "iname")
-		e[#e + 1] = "-iname"
-		e[#e + 1] = tostring(opts.iname)
-	end
-	if opts.path ~= nil then
-		validate.non_empty_string(opts.path, "path")
-		e[#e + 1] = "-path"
-		e[#e + 1] = tostring(opts.path)
-	end
-	if opts.ipath ~= nil then
-		validate.non_empty_string(opts.ipath, "ipath")
-		e[#e + 1] = "-ipath"
-		e[#e + 1] = tostring(opts.ipath)
-	end
-	if opts.regex ~= nil then
-		validate.non_empty_string(opts.regex, "regex")
-		e[#e + 1] = "-regex"
-		e[#e + 1] = tostring(opts.regex)
-	end
-	if opts.iregex ~= nil then
-		validate.non_empty_string(opts.iregex, "iregex")
-		e[#e + 1] = "-iregex"
-		e[#e + 1] = tostring(opts.iregex)
-	end
+	p:value_number("maxdepth", "-maxdepth", { integer = true, min = 0, label = "maxdepth" })
+		:value_number("mindepth", "-mindepth", { integer = true, min = 0, label = "mindepth" })
+		:flag("xdev", "-xdev")
+		:flag("depth", "-depth")
+		:value_string("type", "-type", "type")
+		:value_string("name", "-name", "name")
+		:value_string("iname", "-iname", "iname")
+		:value_string("path", "-path", "path")
+		:value_string("ipath", "-ipath", "ipath")
+		:value_string("regex", "-regex", "regex")
+		:value_string("iregex", "-iregex", "iregex")
+		:value_string("size", "-size", "size")
+		:value_string("user", "-user", "user")
+		:value_string("group", "-group", "group")
+		:value_string("perm", "-perm", "perm")
+		:value_number("mtime", "-mtime", { integer = true, label = "mtime" })
+		:value_number("atime", "-atime", { integer = true, label = "atime" })
+		:value_number("ctime", "-ctime", { integer = true, label = "ctime" })
+		:value_string("newer", "-newer", "newer")
+		:flag("empty", "-empty")
+		:flag("readable", "-readable")
+		:flag("writable", "-writable")
+		:flag("executable", "-executable")
+		:flag("print0", "-print0")
+		:extra("extra_expr")
 
-	if opts.size ~= nil then
-		validate.non_empty_string(opts.size, "size")
-		e[#e + 1] = "-size"
-		e[#e + 1] = tostring(opts.size)
-	end
-	if opts.user ~= nil then
-		validate.non_empty_string(opts.user, "user")
-		e[#e + 1] = "-user"
-		e[#e + 1] = tostring(opts.user)
-	end
-	if opts.group ~= nil then
-		validate.non_empty_string(opts.group, "group")
-		e[#e + 1] = "-group"
-		e[#e + 1] = tostring(opts.group)
-	end
-	if opts.perm ~= nil then
-		validate.non_empty_string(opts.perm, "perm")
-		e[#e + 1] = "-perm"
-		e[#e + 1] = tostring(opts.perm)
-	end
-
-	if opts.mtime ~= nil then
-		validate.integer(opts.mtime, "mtime")
-		e[#e + 1] = "-mtime"
-		e[#e + 1] = tostring(opts.mtime)
-	end
-	if opts.atime ~= nil then
-		validate.integer(opts.atime, "atime")
-		e[#e + 1] = "-atime"
-		e[#e + 1] = tostring(opts.atime)
-	end
-	if opts.ctime ~= nil then
-		validate.integer(opts.ctime, "ctime")
-		e[#e + 1] = "-ctime"
-		e[#e + 1] = tostring(opts.ctime)
-	end
-	if opts.newer ~= nil then
-		validate.non_empty_string(opts.newer, "newer")
-		e[#e + 1] = "-newer"
-		e[#e + 1] = tostring(opts.newer)
-	end
-
-	if opts.empty then
-		e[#e + 1] = "-empty"
-	end
-	if opts.readable then
-		e[#e + 1] = "-readable"
-	end
-	if opts.writable then
-		e[#e + 1] = "-writable"
-	end
-	if opts.executable then
-		e[#e + 1] = "-executable"
-	end
-
-	if opts.print0 then
-		e[#e + 1] = "-print0"
-	end
-
-	args_util.append_extra(e, opts.extra_expr)
 	return e
 end
 

@@ -40,30 +40,22 @@ local function apply_opts(args, opts)
 		error("preserve_root and no_preserve_root are mutually exclusive")
 	end
 
-	if opts.recursive then
-		args[#args + 1] = "-R"
-	end
-	if opts.verbose then
-		args[#args + 1] = "-v"
-	end
-	if opts.changes then
-		args[#args + 1] = "-c"
-	end
-	if opts.silent then
-		args[#args + 1] = "-f"
-	end
-	if opts.preserve_root then
-		args[#args + 1] = "--preserve-root"
-	end
-	if opts.no_preserve_root then
-		args[#args + 1] = "--no-preserve-root"
-	end
-	if opts.reference ~= nil then
-		validate.non_empty_string(opts.reference, "reference")
-		args[#args + 1] = "--reference=" .. tostring(opts.reference)
-	end
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("recursive", "-R")
+		:flag("verbose", "-v")
+		:flag("changes", "-c")
+		:flag("silent", "-f")
+		:flag("preserve_root", "--preserve-root")
+		:flag("no_preserve_root", "--no-preserve-root")
+		:value("reference", "--reference", {
+			label = "reference",
+			mode = "equals",
+			validate = function(v, label)
+				validate.non_empty_string(v, label)
+			end,
+		})
+		:extra("extra")
 end
 
 ---@param paths string|string[]

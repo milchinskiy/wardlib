@@ -61,135 +61,43 @@ local Wget = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.quiet then
-		table.insert(args, "-q")
-	end
-	if opts.verbose then
-		table.insert(args, "-v")
-	end
-	if opts.no_verbose then
-		table.insert(args, "-nv")
-	end
-	if opts.continue then
-		table.insert(args, "-c")
-	end
-	if opts.timestamping then
-		table.insert(args, "-N")
-	end
-	if opts.no_clobber then
-		table.insert(args, "-nc")
-	end
-	if opts.spider then
-		table.insert(args, "--spider")
-	end
-	if opts.no_check_certificate then
-		table.insert(args, "--no-check-certificate")
-	end
-	if opts.inet4_only then
-		table.insert(args, "-4")
-	end
-	if opts.inet6_only then
-		table.insert(args, "-6")
-	end
+	local p = args_util.parser(args, opts)
+	p:flag("quiet", "-q")
+		:flag("verbose", "-v")
+		:flag("no_verbose", "-nv")
+		:flag("continue", "-c")
+		:flag("timestamping", "-N")
+		:flag("no_clobber", "-nc")
+		:flag("spider", "--spider")
+		:flag("no_check_certificate", "--no-check-certificate")
+		:flag("inet4_only", "-4")
+		:flag("inet6_only", "-6")
 
-	if opts.timeout ~= nil then
-		validate.number_non_negative(opts.timeout, "timeout")
-		table.insert(args, "--timeout=" .. tostring(opts.timeout))
-	end
-	if opts.wait ~= nil then
-		validate.number_non_negative(opts.wait, "wait")
-		table.insert(args, "--wait=" .. tostring(opts.wait))
-	end
-	if opts.tries ~= nil then
-		validate.number_non_negative(opts.tries, "tries")
-		table.insert(args, "--tries=" .. tostring(opts.tries))
-	end
+	p:value_number("timeout", "--timeout", { non_negative = true, mode = "equals" })
+	p:value_number("wait", "--wait", { non_negative = true, mode = "equals" })
+	p:value_number("tries", "--tries", { non_negative = true, mode = "equals" })
 
-	if opts.output_document ~= nil then
-		validate.non_empty_string(opts.output_document, "output_document")
-		table.insert(args, "-O")
-		table.insert(args, opts.output_document)
-	end
-	if opts.directory_prefix ~= nil then
-		validate.non_empty_string(opts.directory_prefix, "directory_prefix")
-		table.insert(args, "-P")
-		table.insert(args, opts.directory_prefix)
-	end
-	if opts.input_file ~= nil then
-		validate.non_empty_string(opts.input_file, "input_file")
-		table.insert(args, "-i")
-		table.insert(args, opts.input_file)
-	end
-	if opts.user_agent ~= nil then
-		validate.non_empty_string(opts.user_agent, "user_agent")
-		table.insert(args, "-U")
-		table.insert(args, opts.user_agent)
-	end
+	p:value_string("output_document", "-O")
+	p:value_string("directory_prefix", "-P")
+	p:value_string("input_file", "-i")
+	p:value_string("user_agent", "-U")
 
-	if opts.header ~= nil then
-		local headers = {}
-		if type(opts.header) == "string" then
-			headers = { opts.header }
-		elseif type(opts.header) == "table" then
-			assert(#opts.header > 0, "header list must be non-empty")
-			for _, h in ipairs(opts.header) do
-				table.insert(headers, tostring(h))
-			end
-		else
-			error("header must be string or string[]")
-		end
-		for _, h in ipairs(headers) do
-			validate.non_empty_string(h, "header")
-			table.insert(args, "--header=" .. h)
-		end
-	end
+	p:repeatable("header", "--header", { mode = "equals", validate = validate.non_empty_string })
+	p:value("method", "--method", { mode = "equals", validate = validate.not_flag })
+	p:value("post_data", "--post-data", { mode = "equals", validate = validate.non_empty_string })
+	p:value("post_file", "--post-file", { mode = "equals", validate = validate.non_empty_string })
+	p:value("body_data", "--body-data", { mode = "equals", validate = validate.non_empty_string })
+	p:value("body_file", "--body-file", { mode = "equals", validate = validate.non_empty_string })
 
-	if opts.method ~= nil then
-		validate.not_flag(opts.method, "method")
-		table.insert(args, "--method=" .. opts.method)
-	end
-	if opts.post_data ~= nil then
-		validate.non_empty_string(opts.post_data, "post_data")
-		table.insert(args, "--post-data=" .. opts.post_data)
-	end
-	if opts.post_file ~= nil then
-		validate.non_empty_string(opts.post_file, "post_file")
-		table.insert(args, "--post-file=" .. opts.post_file)
-	end
-	if opts.body_data ~= nil then
-		validate.non_empty_string(opts.body_data, "body_data")
-		table.insert(args, "--body-data=" .. opts.body_data)
-	end
-	if opts.body_file ~= nil then
-		validate.non_empty_string(opts.body_file, "body_file")
-		table.insert(args, "--body-file=" .. opts.body_file)
-	end
+	p:flag("recursive", "-r")
+	p:value_number("level", "-l", { non_negative = true })
+	p:flag("no_parent", "-np")
+		:flag("mirror", "-m")
+		:flag("page_requisites", "-p")
+		:flag("convert_links", "-k")
+		:flag("adjust_extension", "-E")
 
-	if opts.recursive then
-		table.insert(args, "-r")
-	end
-	if opts.level ~= nil then
-		validate.number_non_negative(opts.level, "level")
-		table.insert(args, "-l")
-		table.insert(args, tostring(opts.level))
-	end
-	if opts.no_parent then
-		table.insert(args, "-np")
-	end
-	if opts.mirror then
-		table.insert(args, "-m")
-	end
-	if opts.page_requisites then
-		table.insert(args, "-p")
-	end
-	if opts.convert_links then
-		table.insert(args, "-k")
-	end
-	if opts.adjust_extension then
-		table.insert(args, "-E")
-	end
-
-	args_util.append_extra(args, opts.extra)
+	p:extra()
 end
 
 ---Construct a wget command.

@@ -50,27 +50,18 @@ local function apply_output(out, args)
 	assert(type(out) == "table", "output must be a table")
 	validate.non_empty_string(out.image, "image")
 
-	if out.name ~= nil then
-		validate.non_empty_string(out.name, "name")
-		table.insert(args, "-o")
-		table.insert(args, out.name)
-	end
-
-	table.insert(args, "-i")
-	table.insert(args, out.image)
-
-	if out.mode ~= nil then
-		validate.non_empty_string(out.mode, "mode")
-		validate_mode(out.mode)
-		table.insert(args, "-m")
-		table.insert(args, out.mode)
-	end
-
-	if out.color ~= nil then
-		validate.non_empty_string(out.color, "color")
-		table.insert(args, "-c")
-		table.insert(args, out.color)
-	end
+	-- preserve option ordering: -o, -i, -m, -c
+	local p = args_util.parser(args, out)
+	p:value_string("name", "-o", "name")
+	p:value_string("image", "-i", "image")
+	p:value("mode", "-m", {
+		label = "mode",
+		validate = function(v, l)
+			validate.non_empty_string(v, l)
+			validate_mode(v)
+		end,
+	})
+	p:value_string("color", "-c", "color")
 end
 
 ---@param args string[]
@@ -95,7 +86,7 @@ local function apply_opts(args, opts)
 		error("opts.outputs is required")
 	end
 
-	args_util.append_extra(args, opts.extra)
+	args_util.parser(args, opts):extra()
 end
 
 ---Convenience: set wallpaper for default output.
@@ -104,7 +95,7 @@ end
 ---@param color string|nil
 ---@return ward.Cmd
 function Swaybg.set(image, mode, color)
-	ensure.bin(Swaybg.bin, { label = 'swaybg binary' })
+	ensure.bin(Swaybg.bin, { label = "swaybg binary" })
 	validate.non_empty_string(image, "image")
 	local out = { image = image }
 	if mode ~= nil then
@@ -123,7 +114,7 @@ end
 ---@param opts SwaybgOpts
 ---@return ward.Cmd
 function Swaybg.run(opts)
-	ensure.bin(Swaybg.bin, { label = 'swaybg binary' })
+	ensure.bin(Swaybg.bin, { label = "swaybg binary" })
 	local args = { Swaybg.bin }
 	apply_opts(args, opts)
 	return _cmd.cmd(table.unpack(args))

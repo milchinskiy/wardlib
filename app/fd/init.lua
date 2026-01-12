@@ -8,7 +8,6 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
@@ -66,106 +65,42 @@ local function apply_opts(args, opts)
 	if mode_count > 1 then
 		error("glob and fixed_strings are mutually exclusive")
 	end
-	if opts.glob then
-		args[#args + 1] = "-g"
-	end
-	if opts.fixed_strings then
-		args[#args + 1] = "-F"
-	end
 
 	-- case
 	if opts.case_sensitive and opts.ignore_case then
 		error("case_sensitive and ignore_case are mutually exclusive")
 	end
-	if opts.case_sensitive then
-		args[#args + 1] = "-s"
-	end
-	if opts.ignore_case then
-		args[#args + 1] = "-i"
-	end
-
-	if opts.hidden then
-		args[#args + 1] = "-H"
-	end
-	if opts.no_ignore then
-		args[#args + 1] = "-I"
-	end
-	if opts.unrestricted then
-		args[#args + 1] = "-u"
-	end
-	if opts.no_ignore_vcs then
-		args[#args + 1] = "--no-ignore-vcs"
-	end
-
-	if opts.follow then
-		args[#args + 1] = "-L"
-	end
-	if opts.absolute_path then
-		args[#args + 1] = "-a"
-	end
-	if opts.full_path then
-		args[#args + 1] = "-p"
-	end
-	if opts.print0 then
-		args[#args + 1] = "-0"
-	end
-	if opts.quiet then
-		args[#args + 1] = "-q"
-	end
-	if opts.show_errors then
-		args[#args + 1] = "--show-errors"
-	end
-
-	if opts.max_results ~= nil then
-		validate.integer_min(opts.max_results, "max_results", 1)
-		args[#args + 1] = "--max-results"
-		args[#args + 1] = tostring(opts.max_results)
-	end
-	if opts.max_depth ~= nil then
-		validate.integer_min(opts.max_depth, "max_depth", 0)
-		args[#args + 1] = "-d"
-		args[#args + 1] = tostring(opts.max_depth)
-	end
-	if opts.min_depth ~= nil then
-		validate.integer_min(opts.min_depth, "min_depth", 0)
-		args[#args + 1] = "--min-depth"
-		args[#args + 1] = tostring(opts.min_depth)
-	end
-	if opts.exact_depth ~= nil then
-		validate.integer_min(opts.exact_depth, "exact_depth", 0)
-		args[#args + 1] = "--exact-depth"
-		args[#args + 1] = tostring(opts.exact_depth)
-	end
-
-	if opts.type ~= nil then
-		args_util.add_repeatable(args, opts.type, "-t", "type")
-	end
-	if opts.extension ~= nil then
-		args_util.add_repeatable(args, opts.extension, "-e", "extension")
-	end
-	if opts.exclude ~= nil then
-		args_util.add_repeatable(args, opts.exclude, "-E", "exclude")
-	end
-
-	if opts.size ~= nil then
-		validate.non_empty_string(opts.size, "size")
-		args[#args + 1] = "-S"
-		args[#args + 1] = tostring(opts.size)
-	end
-	if opts.changed_within ~= nil then
-		validate.non_empty_string(opts.changed_within, "changed_within")
-		args[#args + 1] = "--changed-within"
-		args[#args + 1] = tostring(opts.changed_within)
-	end
-	if opts.changed_before ~= nil then
-		validate.non_empty_string(opts.changed_before, "changed_before")
-		args[#args + 1] = "--changed-before"
-		args[#args + 1] = tostring(opts.changed_before)
-	end
 
 	if opts.exec ~= nil and opts.exec_batch ~= nil then
 		error("exec and exec_batch are mutually exclusive")
 	end
+
+	local p = args_util.parser(args, opts)
+	p:flag("glob", "-g")
+		:flag("fixed_strings", "-F")
+		:flag("case_sensitive", "-s")
+		:flag("ignore_case", "-i")
+		:flag("hidden", "-H")
+		:flag("no_ignore", "-I")
+		:flag("unrestricted", "-u")
+		:flag("no_ignore_vcs", "--no-ignore-vcs")
+		:flag("follow", "-L")
+		:flag("absolute_path", "-a")
+		:flag("full_path", "-p")
+		:flag("print0", "-0")
+		:flag("quiet", "-q")
+		:flag("show_errors", "--show-errors")
+		:value_number("max_results", "--max-results", { label = "max_results", integer = true, min = 1 })
+		:value_number("max_depth", "-d", { label = "max_depth", integer = true, min = 0 })
+		:value_number("min_depth", "--min-depth", { label = "min_depth", integer = true, min = 0 })
+		:value_number("exact_depth", "--exact-depth", { label = "exact_depth", integer = true, min = 0 })
+		:repeatable("type", "-t", { label = "type" })
+		:repeatable("extension", "-e", { label = "extension" })
+		:repeatable("exclude", "-E", { label = "exclude" })
+		:value_string("size", "-S", "size")
+		:value_string("changed_within", "--changed-within", "changed_within")
+		:value_string("changed_before", "--changed-before", "changed_before")
+
 	if opts.exec ~= nil then
 		local cmdv = args_util.normalize_string_or_array(opts.exec, "exec")
 		args[#args + 1] = "-x"
@@ -181,7 +116,7 @@ local function apply_opts(args, opts)
 		end
 	end
 
-	args_util.append_extra(args, opts.extra)
+	p:extra("extra")
 end
 
 ---Build an fd search command.

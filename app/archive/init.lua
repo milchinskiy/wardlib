@@ -75,7 +75,7 @@ end
 ---@param opts ArchiveCommonOpts|nil
 ---@return ward.Cmd
 function Archive.create(archive_path, inputs, opts)
-	ensure.bin(Archive.bin, { label = 'tar binary' })
+	ensure.bin(Archive.bin, { label = "tar binary" })
 	validate.non_empty_string(archive_path, "archive_path")
 	assert(type(inputs) == "table" and #inputs > 0, "inputs must be a non-empty array")
 
@@ -97,7 +97,7 @@ end
 ---@param opts ArchiveExtractOpts|nil
 ---@return ward.Cmd
 function Archive.extract(archive_path, opts)
-	ensure.bin(Archive.bin, { label = 'tar binary' })
+	ensure.bin(Archive.bin, { label = "tar binary" })
 	validate.non_empty_string(archive_path, "archive_path")
 	opts = opts or {}
 
@@ -125,7 +125,7 @@ end
 ---@param opts ArchiveCommonOpts|nil
 ---@return ward.Cmd
 function Archive.list(archive_path, opts)
-	ensure.bin(Archive.bin, { label = 'tar binary' })
+	ensure.bin(Archive.bin, { label = "tar binary" })
 	validate.non_empty_string(archive_path, "archive_path")
 
 	local args = { Archive.bin, "-t" }

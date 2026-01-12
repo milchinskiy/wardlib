@@ -3,6 +3,7 @@
 local _cmd = require("ward.process")
 local validate = require("util.validate")
 local ensure = require("tools.ensure")
+local args_util = require("util.args")
 
 local URGENCY_MAP = { low = true, normal = true, critical = true }
 
@@ -51,80 +52,79 @@ local Dunst = {
 function Dunst.notify(summary, opts)
 	opts = opts or {}
 	local args = { Dunst.bin }
-	ensure.bin(Dunst.bin, { label = 'Dunstify binary' })
+	ensure.bin(Dunst.bin, { label = "Dunstify binary" })
 	assert(type(summary) == "string" and #summary > 0, "summary must be a non-empty string")
 
-	local app_name = opts.app_name or DunstifyOptions.app_name
-	if app_name ~= nil then
-		table.insert(args, "-a")
-		table.insert(args, app_name)
-	end
+	local eff = {
+		app_name = opts.app_name or DunstifyOptions.app_name,
+		replaceId = opts.replaceId or DunstifyOptions.replaceId,
+		urgency = opts.urgency or DunstifyOptions.urgency,
+		timeout = opts.timeout or DunstifyOptions.timeout,
+		hints = opts.hints or DunstifyOptions.hints,
+		action = opts.action or DunstifyOptions.action,
+		icon = opts.icon or DunstifyOptions.icon,
+		raw_icon = opts.raw_icon or DunstifyOptions.raw_icon,
+		category = opts.category or DunstifyOptions.category,
+		block = opts.block or DunstifyOptions.block,
+		printId = opts.printId or DunstifyOptions.printId,
+	}
 
-	local urgency = opts.urgency or DunstifyOptions.urgency
-	if urgency ~= nil then
-		assert(URGENCY_MAP[urgency], "Unknown urgency: " .. tostring(urgency))
+	args_util
+		.parser(args, eff)
+		:value("app_name", "-a", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:value("urgency", "-u", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+				assert(URGENCY_MAP[v], "Unknown urgency: " .. tostring(v))
+			end,
+		})
+		:value("timeout", "-t", {
+			validate = function(v, l)
+				assert(type(v) == "number" or type(v) == "string", l .. " must be a number or string")
+			end,
+		})
+		:value("hints", "-h", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:value("action", "-A", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:value("icon", "-i", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:value("raw_icon", "-I", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:value("category", "-c", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:value("replaceId", "-r", {
+			validate = function(v, _)
+				assert(type(v) == "number" or type(v) == "string", "replaceId must be a number or string")
+			end,
+		})
+		:flag("block", "-b")
+		:flag("printId", "-p")
 
-		table.insert(args, "-u")
-		table.insert(args, urgency)
-	end
-
-	local timeout = opts.timeout or DunstifyOptions.timeout
-	if timeout ~= nil then
-		table.insert(args, "-t")
-		table.insert(args, tostring(timeout))
-	end
-
-	local hints = opts.hints or DunstifyOptions.hints
-	if hints ~= nil then
-		table.insert(args, "-h")
-		table.insert(args, hints)
-	end
-
-	local action = opts.action or DunstifyOptions.action
-	if action ~= nil then
-		table.insert(args, "-A")
-		table.insert(args, action)
-	end
-
-	local icon = opts.icon or DunstifyOptions.icon
-	if icon ~= nil then
-		table.insert(args, "-i")
-		table.insert(args, icon)
-	end
-
-	local raw_icon = opts.raw_icon or DunstifyOptions.raw_icon
-	if raw_icon ~= nil then
-		table.insert(args, "-I")
-		table.insert(args, raw_icon)
-	end
-
-	local category = opts.category or DunstifyOptions.category
-	if category ~= nil then
-		table.insert(args, "-c")
-		table.insert(args, category)
-	end
-
-	local replaceId = opts.replaceId or DunstifyOptions.replaceId
-	if replaceId ~= nil then
-		table.insert(args, "-r")
-		table.insert(args, tostring(replaceId))
-	end
-
-	local block = opts.block or DunstifyOptions.block
-	if block then
-		table.insert(args, "-b")
-	end
-
-	local printId = opts.printId or DunstifyOptions.printId
-	if printId then
-		table.insert(args, "-p")
-	end
-
-	table.insert(args, summary)
+	args[#args + 1] = summary
 
 	local body = opts.body or DunstifyOptions.body
 	if body ~= nil then
-		table.insert(args, body)
+		args[#args + 1] = body
 	end
 
 	return _cmd.cmd(table.unpack(args))
@@ -134,21 +134,21 @@ end
 ---@param id number|string
 ---@return ward.Cmd
 function Dunst.close(id)
-	ensure.bin(Dunst.bin, { label = 'Dunstify binary' })
+	ensure.bin(Dunst.bin, { label = "Dunstify binary" })
 	return _cmd.cmd(Dunst.bin, "-C", tostring(id))
 end
 
 ---Dunst capabilities
 ---@return ward.Cmd
 function Dunst.capabilities()
-	ensure.bin(Dunst.bin, { label = 'Dunstify binary' })
+	ensure.bin(Dunst.bin, { label = "Dunstify binary" })
 	return _cmd.cmd(Dunst.bin, "--capabilities")
 end
 
 ---Dunst server info
 ---@return ward.Cmd
 function Dunst.serverInfo()
-	ensure.bin(Dunst.bin, { label = 'Dunstify binary' })
+	ensure.bin(Dunst.bin, { label = "Dunstify binary" })
 	return _cmd.cmd(Dunst.bin, "--serverinfo")
 end
 

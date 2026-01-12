@@ -34,21 +34,13 @@ local Chattr = {
 ---@param opts ChattrOpts|nil
 local function apply_opts(args, opts)
 	opts = opts or {}
-	if opts.recursive then
-		args[#args + 1] = "-R"
-	end
-	if opts.verbose then
-		args[#args + 1] = "-V"
-	end
-	if opts.force then
-		args[#args + 1] = "-f"
-	end
-	if opts.version ~= nil then
-		validate.integer(opts.version, "version")
-		args[#args + 1] = "-v"
-		args[#args + 1] = tostring(opts.version)
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("recursive", "-R")
+		:flag("verbose", "-V")
+		:flag("force", "-f")
+		:value_number("version", "-v", { label = "version", integer = true })
+		:extra("extra")
 end
 
 ---Set or clear file attributes.

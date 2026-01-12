@@ -8,7 +8,6 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
@@ -31,23 +30,13 @@ local Mkdir = {
 ---@param opts MkdirOpts|nil
 local function apply_opts(args, opts)
 	opts = opts or {}
-
-	if opts.parents then
-		args[#args + 1] = "-p"
-	end
-	if opts.verbose then
-		args[#args + 1] = "-v"
-	end
-	if opts.mode ~= nil then
-		validate.non_empty_string(opts.mode, "mode")
-		args[#args + 1] = "-m"
-		args[#args + 1] = opts.mode
-	end
-	if opts.dry_run then
-		args[#args + 1] = "--dry-run"
-	end
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("parents", "-p")
+		:flag("verbose", "-v")
+		:value_string("mode", "-m")
+		:flag("dry_run", "--dry-run")
+		:extra()
 end
 
 ---@param paths string|string[]

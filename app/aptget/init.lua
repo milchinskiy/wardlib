@@ -9,7 +9,6 @@
 -- prefix commands with `sudo`.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
@@ -51,9 +50,8 @@ end
 ---@param opts AptGetCommonOpts|nil
 local function apply_common(args, opts)
 	opts = opts or {}
-	if opts.assume_yes then
-		table.insert(args, "-y")
-	end
+
+	-- quiet is special: APT supports `-q` and combined `-qq`.
 	if opts.quiet ~= nil then
 		local lvl
 		if opts.quiet == true then
@@ -72,7 +70,8 @@ local function apply_common(args, opts)
 			table.insert(args, "-q")
 		end
 	end
-	args_util.append_extra(args, opts.extra)
+
+	args_util.parser(args, opts):flag("assume_yes", "-y"):extra()
 end
 
 ---@param subcmd string
@@ -130,9 +129,7 @@ end
 function AptGet.install(pkgs, opts)
 	opts = opts or {}
 	local argv = {}
-	if opts.no_install_recommends then
-		table.insert(argv, "--no-install-recommends")
-	end
+	args_util.parser(argv, opts):flag("no_install_recommends", "--no-install-recommends")
 	for _, p in ipairs(normalize_pkgs(pkgs)) do
 		table.insert(argv, p)
 	end

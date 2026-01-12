@@ -6,7 +6,6 @@
 -- `ward.process.cmd(...)` objects.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
@@ -34,35 +33,22 @@ local Playerctl = {
 	bin = "playerctl",
 }
 
----@param s any
----@param label string
-local function validate_token(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-	assert(not s:find("%s"), label .. " must not contain whitespace: " .. tostring(s))
-	assert(s:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(s))
-end
-
 ---@param args string[]
 ---@param opts PlayerctlOpts|nil
 local function apply_opts(args, opts)
 	opts = opts or {}
-	if opts.player ~= nil then
-		validate_token(opts.player, "player")
-		table.insert(args, "--player")
-		table.insert(args, opts.player)
-	end
-	if opts.all_players then
-		table.insert(args, "--all-players")
-	end
-	if opts.ignore ~= nil then
-		assert(type(opts.ignore) == "table", "ignore must be an array")
-		for _, p in ipairs(opts.ignore) do
-			validate_token(p, "ignore")
-			table.insert(args, "--ignore-player")
-			table.insert(args, p)
-		end
-	end
-	args_util.append_extra(args, opts.extra)
+
+	args_util
+		.parser(args, opts)
+		:value_token("player", "--player", "player")
+		:flag("all_players", "--all-players")
+		:repeatable("ignore", "--ignore-player", {
+			label = "ignore",
+			validate = function(v, l)
+				args_util.token(v, l)
+			end,
+		})
+		:extra()
 end
 
 ---@param subcmd string
@@ -70,8 +56,8 @@ end
 ---@param opts PlayerctlOpts|nil
 ---@return ward.Cmd
 function Playerctl.cmd(subcmd, argv, opts)
-	ensure.bin(Playerctl.bin, { label = 'playerctl binary' })
-	validate_token(subcmd, "subcmd")
+	ensure.bin(Playerctl.bin, { label = "playerctl binary" })
+	args_util.token(subcmd, "subcmd")
 	local args = { Playerctl.bin }
 	apply_opts(args, opts)
 	table.insert(args, subcmd)
@@ -117,11 +103,7 @@ end
 function Playerctl.metadata(opts)
 	opts = opts or {}
 	local local_argv = {}
-	if opts.format ~= nil then
-		assert(type(opts.format) == "string" and #opts.format > 0, "format must be a non-empty string")
-		table.insert(local_argv, "--format")
-		table.insert(local_argv, opts.format)
-	end
+	args_util.parser(local_argv, opts):value_string("format", "--format", "format")
 	-- place format before subcommand by using opts.extra? playerctl allows global options
 	-- but `--format` is specific to metadata; we append after subcmd per playerctl syntax.
 	return Playerctl.cmd("metadata", local_argv, opts)

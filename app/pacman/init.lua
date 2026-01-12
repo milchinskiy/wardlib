@@ -51,10 +51,7 @@ end
 ---@param opts PacmanCommonOpts|nil
 local function apply_common(args, opts)
 	opts = opts or {}
-	if opts.noconfirm then
-		table.insert(args, "--noconfirm")
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util.parser(args, opts):flag("noconfirm", "--noconfirm"):extra()
 end
 
 ---@param op string
@@ -106,9 +103,7 @@ function Pacman.install(pkgs, opts)
 	opts = opts or {}
 	local op = "-S"
 	local argv = { op }
-	if opts.needed then
-		table.insert(argv, "--needed")
-	end
+	args_util.parser(argv, opts):flag("needed", "--needed")
 	apply_common(argv, opts)
 	for _, p in ipairs(normalize_pkgs(pkgs)) do
 		table.insert(argv, p)

@@ -139,7 +139,7 @@ return function(tinytest)
 		local AptGet = mod.AptGet
 
 		AptGet.install({ "curl", "git" }, { assume_yes = true, quiet = 2, no_install_recommends = true })
-		t:deep_eq(last_cmd(), { "apt-get", "-y", "-qq", "install", "--no-install-recommends", "curl", "git" })
+		t:deep_eq(last_cmd(), { "apt-get", "-qq", "-y", "install", "--no-install-recommends", "curl", "git" })
 	end)
 
 	t:test("remove supports purge and sudo", function()

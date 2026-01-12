@@ -45,38 +45,18 @@ local function apply_opts(args, opts)
 		error("no_clobber is mutually exclusive with force/interactive")
 	end
 
-	if opts.force then
-		args[#args + 1] = "-f"
-	end
-	if opts.interactive then
-		args[#args + 1] = "-i"
-	end
-	if opts.update then
-		args[#args + 1] = "-u"
-	end
-	if opts.verbose then
-		args[#args + 1] = "-v"
-	end
-	if opts.no_clobber then
-		args[#args + 1] = "-n"
-	end
-	if opts.backup then
-		args[#args + 1] = "--backup"
-	end
-	if opts.suffix ~= nil then
-		validate.non_empty_string(opts.suffix, "suffix")
-		args[#args + 1] = "--suffix=" .. tostring(opts.suffix)
-	end
-	if opts.no_target_directory then
-		args[#args + 1] = "-T"
-	end
-	if opts.target_directory ~= nil then
-		validate.non_empty_string(opts.target_directory, "target_directory")
-		args[#args + 1] = "-t"
-		args[#args + 1] = opts.target_directory
-	end
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("force", "-f")
+		:flag("interactive", "-i")
+		:flag("update", "-u")
+		:flag("verbose", "-v")
+		:flag("no_clobber", "-n")
+		:flag("backup", "--backup")
+		:value("suffix", "--suffix", { mode = "equals", validate = validate.non_empty_string })
+		:flag("no_target_directory", "-T")
+		:value_string("target_directory", "-t")
+		:extra()
 end
 
 ---@param src string|string[]

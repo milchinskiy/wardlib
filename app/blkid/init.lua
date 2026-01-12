@@ -39,52 +39,26 @@ local Blkid = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.probe then
-		table.insert(args, "-p")
-	end
-	if opts.wipe_cache then
-		table.insert(args, "-w")
-	end
-	if opts.garbage_collect then
-		table.insert(args, "-g")
-	end
-	if opts.cache_file ~= nil then
-		validate.non_empty_string(opts.cache_file, "cache_file")
-		table.insert(args, "-c")
-		table.insert(args, opts.cache_file)
-	end
-	if opts.output ~= nil then
-		validate.not_flag(opts.output, "output")
-		table.insert(args, "-o")
-		table.insert(args, opts.output)
-	end
-	if opts.tags ~= nil then
-		assert(type(opts.tags) == "table", "tags must be an array")
-		for _, tag in ipairs(opts.tags) do
-			validate.not_flag(tag, "tag")
-			table.insert(args, "-s")
-			table.insert(args, tag)
-		end
-	end
-	if opts.match ~= nil then
-		local tokens = {}
-		if type(opts.match) == "string" then
-			tokens = { opts.match }
-		elseif type(opts.match) == "table" then
-			assert(#opts.match > 0, "match list must be non-empty")
-			for _, v in ipairs(opts.match) do
-				table.insert(tokens, tostring(v))
-			end
-		else
-			error("match must be string or string[]")
-		end
-		for _, tok in ipairs(tokens) do
-			validate.not_flag(tok, "match")
-			table.insert(args, "-t")
-			table.insert(args, tok)
-		end
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("probe", "-p")
+		:flag("wipe_cache", "-w")
+		:flag("garbage_collect", "-g")
+		:value_string("cache_file", "-c", "cache_file")
+		:value_token("output", "-o", "output")
+		:repeatable("tags", "-s", {
+			label = "tag",
+			validate = function(v, label)
+				validate.not_flag(v, label)
+			end,
+		})
+		:repeatable("match", "-t", {
+			label = "match",
+			validate = function(v, label)
+				validate.not_flag(v, label)
+			end,
+		})
+		:extra("extra")
 end
 
 ---Construct a blkid command.
@@ -95,7 +69,7 @@ end
 ---@param opts BlkidOpts|nil
 ---@return ward.Cmd
 function Blkid.id(devices, opts)
-	ensure.bin(Blkid.bin, { label = 'blkid binary' })
+	ensure.bin(Blkid.bin, { label = "blkid binary" })
 
 	local args = { Blkid.bin }
 	apply_opts(args, opts)
@@ -122,7 +96,7 @@ end
 ---@param label string
 ---@return ward.Cmd
 function Blkid.by_label(label)
-	ensure.bin(Blkid.bin, { label = 'blkid binary' })
+	ensure.bin(Blkid.bin, { label = "blkid binary" })
 	validate.not_flag(label, "label")
 	return _cmd.cmd(Blkid.bin, "-L", label)
 end
@@ -131,7 +105,7 @@ end
 ---@param uuid string
 ---@return ward.Cmd
 function Blkid.by_uuid(uuid)
-	ensure.bin(Blkid.bin, { label = 'blkid binary' })
+	ensure.bin(Blkid.bin, { label = "blkid binary" })
 	validate.not_flag(uuid, "uuid")
 	return _cmd.cmd(Blkid.bin, "-U", uuid)
 end

@@ -69,30 +69,13 @@ end
 ---@param opts XbpsCommonOpts|nil
 local function apply_common(args, opts)
 	opts = opts or {}
-	if opts.rootdir ~= nil then
-		validate.non_empty_string(opts.rootdir, "rootdir")
-		table.insert(args, "-r")
-		table.insert(args, opts.rootdir)
-	end
-	if opts.config ~= nil then
-		validate.non_empty_string(opts.config, "config")
-		table.insert(args, "-C")
-		table.insert(args, opts.config)
-	end
-	if opts.cachedir ~= nil then
-		validate.non_empty_string(opts.cachedir, "cachedir")
-		table.insert(args, "-c")
-		table.insert(args, opts.cachedir)
-	end
-	if opts.repositories ~= nil then
-		assert(type(opts.repositories) == "table", "repositories must be an array")
-		for _, url in ipairs(opts.repositories) do
-			validate.non_empty_string(url, "repository")
-			table.insert(args, "--repository")
-			table.insert(args, url)
-		end
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:value_string("rootdir", "-r", "rootdir")
+		:value_string("config", "-C", "config")
+		:value_string("cachedir", "-c", "cachedir")
+		:repeatable("repositories", "--repository", { label = "repository", validate = validate.non_empty_string })
+		:extra()
 end
 
 ---@param bin string
@@ -123,15 +106,7 @@ function Xbps.install(pkgs, opts)
 	opts = opts or {}
 	local argv = {}
 	apply_common(argv, opts)
-	if opts.yes then
-		table.insert(argv, "-y")
-	end
-	if opts.automatic then
-		table.insert(argv, "-A")
-	end
-	if opts.force then
-		table.insert(argv, "-f")
-	end
+	args_util.parser(argv, opts):flag("yes", "-y"):flag("automatic", "-A"):flag("force", "-f")
 	for _, p in ipairs(normalize_pkgs(pkgs)) do
 		table.insert(argv, p)
 	end
@@ -156,13 +131,9 @@ function Xbps.upgrade(opts)
 	opts = opts or {}
 	local argv = {}
 	apply_common(argv, opts)
-	if opts.yes then
-		table.insert(argv, "-y")
-	end
-	table.insert(argv, "-Su")
-	if opts.force then
-		table.insert(argv, "-f")
-	end
+	args_util.parser(argv, opts):flag("yes", "-y")
+	argv[#argv + 1] = "-Su"
+	args_util.parser(argv, opts):flag("force", "-f")
 	return build(Xbps.install_bin, "xbps-install", argv, opts)
 end
 
@@ -174,18 +145,7 @@ function Xbps.remove(pkgs, opts)
 	opts = opts or {}
 	local argv = {}
 	apply_common(argv, opts)
-	if opts.yes then
-		table.insert(argv, "-y")
-	end
-	if opts.recursive then
-		table.insert(argv, "-R")
-	end
-	if opts.force then
-		table.insert(argv, "-f")
-	end
-	if opts.dry_run then
-		table.insert(argv, "-n")
-	end
+	args_util.parser(argv, opts):flag("yes", "-y"):flag("recursive", "-R"):flag("force", "-f"):flag("dry_run", "-n")
 	for _, p in ipairs(normalize_pkgs(pkgs)) do
 		table.insert(argv, p)
 	end

@@ -35,52 +35,20 @@ local Rsync = {
 ---@param opts RsyncOpts|nil
 local function apply_opts(args, opts)
 	opts = opts or {}
-	if opts.archive then
-		table.insert(args, "-a")
-	end
-	if opts.compress then
-		table.insert(args, "-z")
-	end
-	if opts.verbose then
-		table.insert(args, "-v")
-	end
-	if opts.progress then
-		table.insert(args, "--progress")
-	end
-	if opts.delete then
-		table.insert(args, "--delete")
-	end
-	if opts.dry_run then
-		table.insert(args, "--dry-run")
-	end
-	if opts.checksum then
-		table.insert(args, "--checksum")
-	end
-	if opts.partial then
-		table.insert(args, "--partial")
-	end
-	if opts.rsh ~= nil then
-		validate.non_empty_string(opts.rsh, "rsh")
-		table.insert(args, "-e")
-		table.insert(args, opts.rsh)
-	end
-	if opts.excludes ~= nil then
-		assert(type(opts.excludes) == "table", "excludes must be an array")
-		for _, p in ipairs(opts.excludes) do
-			validate.non_empty_string(p, "exclude")
-			table.insert(args, "--exclude")
-			table.insert(args, p)
-		end
-	end
-	if opts.include ~= nil then
-		assert(type(opts.include) == "table", "include must be an array")
-		for _, p in ipairs(opts.include) do
-			validate.non_empty_string(p, "include")
-			table.insert(args, "--include")
-			table.insert(args, p)
-		end
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("archive", "-a")
+		:flag("compress", "-z")
+		:flag("verbose", "-v")
+		:flag("progress", "--progress")
+		:flag("delete", "--delete")
+		:flag("dry_run", "--dry-run")
+		:flag("checksum", "--checksum")
+		:flag("partial", "--partial")
+		:value_string("rsh", "-e")
+		:repeatable("excludes", "--exclude")
+		:repeatable("include", "--include")
+		:extra()
 end
 
 ---Construct an rsync command.
@@ -89,7 +57,7 @@ end
 ---@param opts RsyncOpts|nil
 ---@return ward.Cmd
 function Rsync.sync(src, dest, opts)
-	ensure.bin(Rsync.bin, { label = 'rsync binary' })
+	ensure.bin(Rsync.bin, { label = "rsync binary" })
 	validate.non_empty_string(dest, "dest")
 
 	local sources = {}

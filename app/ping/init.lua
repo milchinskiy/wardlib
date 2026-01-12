@@ -56,54 +56,18 @@ local function apply_opts(args, opts)
 	if opts.inet4 and opts.inet6 then
 		error("inet4 and inet6 are mutually exclusive")
 	end
-	if opts.inet4 then
-		args[#args + 1] = "-4"
-	end
-	if opts.inet6 then
-		args[#args + 1] = "-6"
-	end
 
-	if opts.count ~= nil then
-		validate.number_min(opts.count, "count", 1)
-		args[#args + 1] = "-c"
-		args[#args + 1] = tostring(opts.count)
-	end
-	if opts.interval ~= nil then
-		validate.number_non_negative(opts.interval, "interval")
-		args[#args + 1] = "-i"
-		args[#args + 1] = tostring(opts.interval)
-	end
-	if opts.timeout ~= nil then
-		validate.number_non_negative(opts.timeout, "timeout")
-		args[#args + 1] = "-W"
-		args[#args + 1] = tostring(opts.timeout)
-	end
-	if opts.deadline ~= nil then
-		validate.number_non_negative(opts.deadline, "deadline")
-		args[#args + 1] = "-w"
-		args[#args + 1] = tostring(opts.deadline)
-	end
-
-	if opts.size ~= nil then
-		validate.number_non_negative(opts.size, "size")
-		args[#args + 1] = "-s"
-		args[#args + 1] = tostring(opts.size)
-	end
-	if opts.ttl ~= nil then
-		validate.number_min(opts.ttl, "ttl", 0)
-		args[#args + 1] = "-t"
-		args[#args + 1] = tostring(opts.ttl)
-	end
-	if opts.tos ~= nil then
-		validate.number_min(opts.tos, "tos", 0)
-		args[#args + 1] = "-Q"
-		args[#args + 1] = tostring(opts.tos)
-	end
-	if opts.mark ~= nil then
-		validate.number_min(opts.mark, "mark", 0)
-		args[#args + 1] = "-m"
-		args[#args + 1] = tostring(opts.mark)
-	end
+	local p = args_util.parser(args, opts)
+	p:flag("inet4", "-4")
+		:flag("inet6", "-6")
+		:value_number("count", "-c", { min = 1 })
+		:value_number("interval", "-i", { non_negative = true })
+		:value_number("timeout", "-W", { non_negative = true })
+		:value_number("deadline", "-w", { non_negative = true })
+		:value_number("size", "-s", { non_negative = true })
+		:value_number("ttl", "-t", { min = 0 })
+		:value_number("tos", "-Q", { min = 0 })
+		:value_number("mark", "-m", { min = 0 })
 
 	local iface = opts.interface
 	if iface == nil then
@@ -115,48 +79,18 @@ local function apply_opts(args, opts)
 		args[#args + 1] = tostring(iface)
 	end
 
-	if opts.preload ~= nil then
-		validate.number_min(opts.preload, "preload", 1)
-		args[#args + 1] = "-l"
-		args[#args + 1] = tostring(opts.preload)
-	end
-
-	if opts.flood then
-		args[#args + 1] = "-f"
-	end
-	if opts.adaptive then
-		args[#args + 1] = "-A"
-	end
-	if opts.quiet then
-		args[#args + 1] = "-q"
-	end
-	if opts.verbose then
-		args[#args + 1] = "-v"
-	end
-	if opts.audible then
-		args[#args + 1] = "-a"
-	end
-	if opts.numeric then
-		args[#args + 1] = "-n"
-	end
-	if opts.timestamp then
-		args[#args + 1] = "-D"
-	end
-	if opts.record_route then
-		args[#args + 1] = "-R"
-	end
-	if opts.pmtudisc ~= nil then
-		validate.not_flag(opts.pmtudisc, "pmtudisc")
-		args[#args + 1] = "-M"
-		args[#args + 1] = tostring(opts.pmtudisc)
-	end
-	if opts.pattern ~= nil then
-		validate.non_empty_string(opts.pattern, "pattern")
-		args[#args + 1] = "-p"
-		args[#args + 1] = tostring(opts.pattern)
-	end
-
-	args_util.append_extra(args, opts.extra)
+	p:value_number("preload", "-l", { min = 1 })
+	p:flag("flood", "-f")
+		:flag("adaptive", "-A")
+		:flag("quiet", "-q")
+		:flag("verbose", "-v")
+		:flag("audible", "-a")
+		:flag("numeric", "-n")
+		:flag("timestamp", "-D")
+		:flag("record_route", "-R")
+	p:value("pmtudisc", "-M", { validate = validate.not_flag })
+	p:value_string("pattern", "-p")
+	p:extra()
 end
 
 ---Construct a ping command.

@@ -56,74 +56,33 @@ local function apply_opts(args, opts)
 	if opts.inet4 and opts.inet6 then
 		error("inet4 and inet6 are mutually exclusive")
 	end
-	if opts.inet4 then
-		args[#args + 1] = "-4"
-	end
-	if opts.inet6 then
-		args[#args + 1] = "-6"
-	end
-	if opts.family ~= nil then
-		validate.not_flag(opts.family, "family")
-		args[#args + 1] = "-f"
-		args[#args + 1] = tostring(opts.family)
-	end
-
-	-- Socket types
-	if opts.tcp then
-		args[#args + 1] = "-t"
-	end
-	if opts.udp then
-		args[#args + 1] = "-u"
-	end
-	if opts.raw then
-		args[#args + 1] = "-w"
-	end
-	if opts.unix then
-		args[#args + 1] = "-x"
-	end
-
-	-- Selection
-	if opts.all then
-		args[#args + 1] = "-a"
-	end
-	if opts.listening then
-		args[#args + 1] = "-l"
-	end
-
-	-- Output formatting/details
-	if opts.numeric then
-		args[#args + 1] = "-n"
-	end
-	if opts.resolve then
-		args[#args + 1] = "-r"
-	end
-	if opts.no_header then
-		args[#args + 1] = "-H"
-	end
-	if opts.extended then
-		args[#args + 1] = "-e"
-	end
-	if opts.info then
-		args[#args + 1] = "-i"
-	end
-	if opts.memory then
-		args[#args + 1] = "-m"
-	end
-	if opts.timers then
-		args[#args + 1] = "-o"
-	end
-	if opts.summary then
-		args[#args + 1] = "-s"
-	end
 
 	-- Process / packet sockets
-	-- NOTE: ss uses `-p` for processes, and some builds use `-p` for packet sockets.
-	-- We support the common meaning (process). If the caller explicitly sets
-	-- `packet = true`, we still emit `-p` because that's what they asked for.
-	-- Avoid setting both.
 	if opts.process and opts.packet then
 		error("process and packet are mutually exclusive")
 	end
+
+	local p = args_util.parser(args, opts)
+	-- Address family
+	p:flag("inet4", "-4"):flag("inet6", "-6"):value_token("family", "-f", "family")
+
+	-- Socket types
+	p:flag("tcp", "-t"):flag("udp", "-u"):flag("raw", "-w"):flag("unix", "-x")
+
+	-- Selection
+	p:flag("all", "-a"):flag("listening", "-l")
+
+	-- Output formatting/details
+	p:flag("numeric", "-n")
+		:flag("resolve", "-r")
+		:flag("no_header", "-H")
+		:flag("extended", "-e")
+		:flag("info", "-i")
+		:flag("memory", "-m")
+		:flag("timers", "-o")
+		:flag("summary", "-s")
+
+	-- Process / packet
 	if opts.process or opts.packet then
 		args[#args + 1] = "-p"
 	end
@@ -137,7 +96,7 @@ local function apply_opts(args, opts)
 		args[#args + 1] = "-Z"
 	end
 
-	args_util.append_extra(args, opts.extra)
+	p:extra("extra")
 end
 
 ---Construct an ss command.

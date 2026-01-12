@@ -8,7 +8,6 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
@@ -39,44 +38,19 @@ local function apply_opts(args, opts)
 	if opts.null_input and opts.delimiter ~= nil then
 		error("null_input and delimiter are mutually exclusive")
 	end
-	if opts.null_input then
-		args[#args + 1] = "-0"
-	end
-	if opts.delimiter ~= nil then
-		validate.non_empty_string(opts.delimiter, "delimiter")
-		args[#args + 1] = "-d"
-		args[#args + 1] = tostring(opts.delimiter)
-	end
-	if opts.max_args ~= nil then
-		validate.integer_min(opts.max_args, "max_args", 1)
-		args[#args + 1] = "-n"
-		args[#args + 1] = tostring(opts.max_args)
-	end
-	if opts.max_procs ~= nil then
-		validate.integer_min(opts.max_procs, "max_procs", 1)
-		args[#args + 1] = "-P"
-		args[#args + 1] = tostring(opts.max_procs)
-	end
-	if opts.max_chars ~= nil then
-		validate.integer_min(opts.max_chars, "max_chars", 1)
-		args[#args + 1] = "-s"
-		args[#args + 1] = tostring(opts.max_chars)
-	end
-	if opts.no_run_if_empty then
-		args[#args + 1] = "-r"
-	end
-	if opts.replace_str ~= nil then
-		validate.non_empty_string(opts.replace_str, "replace_str")
-		args[#args + 1] = "-I"
-		args[#args + 1] = tostring(opts.replace_str)
-	end
-	if opts.verbose then
-		args[#args + 1] = "-t"
-	end
-	if opts.show_limits then
-		args[#args + 1] = "--show-limits"
-	end
-	args_util.append_extra(args, opts.extra)
+
+	args_util
+		.parser(args, opts)
+		:flag("null_input", "-0")
+		:value_string("delimiter", "-d", "delimiter")
+		:value_number("max_args", "-n", { label = "max_args", integer = true, min = 1 })
+		:value_number("max_procs", "-P", { label = "max_procs", integer = true, min = 1 })
+		:value_number("max_chars", "-s", { label = "max_chars", integer = true, min = 1 })
+		:flag("no_run_if_empty", "-r")
+		:value_string("replace_str", "-I", "replace_str")
+		:flag("verbose", "-t")
+		:flag("show_limits", "--show-limits")
+		:extra("extra")
 end
 
 ---Build an xargs command.

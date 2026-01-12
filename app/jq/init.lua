@@ -49,109 +49,61 @@ local function validate_var_name(name, label)
 	assert(name:match("^[%a_][%w_]*$") ~= nil, label .. " must match ^[A-Za-z_][A-Za-z0-9_]*$: " .. tostring(name))
 end
 
----@param m table<string,string>
----@return string[]
-local function sorted_keys(m)
-	local keys = {}
-	for k, _ in pairs(m) do
-		keys[#keys + 1] = k
-	end
-	table.sort(keys)
-	return keys
-end
-
 ---@param args string[]
 ---@param opts JqOpts|nil
 local function apply_opts(args, opts)
 	opts = opts or {}
 
+	-- preserve wrapper error text
 	if opts.color_output and opts.monochrome_output then
 		error("color_output and monochrome_output are mutually exclusive")
 	end
 
-	if opts.null_input then
-		args[#args + 1] = "-n"
-	end
-	if opts.raw_input then
-		args[#args + 1] = "-R"
-	end
-	if opts.slurp then
-		args[#args + 1] = "-s"
-	end
+	local p = args_util.parser(args, opts)
 
-	if opts.compact_output then
-		args[#args + 1] = "-c"
-	end
-	if opts.raw_output then
-		args[#args + 1] = "-r"
-	end
-	if opts.join_output then
-		args[#args + 1] = "-j"
-	end
-	if opts.sort_keys then
-		args[#args + 1] = "-S"
-	end
-	if opts.monochrome_output then
-		args[#args + 1] = "-M"
-	end
-	if opts.color_output then
-		args[#args + 1] = "-C"
-	end
-	if opts.exit_status then
-		args[#args + 1] = "-e"
-	end
-	if opts.ascii_output then
-		args[#args + 1] = "-a"
-	end
+	-- input
+	p:flag("null_input", "-n"):flag("raw_input", "-R"):flag("slurp", "-s")
 
-	if opts.tab then
-		args[#args + 1] = "--tab"
-	end
-	if opts.indent ~= nil then
-		validate.integer_min(opts.indent, "indent", 0)
-		args[#args + 1] = "--indent"
-		args[#args + 1] = tostring(opts.indent)
-	end
+	-- output controls
+	p:flag("compact_output", "-c")
+		:flag("raw_output", "-r")
+		:flag("join_output", "-j")
+		:flag("sort_keys", "-S")
+		:flag("monochrome_output", "-M")
+		:flag("color_output", "-C")
+		:flag("exit_status", "-e")
+		:flag("ascii_output", "-a")
 
-	-- Variable bindings. We sort keys for deterministic argv.
-	if opts.arg ~= nil then
-		assert(type(opts.arg) == "table", "arg must be a table")
-		for _, k in ipairs(sorted_keys(opts.arg)) do
-			validate_var_name(k, "arg name")
-			args[#args + 1] = "--arg"
-			args[#args + 1] = k
-			args[#args + 1] = tostring(opts.arg[k])
-		end
-	end
-	if opts.argjson ~= nil then
-		assert(type(opts.argjson) == "table", "argjson must be a table")
-		for _, k in ipairs(sorted_keys(opts.argjson)) do
-			validate_var_name(k, "argjson name")
-			args[#args + 1] = "--argjson"
-			args[#args + 1] = k
-			args[#args + 1] = tostring(opts.argjson[k])
-		end
-	end
-	if opts.slurpfile ~= nil then
-		assert(type(opts.slurpfile) == "table", "slurpfile must be a table")
-		for _, k in ipairs(sorted_keys(opts.slurpfile)) do
-			validate_var_name(k, "slurpfile name")
-			args[#args + 1] = "--slurpfile"
-			args[#args + 1] = k
-			args[#args + 1] = tostring(opts.slurpfile[k])
-		end
-	end
-	if opts.rawfile ~= nil then
-		assert(type(opts.rawfile) == "table", "rawfile must be a table")
-		for _, k in ipairs(sorted_keys(opts.rawfile)) do
-			validate_var_name(k, "rawfile name")
-			args[#args + 1] = "--rawfile"
-			args[#args + 1] = k
-			args[#args + 1] = tostring(opts.rawfile[k])
-		end
-	end
+	-- formatting
+	p:flag("tab", "--tab"):value_number("indent", "--indent", { integer = true, min = 0, label = "indent" })
 
-	args_util.append_extra(args, opts.extra)
+	-- Variable bindings. Stable-sorted for deterministic argv.
+	p:repeatable_map("arg", "--arg", {
+		label = "arg",
+		validate_key = function(k, l)
+			validate_var_name(k, l .. " name")
+		end,
+	})
+	p:repeatable_map("argjson", "--argjson", {
+		label = "argjson",
+		validate_key = function(k, l)
+			validate_var_name(k, l .. " name")
+		end,
+	})
+	p:repeatable_map("slurpfile", "--slurpfile", {
+		label = "slurpfile",
+		validate_key = function(k, l)
+			validate_var_name(k, l .. " name")
+		end,
+	})
+	p:repeatable_map("rawfile", "--rawfile", {
+		label = "rawfile",
+		validate_key = function(k, l)
+			validate_var_name(k, l .. " name")
+		end,
+	})
+
+	p:extra()
 end
 
 ---@param args string[]

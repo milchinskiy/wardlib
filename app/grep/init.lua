@@ -82,93 +82,41 @@ local function apply_opts(args, opts)
 		args[#args + 1] = "-P"
 	end
 
-	if opts.ignore_case then
-		args[#args + 1] = "-i"
-	end
-	if opts.word then
-		args[#args + 1] = "-w"
-	end
-	if opts.line then
-		args[#args + 1] = "-x"
-	end
-	if opts.invert then
-		args[#args + 1] = "-v"
-	end
-
-	if opts.count then
-		args[#args + 1] = "-c"
-	end
-	if opts.quiet then
-		args[#args + 1] = "-q"
-	end
-	if opts.line_number then
-		args[#args + 1] = "-n"
-	end
-	if opts.files_with_matches then
-		args[#args + 1] = "-l"
-	end
-	if opts.files_without_matches then
-		args[#args + 1] = "-L"
-	end
-
 	if opts.with_filename and opts.no_filename then
 		error("with_filename and no_filename are mutually exclusive")
-	end
-	if opts.with_filename then
-		args[#args + 1] = "-H"
-	end
-	if opts.no_filename then
-		args[#args + 1] = "-h"
 	end
 
 	if opts.recursive and opts.recursive_follow then
 		error("recursive and recursive_follow are mutually exclusive")
-	end
-	if opts.recursive then
-		args[#args + 1] = "-r"
-	end
-	if opts.recursive_follow then
-		args[#args + 1] = "-R"
-	end
-
-	if opts.max_count ~= nil then
-		validate.number_min(opts.max_count, "max_count", 1)
-		args[#args + 1] = "-m"
-		args[#args + 1] = tostring(opts.max_count)
 	end
 
 	-- context
 	if opts.context ~= nil and (opts.after_context ~= nil or opts.before_context ~= nil) then
 		error("context is mutually exclusive with after_context/before_context")
 	end
-	if opts.after_context ~= nil then
-		validate.number_min(opts.after_context, "after_context", 0)
-		args[#args + 1] = "-A"
-		args[#args + 1] = tostring(opts.after_context)
-	end
-	if opts.before_context ~= nil then
-		validate.number_min(opts.before_context, "before_context", 0)
-		args[#args + 1] = "-B"
-		args[#args + 1] = tostring(opts.before_context)
-	end
-	if opts.context ~= nil then
-		validate.number_min(opts.context, "context", 0)
-		args[#args + 1] = "-C"
-		args[#args + 1] = tostring(opts.context)
-	end
 
-	if opts.null then
-		args[#args + 1] = "-Z"
-	end
-	if opts.null_data then
-		args[#args + 1] = "-z"
-	end
-	if opts.text then
-		args[#args + 1] = "-a"
-	end
-	if opts.binary_without_match then
-		args[#args + 1] = "-I"
-	end
+	local p = args_util.parser(args, opts)
+	p:flag("ignore_case", "-i")
+		:flag("word", "-w")
+		:flag("line", "-x")
+		:flag("invert", "-v")
+		:flag("count", "-c")
+		:flag("quiet", "-q")
+		:flag("line_number", "-n")
+		:flag("files_with_matches", "-l")
+		:flag("files_without_matches", "-L")
+		:flag("with_filename", "-H")
+		:flag("no_filename", "-h")
+		:flag("recursive", "-r")
+		:flag("recursive_follow", "-R")
+		:value_number("max_count", "-m", { min = 1 })
+		:value_number("after_context", "-A", { min = 0 })
+		:value_number("before_context", "-B", { min = 0 })
+		:value_number("context", "-C", { min = 0 })
+		:flag("null", "-Z")
+		:flag("null_data", "-z")
+		:flag("text", "-a")
+		:flag("binary_without_match", "-I")
 
 	if opts.color ~= nil then
 		if opts.color == true then
@@ -181,26 +129,10 @@ local function apply_opts(args, opts)
 		end
 	end
 
-	if opts.include ~= nil then
-		local inc = args_util.normalize_string_or_array(opts.include, "include")
-		for _, g in ipairs(inc) do
-			args[#args + 1] = "--include=" .. g
-		end
-	end
-	if opts.exclude ~= nil then
-		local exc = args_util.normalize_string_or_array(opts.exclude, "exclude")
-		for _, g in ipairs(exc) do
-			args[#args + 1] = "--exclude=" .. g
-		end
-	end
-	if opts.exclude_dir ~= nil then
-		local excd = args_util.normalize_string_or_array(opts.exclude_dir, "exclude_dir")
-		for _, g in ipairs(excd) do
-			args[#args + 1] = "--exclude-dir=" .. g
-		end
-	end
-
-	args_util.append_extra(args, opts.extra)
+	p:repeatable("include", "--include", { mode = "equals" })
+	p:repeatable("exclude", "--exclude", { mode = "equals" })
+	p:repeatable("exclude_dir", "--exclude-dir", { mode = "equals" })
+	p:extra()
 end
 
 ---@param args string[]

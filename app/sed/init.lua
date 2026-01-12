@@ -49,24 +49,14 @@ local Sed = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.extended then
-		table.insert(args, "-E")
-	end
-	if opts.quiet then
-		table.insert(args, "-n")
-	end
-	if opts.null_data then
-		table.insert(args, "-z")
-	end
-	if opts.follow_symlinks then
-		table.insert(args, "--follow-symlinks")
-	end
-	if opts.posix then
-		table.insert(args, "--posix")
-	end
-	if opts.sandbox then
-		table.insert(args, "--sandbox")
-	end
+	args_util
+		.parser(args, opts)
+		:flag("extended", "-E")
+		:flag("quiet", "-n")
+		:flag("null_data", "-z")
+		:flag("follow_symlinks", "--follow-symlinks")
+		:flag("posix", "--posix")
+		:flag("sandbox", "--sandbox")
 
 	-- in-place handling
 	local in_place = opts.in_place
@@ -90,14 +80,16 @@ local function apply_opts(args, opts)
 		end
 	end
 
-	if opts.expression ~= nil then
-		args_util.add_repeatable(args, opts.expression, "-e", "expression")
-	end
-	if opts.file ~= nil then
-		args_util.add_repeatable(args, opts.file, "-f", "file")
-	end
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:repeatable("expression", "-e", { label = "expression" })
+		:repeatable("file", "-f", {
+			label = "file",
+			validate = function(v, label)
+				validate.not_flag(v, label)
+			end,
+		})
+		:extra("extra")
 end
 
 ---@param args string[]

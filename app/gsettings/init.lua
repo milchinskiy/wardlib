@@ -6,8 +6,8 @@
 -- `ward.process.cmd(...)` objects.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
+local args_util = require("util.args")
 
 ---@class Gsettings
 ---@field bin string
@@ -21,18 +21,10 @@ local Gsettings = {
 	bin = "gsettings",
 }
 
----@param s any
----@param label string
-local function validate_token(s, label)
-	assert(type(s) == "string" and #s > 0, label .. " must be a non-empty string")
-	assert(not s:find("%s"), label .. " must not contain whitespace: " .. tostring(s))
-	assert(s:sub(1, 1) ~= "-", label .. " must not start with '-': " .. tostring(s))
-end
-
 ---@param args string[]
 ---@return ward.Cmd
 local function cmd(args)
-	ensure.bin(Gsettings.bin, { label = 'gsettings binary' })
+	ensure.bin(Gsettings.bin, { label = "gsettings binary" })
 	local argv = { Gsettings.bin }
 	for _, v in ipairs(args) do
 		table.insert(argv, v)
@@ -41,26 +33,26 @@ local function cmd(args)
 end
 
 function Gsettings.get(schema, key)
-	validate_token(schema, "schema")
-	validate_token(key, "key")
+	args_util.token(schema, "schema")
+	args_util.token(key, "key")
 	return cmd({ "get", schema, key })
 end
 
 function Gsettings.set(schema, key, value)
-	validate_token(schema, "schema")
-	validate_token(key, "key")
+	args_util.token(schema, "schema")
+	args_util.token(key, "key")
 	assert(type(value) == "string" and #value > 0, "value must be a non-empty string")
 	return cmd({ "set", schema, key, value })
 end
 
 function Gsettings.reset(schema, key)
-	validate_token(schema, "schema")
-	validate_token(key, "key")
+	args_util.token(schema, "schema")
+	args_util.token(key, "key")
 	return cmd({ "reset", schema, key })
 end
 
 function Gsettings.list_keys(schema)
-	validate_token(schema, "schema")
+	args_util.token(schema, "schema")
 	return cmd({ "list-keys", schema })
 end
 
@@ -70,7 +62,7 @@ end
 
 function Gsettings.list_recursively(schema_or_path)
 	if schema_or_path ~= nil then
-		validate_token(schema_or_path, "schema_or_path")
+		args_util.token(schema_or_path, "schema_or_path")
 		return cmd({ "list-recursively", schema_or_path })
 	end
 	return cmd({ "list-recursively" })

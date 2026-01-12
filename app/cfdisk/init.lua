@@ -9,7 +9,6 @@
 -- objects.
 
 local _proc = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 

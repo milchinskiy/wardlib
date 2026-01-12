@@ -48,31 +48,16 @@ local function apply_opts(args, opts)
 		error("overwrite and never_overwrite are mutually exclusive")
 	end
 
-	if opts.overwrite then
-		args[#args + 1] = "-o"
-	end
-	if opts.never_overwrite then
-		args[#args + 1] = "-n"
-	end
-	if opts.quiet then
-		args[#args + 1] = "-q"
-	end
-	if opts.junk_paths then
-		args[#args + 1] = "-j"
-	end
-	if opts.list then
-		args[#args + 1] = "-l"
-	end
-	if opts.test then
-		args[#args + 1] = "-t"
-	end
-	if opts.password ~= nil then
-		validate.non_empty_string(opts.password, "password")
-		args[#args + 1] = "-P"
-		args[#args + 1] = opts.password
-	end
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("overwrite", "-o")
+		:flag("never_overwrite", "-n")
+		:flag("quiet", "-q")
+		:flag("junk_paths", "-j")
+		:flag("list", "-l")
+		:flag("test", "-t")
+		:value_string("password", "-P")
+		:extra()
 end
 
 ---@param zip_path string

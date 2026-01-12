@@ -150,318 +150,210 @@ end
 ---@param opts PodmanRunOpts|nil
 local function apply_run_opts(args, opts)
 	opts = opts or {}
-	if opts.detach then
-		args[#args + 1] = "-d"
-	end
-	if opts.interactive then
-		args[#args + 1] = "-i"
-	end
-	if opts.tty then
-		args[#args + 1] = "-t"
-	end
-	if opts.rm then
-		args[#args + 1] = "--rm"
-	end
-	if opts.name ~= nil then
-		validate.non_empty_string(opts.name, "name")
-		args[#args + 1] = "--name"
-		args[#args + 1] = opts.name
-	end
-	if opts.hostname ~= nil then
-		validate.non_empty_string(opts.hostname, "hostname")
-		args[#args + 1] = "--hostname"
-		args[#args + 1] = opts.hostname
-	end
-	if opts.workdir ~= nil then
-		validate.non_empty_string(opts.workdir, "workdir")
-		args[#args + 1] = "-w"
-		args[#args + 1] = opts.workdir
-	end
-	if opts.user ~= nil then
-		validate.non_empty_string(opts.user, "user")
-		args[#args + 1] = "-u"
-		args[#args + 1] = opts.user
-	end
-	if opts.entrypoint ~= nil then
-		validate.non_empty_string(opts.entrypoint, "entrypoint")
-		args[#args + 1] = "--entrypoint"
-		args[#args + 1] = opts.entrypoint
-	end
-	if opts.network ~= nil then
-		validate.non_empty_string(opts.network, "network")
-		args[#args + 1] = "--network"
-		args[#args + 1] = opts.network
-	end
-	if opts.platform ~= nil then
-		validate.non_empty_string(opts.platform, "platform")
-		args[#args + 1] = "--platform"
-		args[#args + 1] = opts.platform
-	end
-	if opts.pull ~= nil then
-		validate.non_empty_string(opts.pull, "pull")
-		args[#args + 1] = "--pull"
-		args[#args + 1] = opts.pull
-	end
-	if opts.privileged then
-		args[#args + 1] = "--privileged"
-	end
-
-	if opts.env ~= nil then
-		args_util.add_repeatable(args, opts.env, "-e", "env")
-	end
-	if opts.env_file ~= nil then
-		args_util.add_repeatable(args, opts.env_file, "--env-file", "env_file")
-	end
-	if opts.publish ~= nil then
-		args_util.add_repeatable(args, opts.publish, "-p", "publish")
-	end
-	if opts.volume ~= nil then
-		args_util.add_repeatable(args, opts.volume, "-v", "volume")
-	end
-	if opts.add_host ~= nil then
-		args_util.add_repeatable(args, opts.add_host, "--add-host", "add_host")
-	end
-	if opts.label ~= nil then
-		args_util.add_repeatable(args, opts.label, "--label", "label")
-	end
-	if opts.cap_add ~= nil then
-		args_util.add_repeatable(args, opts.cap_add, "--cap-add", "cap_add")
-	end
-	if opts.cap_drop ~= nil then
-		args_util.add_repeatable(args, opts.cap_drop, "--cap-drop", "cap_drop")
-	end
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("detach", "-d")
+		:flag("interactive", "-i")
+		:flag("tty", "-t")
+		:flag("rm", "--rm")
+		:value_string("name", "--name", "name")
+		:value_string("hostname", "--hostname", "hostname")
+		:value_string("workdir", "-w", "workdir")
+		:value_string("user", "-u", "user")
+		:value_string("entrypoint", "--entrypoint", "entrypoint")
+		:value_string("network", "--network", "network")
+		:value_string("platform", "--platform", "platform")
+		:value_string("pull", "--pull", "pull")
+		:flag("privileged", "--privileged")
+		:repeatable("env", "-e", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("env_file", "--env-file", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("publish", "-p", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("volume", "-v", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("add_host", "--add-host", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("label", "--label", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("cap_add", "--cap-add", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("cap_drop", "--cap-drop", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:extra()
 end
 
 ---@param args string[]
 ---@param opts PodmanExecOpts|nil
 local function apply_exec_opts(args, opts)
 	opts = opts or {}
-	if opts.detach then
-		args[#args + 1] = "-d"
-	end
-	if opts.interactive then
-		args[#args + 1] = "-i"
-	end
-	if opts.tty then
-		args[#args + 1] = "-t"
-	end
-	if opts.user ~= nil then
-		validate.non_empty_string(opts.user, "user")
-		args[#args + 1] = "-u"
-		args[#args + 1] = opts.user
-	end
-	if opts.workdir ~= nil then
-		validate.non_empty_string(opts.workdir, "workdir")
-		args[#args + 1] = "-w"
-		args[#args + 1] = opts.workdir
-	end
-	if opts.env ~= nil then
-		args_util.add_repeatable(args, opts.env, "-e", "env")
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("detach", "-d")
+		:flag("interactive", "-i")
+		:flag("tty", "-t")
+		:value_string("user", "-u", "user")
+		:value_string("workdir", "-w", "workdir")
+		:repeatable("env", "-e", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:extra()
 end
 
 ---@param args string[]
 ---@param opts PodmanBuildOpts|nil
 local function apply_build_opts(args, opts)
 	opts = opts or {}
-	if opts.tag ~= nil then
-		args_util.add_repeatable(args, opts.tag, "-t", "tag")
-	end
-	if opts.file ~= nil then
-		validate.non_empty_string(opts.file, "file")
-		args[#args + 1] = "-f"
-		args[#args + 1] = opts.file
-	end
-	if opts.build_arg ~= nil then
-		args_util.add_repeatable(args, opts.build_arg, "--build-arg", "build_arg")
-	end
-	if opts.target ~= nil then
-		validate.non_empty_string(opts.target, "target")
-		args[#args + 1] = "--target"
-		args[#args + 1] = opts.target
-	end
-	if opts.platform ~= nil then
-		validate.non_empty_string(opts.platform, "platform")
-		args[#args + 1] = "--platform"
-		args[#args + 1] = opts.platform
-	end
-	if opts.pull then
-		args[#args + 1] = "--pull"
-	end
-	if opts.no_cache then
-		args[#args + 1] = "--no-cache"
-	end
-	if opts.layers then
-		args[#args + 1] = "--layers"
-	end
-	if opts.format ~= nil then
-		validate.non_empty_string(opts.format, "format")
-		args[#args + 1] = "--format"
-		args[#args + 1] = opts.format
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:repeatable("tag", "-t", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:value_string("file", "-f", "file")
+		:repeatable("build_arg", "--build-arg", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:value_string("target", "--target", "target")
+		:value_string("platform", "--platform", "platform")
+		:flag("pull", "--pull")
+		:flag("no_cache", "--no-cache")
+		:flag("layers", "--layers")
+		:value_string("progress", "--progress", "progress")
+		:extra()
 end
 
 ---@param args string[]
 ---@param opts PodmanPsOpts|nil
 local function apply_ps_opts(args, opts)
 	opts = opts or {}
-	if opts.all then
-		args[#args + 1] = "-a"
-	end
-	if opts.quiet then
-		args[#args + 1] = "-q"
-	end
-	if opts.no_trunc then
-		args[#args + 1] = "--no-trunc"
-	end
-	if opts.latest then
-		args[#args + 1] = "-l"
-	end
-	if opts.last ~= nil then
-		validate.integer_min(opts.last, "last", 0)
-		args[#args + 1] = "-n"
-		args[#args + 1] = tostring(opts.last)
-	end
-	if opts.size then
-		args[#args + 1] = "-s"
-	end
-	if opts.format ~= nil then
-		validate.non_empty_string(opts.format, "format")
-		args[#args + 1] = "--format"
-		args[#args + 1] = opts.format
-	end
-	if opts.filter ~= nil then
-		args_util.add_repeatable(args, opts.filter, "--filter", "filter")
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("all", "-a")
+		:flag("quiet", "-q")
+		:flag("no_trunc", "--no-trunc")
+		:flag("latest", "-l")
+		:value_number("last", "-n", { integer = true, non_negative = true })
+		:flag("size", "-s")
+		:value_string("format", "--format", "format")
+		:repeatable("filter", "--filter", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:extra()
 end
 
 ---@param args string[]
 ---@param opts PodmanImagesOpts|nil
 local function apply_images_opts(args, opts)
 	opts = opts or {}
-	if opts.all then
-		args[#args + 1] = "-a"
-	end
-	if opts.quiet then
-		args[#args + 1] = "-q"
-	end
-	if opts.no_trunc then
-		args[#args + 1] = "--no-trunc"
-	end
-	if opts.digests then
-		args[#args + 1] = "--digests"
-	end
-	if opts.format ~= nil then
-		validate.non_empty_string(opts.format, "format")
-		args[#args + 1] = "--format"
-		args[#args + 1] = opts.format
-	end
-	if opts.filter ~= nil then
-		args_util.add_repeatable(args, opts.filter, "--filter", "filter")
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("all", "-a")
+		:flag("quiet", "-q")
+		:flag("no_trunc", "--no-trunc")
+		:flag("digests", "--digests")
+		:value_string("format", "--format", "format")
+		:repeatable("filter", "--filter", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:extra()
 end
 
 ---@param args string[]
 ---@param opts PodmanLogsOpts|nil
 local function apply_logs_opts(args, opts)
 	opts = opts or {}
-	if opts.follow then
-		args[#args + 1] = "-f"
-	end
-	if opts.timestamps then
-		args[#args + 1] = "-t"
-	end
-	if opts.since ~= nil then
-		validate.non_empty_string(opts.since, "since")
-		args[#args + 1] = "--since"
-		args[#args + 1] = opts.since
-	end
-	if opts["until"] ~= nil then
-		validate.non_empty_string(opts["until"], "until")
-		args[#args + 1] = "--until"
-		args[#args + 1] = opts["until"]
-	end
-	if opts.tail ~= nil then
-		args[#args + 1] = "--tail"
-		args[#args + 1] = tostring(opts.tail)
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("follow", "-f")
+		:flag("timestamps", "-t")
+		:flag("details", "--details")
+		:value_string("since", "--since", "since")
+		:value_string("until", "--until", "until")
+		:value("tail", "--tail", {
+			validate = function(v, _)
+				assert(type(v) == "string" or type(v) == "number", "tail must be a string or number")
+			end,
+		})
+		:extra()
 end
 
 ---@param args string[]
 ---@param opts PodmanRmOpts|nil
 local function apply_rm_opts(args, opts)
 	opts = opts or {}
-	if opts.force then
-		args[#args + 1] = "-f"
-	end
-	if opts.volumes then
-		args[#args + 1] = "-v"
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util.parser(args, opts):flag("force", "-f"):flag("volumes", "-v"):flag("link", "-l"):extra()
 end
 
 ---@param args string[]
 ---@param opts PodmanRmiOpts|nil
 local function apply_rmi_opts(args, opts)
 	opts = opts or {}
-	if opts.force then
-		args[#args + 1] = "-f"
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util.parser(args, opts):flag("force", "-f"):flag("no_prune", "--no-prune"):extra()
 end
 
 ---@param args string[]
 ---@param opts PodmanStopOpts|nil
 local function apply_stop_opts(args, opts)
 	opts = opts or {}
-	if opts.time ~= nil then
-		validate.integer_min(opts.time, "time", 0)
-		args[#args + 1] = "-t"
-		args[#args + 1] = tostring(opts.time)
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util.parser(args, opts):value_number("time", "-t", { integer = true, non_negative = true }):extra()
 end
 
 ---@param args string[]
 ---@param opts PodmanInspectOpts|nil
 local function apply_inspect_opts(args, opts)
 	opts = opts or {}
-	if opts.format ~= nil then
-		validate.non_empty_string(opts.format, "format")
-		args[#args + 1] = "-f"
-		args[#args + 1] = opts.format
-	end
-	if opts.size then
-		args[#args + 1] = "-s"
-	end
-	if opts.type ~= nil then
-		validate.non_empty_string(opts.type, "type")
-		args[#args + 1] = "--type"
-		args[#args + 1] = opts.type
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:value_string("format", "-f", "format")
+		:flag("size", "-s")
+		:value_string("type", "--type", "type")
+		:extra()
 end
 
 ---@param args string[]
 ---@param opts PodmanLoginOpts|nil
 local function apply_login_opts(args, opts)
 	opts = opts or {}
-	if opts.username ~= nil then
-		validate.non_empty_string(opts.username, "username")
-		args[#args + 1] = "-u"
-		args[#args + 1] = opts.username
-	end
-	if opts.password_stdin then
-		args[#args + 1] = "--password-stdin"
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:value_string("username", "-u", "username")
+		:flag("password_stdin", "--password-stdin")
+		:extra()
 end
 
 ---Generic helper: `podman <subcmd> [argv...]`

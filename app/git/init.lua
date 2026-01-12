@@ -61,7 +61,7 @@ end
 ---@param opts GitCommonOpts|nil
 ---@return ward.Cmd
 function Git.cmd(subcmd, argv, opts)
-	ensure.bin(Git.bin, { label = 'git binary' })
+	ensure.bin(Git.bin, { label = "git binary" })
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
 	local args = { Git.bin }

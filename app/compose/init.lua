@@ -121,31 +121,27 @@ end
 ---@param opts ComposeOpts|nil
 local function apply_global_opts(args, opts)
 	opts = opts or {}
-	if opts.project_name ~= nil then
-		validate.non_empty_string(opts.project_name, "project_name")
-		args[#args + 1] = "-p"
-		args[#args + 1] = opts.project_name
-	end
-	if opts.file ~= nil then
-		args_util.add_repeatable(args, opts.file, "-f", "file")
-	end
-	if opts.env_file ~= nil then
-		args_util.add_repeatable(args, opts.env_file, "--env-file", "env_file")
-	end
-	if opts.profile ~= nil then
-		args_util.add_repeatable(args, opts.profile, "--profile", "profile")
-	end
-	if opts.ansi ~= nil then
-		validate.non_empty_string(opts.ansi, "ansi")
-		args[#args + 1] = "--ansi"
-		args[#args + 1] = opts.ansi
-	end
-	if opts.progress ~= nil then
-		validate.non_empty_string(opts.progress, "progress")
-		args[#args + 1] = "--progress"
-		args[#args + 1] = opts.progress
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:value_string("project_name", "-p", "project_name")
+		:repeatable("file", "-f", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("env_file", "--env-file", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("profile", "--profile", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:value_string("ansi", "--ansi", "ansi")
+		:value_string("progress", "--progress", "progress")
+		:extra()
 end
 
 ---@param args string[]
@@ -185,27 +181,17 @@ function Compose.up(services, opts)
 	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "up" }
 	apply_global_opts(args, o)
-	if o.detach then
-		args[#args + 1] = "-d"
-	end
-	if o.build then
-		args[#args + 1] = "--build"
-	end
-	if o.force_recreate then
-		args[#args + 1] = "--force-recreate"
-	end
-	if o.no_recreate then
-		args[#args + 1] = "--no-recreate"
-	end
-	if o.remove_orphans then
-		args[#args + 1] = "--remove-orphans"
-	end
-	if o.no_start then
-		args[#args + 1] = "--no-start"
-	end
-	if o.wait then
-		args[#args + 1] = "--wait"
-	end
+
+	args_util
+		.parser(args, o)
+		:flag("detach", "-d")
+		:flag("build", "--build")
+		:flag("force_recreate", "--force-recreate")
+		:flag("no_recreate", "--no-recreate")
+		:flag("remove_orphans", "--remove-orphans")
+		:flag("no_start", "--no-start")
+		:flag("wait", "--wait")
+
 	append_argv(args, services)
 	return _cmd.cmd(table.unpack(args))
 end
@@ -219,22 +205,14 @@ function Compose.down(opts)
 	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "down" }
 	apply_global_opts(args, o)
-	if o.remove_orphans then
-		args[#args + 1] = "--remove-orphans"
-	end
-	if o.volumes then
-		args[#args + 1] = "-v"
-	end
-	if o.rmi ~= nil then
-		validate.non_empty_string(o.rmi, "rmi")
-		args[#args + 1] = "--rmi"
-		args[#args + 1] = o.rmi
-	end
-	if o.timeout ~= nil then
-		validate.integer_min(o.timeout, "timeout", 0)
-		args[#args + 1] = "-t"
-		args[#args + 1] = tostring(o.timeout)
-	end
+
+	args_util
+		.parser(args, o)
+		:flag("remove_orphans", "--remove-orphans")
+		:flag("volumes", "-v")
+		:value_string("rmi", "--rmi", "rmi")
+		:value_number("timeout", "-t", { integer = true, non_negative = true })
+
 	return _cmd.cmd(table.unpack(args))
 end
 
@@ -248,22 +226,14 @@ function Compose.ps(services, opts)
 	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "ps" }
 	apply_global_opts(args, o)
-	if o.all then
-		args[#args + 1] = "-a"
-	end
-	if o.quiet then
-		args[#args + 1] = "-q"
-	end
-	if o.status ~= nil then
-		validate.non_empty_string(o.status, "status")
-		args[#args + 1] = "--status"
-		args[#args + 1] = o.status
-	end
-	if o.format ~= nil then
-		validate.non_empty_string(o.format, "format")
-		args[#args + 1] = "--format"
-		args[#args + 1] = o.format
-	end
+
+	args_util
+		.parser(args, o)
+		:flag("all", "-a")
+		:flag("quiet", "-q")
+		:value_string("status", "--status", "status")
+		:value_string("format", "--format", "format")
+
 	append_argv(args, services)
 	return _cmd.cmd(table.unpack(args))
 end
@@ -278,29 +248,20 @@ function Compose.logs(services, opts)
 	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "logs" }
 	apply_global_opts(args, o)
-	if o.follow then
-		args[#args + 1] = "-f"
-	end
-	if o.timestamps then
-		args[#args + 1] = "-t"
-	end
-	if o.no_color then
-		args[#args + 1] = "--no-color"
-	end
-	if o.since ~= nil then
-		validate.non_empty_string(o.since, "since")
-		args[#args + 1] = "--since"
-		args[#args + 1] = o.since
-	end
-	if o["until"] ~= nil then
-		validate.non_empty_string(o["until"], "until")
-		args[#args + 1] = "--until"
-		args[#args + 1] = o["until"]
-	end
-	if o.tail ~= nil then
-		args[#args + 1] = "--tail"
-		args[#args + 1] = tostring(o.tail)
-	end
+
+	args_util
+		.parser(args, o)
+		:flag("follow", "-f")
+		:flag("timestamps", "-t")
+		:value("tail", "--tail", {
+			validate = function(v, _)
+				assert(type(v) == "string" or type(v) == "number", "tail must be a string or number")
+			end,
+		})
+		:flag("no_color", "--no-color")
+		:value_string("since", "--since", "since")
+		:value_string("until", "--until", "until")
+
 	append_argv(args, services)
 	return _cmd.cmd(table.unpack(args))
 end
@@ -315,18 +276,14 @@ function Compose.build(services, opts)
 	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "build" }
 	apply_global_opts(args, o)
-	if o.pull then
-		args[#args + 1] = "--pull"
-	end
-	if o.no_cache then
-		args[#args + 1] = "--no-cache"
-	end
-	if o.parallel then
-		args[#args + 1] = "--parallel"
-	end
-	if o.push then
-		args[#args + 1] = "--push"
-	end
+
+	args_util
+		.parser(args, o)
+		:flag("pull", "--pull")
+		:flag("no_cache", "--no-cache")
+		:flag("parallel", "--parallel")
+		:flag("push", "--push")
+
 	append_argv(args, services)
 	return _cmd.cmd(table.unpack(args))
 end
@@ -341,12 +298,9 @@ function Compose.pull(services, opts)
 	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "pull" }
 	apply_global_opts(args, o)
-	if o.include_deps then
-		args[#args + 1] = "--include-deps"
-	end
-	if o.ignore_failures then
-		args[#args + 1] = "--ignore-pull-failures"
-	end
+
+	args_util.parser(args, o):flag("include_deps", "--include-deps"):flag("ignore_failures", "--ignore-pull-failures")
+
 	append_argv(args, services)
 	return _cmd.cmd(table.unpack(args))
 end
@@ -356,7 +310,14 @@ end
 ---@param opts ComposeStartStopOpts|nil
 ---@return ward.Cmd
 function Compose.start(services, opts)
-	return Compose.cmd("start", services, opts)
+	local o = opts or {}
+	local bin = engine_bin(o)
+	ensure.bin(bin, { label = "compose engine binary" })
+	local args = { bin, "compose", "start" }
+	apply_global_opts(args, o)
+	args_util.parser(args, o):value_number("timeout", "-t", { integer = true, non_negative = true })
+	append_argv(args, services)
+	return _cmd.cmd(table.unpack(args))
 end
 
 ---`(<engine>) compose stop [opts...] [services...]`
@@ -369,11 +330,7 @@ function Compose.stop(services, opts)
 	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "stop" }
 	apply_global_opts(args, o)
-	if o.timeout ~= nil then
-		validate.integer_min(o.timeout, "timeout", 0)
-		args[#args + 1] = "-t"
-		args[#args + 1] = tostring(o.timeout)
-	end
+	args_util.parser(args, o):value_number("timeout", "-t", { integer = true, non_negative = true })
 	append_argv(args, services)
 	return _cmd.cmd(table.unpack(args))
 end
@@ -388,11 +345,7 @@ function Compose.restart(services, opts)
 	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "restart" }
 	apply_global_opts(args, o)
-	if o.timeout ~= nil then
-		validate.integer_min(o.timeout, "timeout", 0)
-		args[#args + 1] = "-t"
-		args[#args + 1] = tostring(o.timeout)
-	end
+	args_util.parser(args, o):value_number("timeout", "-t", { integer = true, non_negative = true })
 	append_argv(args, services)
 	return _cmd.cmd(table.unpack(args))
 end
@@ -409,28 +362,20 @@ function Compose.exec(service, cmdline, opts)
 	validate.non_empty_string(service, "service")
 	local args = { bin, "compose", "exec" }
 	apply_global_opts(args, o)
-	if o.detach then
-		args[#args + 1] = "-d"
-	end
-	if o.interactive then
-		args[#args + 1] = "-i"
-	end
-	if o.tty then
-		args[#args + 1] = "-t"
-	end
-	if o.user ~= nil then
-		validate.non_empty_string(o.user, "user")
-		args[#args + 1] = "-u"
-		args[#args + 1] = o.user
-	end
-	if o.workdir ~= nil then
-		validate.non_empty_string(o.workdir, "workdir")
-		args[#args + 1] = "-w"
-		args[#args + 1] = o.workdir
-	end
-	if o.env ~= nil then
-		args_util.add_repeatable(args, o.env, "-e", "env")
-	end
+
+	args_util
+		.parser(args, o)
+		:flag("detach", "-d")
+		:flag("interactive", "-i")
+		:flag("tty", "-t")
+		:value_string("user", "-u", "user")
+		:value_string("workdir", "-w", "workdir")
+		:repeatable("env", "-e", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+
 	args[#args + 1] = service
 	append_argv(args, cmdline)
 	return _cmd.cmd(table.unpack(args))
@@ -448,47 +393,33 @@ function Compose.run(service, cmdline, opts)
 	validate.non_empty_string(service, "service")
 	local args = { bin, "compose", "run" }
 	apply_global_opts(args, o)
-	if o.detach then
-		args[#args + 1] = "-d"
-	end
-	if o.rm then
-		args[#args + 1] = "--rm"
-	end
-	if o.no_deps then
-		args[#args + 1] = "--no-deps"
-	end
-	if o.service_ports then
-		args[#args + 1] = "--service-ports"
-	end
-	if o.name ~= nil then
-		validate.non_empty_string(o.name, "name")
-		args[#args + 1] = "--name"
-		args[#args + 1] = o.name
-	end
-	if o.entrypoint ~= nil then
-		validate.non_empty_string(o.entrypoint, "entrypoint")
-		args[#args + 1] = "--entrypoint"
-		args[#args + 1] = o.entrypoint
-	end
-	if o.user ~= nil then
-		validate.non_empty_string(o.user, "user")
-		args[#args + 1] = "-u"
-		args[#args + 1] = o.user
-	end
-	if o.workdir ~= nil then
-		validate.non_empty_string(o.workdir, "workdir")
-		args[#args + 1] = "-w"
-		args[#args + 1] = o.workdir
-	end
-	if o.env ~= nil then
-		args_util.add_repeatable(args, o.env, "-e", "env")
-	end
-	if o.publish ~= nil then
-		args_util.add_repeatable(args, o.publish, "-p", "publish")
-	end
-	if o.volume ~= nil then
-		args_util.add_repeatable(args, o.volume, "-v", "volume")
-	end
+
+	args_util
+		.parser(args, o)
+		:flag("detach", "-d")
+		:flag("rm", "--rm")
+		:value_string("name", "--name", "name")
+		:value_string("entrypoint", "--entrypoint", "entrypoint")
+		:value_string("user", "-u", "user")
+		:value_string("workdir", "-w", "workdir")
+		:repeatable("env", "-e", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("publish", "-p", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:repeatable("volume", "-v", {
+			validate = function(v, l)
+				validate.non_empty_string(v, l)
+			end,
+		})
+		:flag("no_deps", "--no-deps")
+		:flag("service_ports", "--service-ports")
+
 	args[#args + 1] = service
 	append_argv(args, cmdline)
 	return _cmd.cmd(table.unpack(args))

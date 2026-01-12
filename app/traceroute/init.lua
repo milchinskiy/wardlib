@@ -49,19 +49,6 @@ local function apply_opts(args, opts)
 	if opts.inet4 and opts.inet6 then
 		error("inet4 and inet6 are mutually exclusive")
 	end
-	if opts.inet4 then
-		args[#args + 1] = "-4"
-	end
-	if opts.inet6 then
-		args[#args + 1] = "-6"
-	end
-
-	if opts.numeric then
-		args[#args + 1] = "-n"
-	end
-	if opts.as_lookup then
-		args[#args + 1] = "-A"
-	end
 
 	if opts.icmp and (opts.tcp or opts.udp) then
 		error("icmp is mutually exclusive with tcp/udp")
@@ -69,67 +56,27 @@ local function apply_opts(args, opts)
 	if opts.tcp and opts.udp then
 		error("tcp and udp are mutually exclusive")
 	end
-	if opts.icmp then
-		args[#args + 1] = "-I"
-	end
-	if opts.tcp then
-		args[#args + 1] = "-T"
-	end
-	if opts.udp then
-		args[#args + 1] = "-U"
-	end
-	if opts.method ~= nil then
-		validate.not_flag(opts.method, "method")
-		args[#args + 1] = "-M"
-		args[#args + 1] = tostring(opts.method)
-	end
 
-	if opts.interface ~= nil then
-		validate.non_empty_string(opts.interface, "interface")
-		args[#args + 1] = "-i"
-		args[#args + 1] = tostring(opts.interface)
-	end
-	if opts.source ~= nil then
-		validate.non_empty_string(opts.source, "source")
-		args[#args + 1] = "-s"
-		args[#args + 1] = tostring(opts.source)
-	end
-
-	if opts.first_ttl ~= nil then
-		validate.number_min(opts.first_ttl, "first_ttl", 1)
-		args[#args + 1] = "-f"
-		args[#args + 1] = tostring(opts.first_ttl)
-	end
-	if opts.max_ttl ~= nil then
-		validate.number_min(opts.max_ttl, "max_ttl", 1)
-		args[#args + 1] = "-m"
-		args[#args + 1] = tostring(opts.max_ttl)
-	end
-	if opts.queries ~= nil then
-		validate.number_min(opts.queries, "queries", 1)
-		args[#args + 1] = "-q"
-		args[#args + 1] = tostring(opts.queries)
-	end
-	if opts.wait ~= nil then
-		validate.number_non_negative(opts.wait, "wait")
-		args[#args + 1] = "-w"
-		args[#args + 1] = tostring(opts.wait)
-	end
-	if opts.pause ~= nil then
-		validate.number_non_negative(opts.pause, "pause")
-		args[#args + 1] = "-z"
-		args[#args + 1] = tostring(opts.pause)
-	end
-	if opts.port ~= nil then
-		validate.number_min(opts.port, "port", 1)
-		args[#args + 1] = "-p"
-		args[#args + 1] = tostring(opts.port)
-	end
-	if opts.do_not_fragment then
-		args[#args + 1] = "-F"
-	end
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("inet4", "-4")
+		:flag("inet6", "-6")
+		:flag("numeric", "-n")
+		:flag("as_lookup", "-A")
+		:flag("icmp", "-I")
+		:flag("tcp", "-T")
+		:flag("udp", "-U")
+		:value("method", "-M", { validate = validate.not_flag })
+		:value_string("interface", "-i")
+		:value_string("source", "-s")
+		:value_number("first_ttl", "-f", { min = 1 })
+		:value_number("max_ttl", "-m", { min = 1 })
+		:value_number("queries", "-q", { min = 1 })
+		:value_number("wait", "-w", { non_negative = true })
+		:value_number("pause", "-z", { non_negative = true })
+		:value_number("port", "-p", { min = 1 })
+		:flag("do_not_fragment", "-F")
+		:extra()
 end
 
 ---Construct a traceroute command.

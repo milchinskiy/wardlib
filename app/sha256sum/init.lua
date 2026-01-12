@@ -8,7 +8,6 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("util.validate")
 local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
@@ -42,37 +41,18 @@ local function apply_opts(args, opts)
 		error("binary and text are mutually exclusive")
 	end
 
-	if opts.binary then
-		args[#args + 1] = "-b"
-	end
-	if opts.text then
-		args[#args + 1] = "-t"
-	end
-	if opts.tag then
-		args[#args + 1] = "--tag"
-	end
-	if opts.zero then
-		args[#args + 1] = "-z"
-	end
-
-	-- Check-mode flags are harmless in sum mode, but meaningful in check mode.
-	if opts.quiet then
-		args[#args + 1] = "--quiet"
-	end
-	if opts.status then
-		args[#args + 1] = "--status"
-	end
-	if opts.warn then
-		args[#args + 1] = "--warn"
-	end
-	if opts.strict then
-		args[#args + 1] = "--strict"
-	end
-	if opts.ignore_missing then
-		args[#args + 1] = "--ignore-missing"
-	end
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("binary", "-b")
+		:flag("text", "-t")
+		:flag("tag", "--tag")
+		:flag("zero", "-z")
+		:flag("quiet", "--quiet")
+		:flag("status", "--status")
+		:flag("warn", "--warn")
+		:flag("strict", "--strict")
+		:flag("ignore_missing", "--ignore-missing")
+		:extra()
 end
 
 ---@param files string|string[]|nil

@@ -50,7 +50,7 @@ end
 ---@param opts ApkCommonOpts|nil
 local function apply_common(args, opts)
 	opts = opts or {}
-	args_util.append_extra(args, opts.extra)
+	args_util.parser(args, opts):extra()
 end
 
 ---@param subcmd string
@@ -106,18 +106,12 @@ end
 function Apk.add(pkgs, opts)
 	opts = opts or {}
 	local argv = {}
-	if opts.no_cache then
-		table.insert(argv, "--no-cache")
-	end
-	if opts.update_cache then
-		table.insert(argv, "--update-cache")
-	end
-	if opts.virtual ~= nil then
-		validate.non_empty_string(opts.virtual, "virtual")
-		table.insert(argv, "--virtual")
-		table.insert(argv, opts.virtual)
-	end
-	apply_common(argv, opts)
+	args_util
+		.parser(argv, opts)
+		:flag("no_cache", "--no-cache")
+		:flag("update_cache", "--update-cache")
+		:value_string("virtual", "--virtual", "virtual")
+		:extra()
 	for _, p in ipairs(normalize_pkgs(pkgs)) do
 		table.insert(argv, p)
 	end
@@ -131,10 +125,7 @@ end
 function Apk.del(pkgs, opts)
 	opts = opts or {}
 	local argv = {}
-	if opts.rdepends then
-		table.insert(argv, "--rdepends")
-	end
-	apply_common(argv, opts)
+	args_util.parser(argv, opts):flag("rdepends", "--rdepends"):extra()
 	for _, p in ipairs(normalize_pkgs(pkgs)) do
 		table.insert(argv, p)
 	end

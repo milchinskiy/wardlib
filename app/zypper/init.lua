@@ -54,35 +54,18 @@ local function apply_common(args, opts)
 		error("refresh and no_refresh are mutually exclusive")
 	end
 
-	if opts.non_interactive then
-		args[#args + 1] = "--non-interactive"
-	end
-	if opts.quiet then
-		args[#args + 1] = "-q"
-	end
-	if opts.verbose then
-		args[#args + 1] = "-v"
-	end
-	if opts.refresh then
-		args[#args + 1] = "--refresh"
-	end
-	if opts.no_refresh then
-		args[#args + 1] = "--no-refresh"
-	end
-	if opts.auto_agree_with_licenses then
-		args[#args + 1] = "--auto-agree-with-licenses"
-	end
-	if opts.gpg_auto_import_keys then
-		args[#args + 1] = "--gpg-auto-import-keys"
-	end
-	if opts.no_gpg_checks then
-		args[#args + 1] = "--no-gpg-checks"
-	end
-	if opts.repos ~= nil then
-		args_util.add_repeatable(args, opts.repos, "-r", "repos")
-	end
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("non_interactive", "--non-interactive")
+		:flag("quiet", "-q")
+		:flag("verbose", "-v")
+		:flag("refresh", "--refresh")
+		:flag("no_refresh", "--no-refresh")
+		:flag("auto_agree_with_licenses", "--auto-agree-with-licenses")
+		:flag("gpg_auto_import_keys", "--gpg-auto-import-keys")
+		:flag("no_gpg_checks", "--no-gpg-checks")
+		:repeatable("repos", "-r", { validate = validate.not_flag })
+		:extra()
 end
 
 ---@param v string|string[]

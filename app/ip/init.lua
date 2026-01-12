@@ -78,84 +78,32 @@ local function apply_global_opts(args, opts)
 		error("inet4 and inet6 are mutually exclusive")
 	end
 
-	if opts.inet4 then
-		args[#args + 1] = "-4"
-	end
-	if opts.inet6 then
-		args[#args + 1] = "-6"
-	end
-	if opts.family ~= nil then
-		validate.not_flag(opts.family, "family")
-		args[#args + 1] = "-f"
-		args[#args + 1] = tostring(opts.family)
-	end
-	if opts.netns ~= nil then
-		non_empty_string(opts.netns, "netns")
-		args[#args + 1] = "-n"
-		args[#args + 1] = tostring(opts.netns)
-	end
-	if opts.batch ~= nil then
-		non_empty_string(opts.batch, "batch")
-		args[#args + 1] = "-b"
-		args[#args + 1] = tostring(opts.batch)
-	end
-
-	if opts.json then
-		args[#args + 1] = "-j"
-	end
-	if opts.pretty then
-		args[#args + 1] = "-p"
-	end
-	if opts.oneline then
-		args[#args + 1] = "-o"
-	end
-	if opts.brief then
-		args[#args + 1] = "-br"
-	end
-	if opts.details then
-		args[#args + 1] = "-d"
-	end
-	if opts.human then
-		args[#args + 1] = "-h"
-	end
-	if opts.resolve then
-		args[#args + 1] = "-r"
-	end
-	if opts.timestamp then
-		args[#args + 1] = "-t"
-	end
-	if opts.timestamp_short then
-		args[#args + 1] = "-ts"
-	end
-
-	if opts.stats ~= nil then
-		local n
-		if opts.stats == true then
-			n = 1
-		elseif type(opts.stats) == "number" then
-			validate.number_min(opts.stats, "stats", 1)
-			n = opts.stats
-		else
-			error("stats must be boolean or number")
+	local function validate_color(v, label)
+		if type(v) ~= "string" then
+			error(label .. " must be boolean or string")
 		end
-		for _ = 1, n do
-			args[#args + 1] = "-s"
-		end
+		validate.not_flag(v, label)
 	end
 
-	if opts.color ~= nil then
-		if opts.color == true then
-			args[#args + 1] = "-c"
-		elseif type(opts.color) == "string" then
-			validate.not_flag(opts.color, "color")
-			args[#args + 1] = "-c"
-			args[#args + 1] = tostring(opts.color)
-		else
-			error("color must be boolean or string")
-		end
-	end
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("inet4", "-4")
+		:flag("inet6", "-6")
+		:value_token("family", "-f", "family")
+		:value_string("netns", "-n", "netns")
+		:value_string("batch", "-b", "batch")
+		:flag("json", "-j")
+		:flag("pretty", "-p")
+		:flag("oneline", "-o")
+		:flag("brief", "-br")
+		:flag("details", "-d")
+		:flag("human", "-h")
+		:flag("resolve", "-r")
+		:flag("timestamp", "-t")
+		:flag("timestamp_short", "-ts")
+		:count("stats", "-s", { label = "stats", true_count = 1, min = 1 })
+		:bool_or_value("color", "-c", { label = "color", validate = validate_color })
+		:extra("extra")
 end
 
 ---@param obj string

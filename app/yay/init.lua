@@ -51,13 +51,7 @@ end
 ---@param opts YayCommonOpts|nil
 local function apply_common(args, opts)
 	opts = opts or {}
-	if opts.needed then
-		table.insert(args, "--needed")
-	end
-	if opts.noconfirm then
-		table.insert(args, "--noconfirm")
-	end
-	args_util.append_extra(args, opts.extra)
+	args_util.parser(args, opts):flag("needed", "--needed"):flag("noconfirm", "--noconfirm"):extra()
 end
 
 ---@param argv string[]

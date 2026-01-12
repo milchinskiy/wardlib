@@ -49,21 +49,6 @@ local Dnf = {
 }
 
 ---@param args string[]
----@param v string|string[]|nil
----@param prefix string
----@param label string
-local function append_kv_repeatable(args, v, prefix, label)
-	if v == nil then
-		return
-	end
-	local list = args_util.normalize_string_or_array(v, label)
-	for _, s in ipairs(list) do
-		validate.non_empty_string(s, label)
-		args[#args + 1] = prefix .. tostring(s)
-	end
-end
-
----@param args string[]
 ---@param opts DnfCommonOpts|nil
 local function apply_common(args, opts)
 	opts = opts or {}
@@ -72,50 +57,23 @@ local function apply_common(args, opts)
 		error("assume_yes and assume_no are mutually exclusive")
 	end
 
-	if opts.assume_yes then
-		args[#args + 1] = "-y"
-	end
-	if opts.assume_no then
-		args[#args + 1] = "-n"
-	end
-	if opts.quiet then
-		args[#args + 1] = "-q"
-	end
-	if opts.verbose then
-		args[#args + 1] = "-v"
-	end
-	if opts.refresh then
-		args[#args + 1] = "--refresh"
-	end
-	if opts.best then
-		args[#args + 1] = "--best"
-	end
-	if opts.allowerasing then
-		args[#args + 1] = "--allowerasing"
-	end
-	if opts.skip_broken then
-		args[#args + 1] = "--skip-broken"
-	end
-	if opts.nogpgcheck then
-		args[#args + 1] = "--nogpgcheck"
-	end
-	if opts.cacheonly then
-		args[#args + 1] = "-C"
-	end
-
-	if opts.releasever ~= nil then
-		validate.non_empty_string(opts.releasever, "releasever")
-		args[#args + 1] = "--releasever=" .. tostring(opts.releasever)
-	end
-	if opts.installroot ~= nil then
-		validate.non_empty_string(opts.installroot, "installroot")
-		args[#args + 1] = "--installroot=" .. tostring(opts.installroot)
-	end
-
-	append_kv_repeatable(args, opts.enable_repo, "--enablerepo=", "enable_repo")
-	append_kv_repeatable(args, opts.disable_repo, "--disablerepo=", "disable_repo")
-
-	args_util.append_extra(args, opts.extra)
+	args_util
+		.parser(args, opts)
+		:flag("assume_yes", "-y")
+		:flag("assume_no", "-n")
+		:flag("quiet", "-q")
+		:flag("verbose", "-v")
+		:flag("refresh", "--refresh")
+		:flag("best", "--best")
+		:flag("allowerasing", "--allowerasing")
+		:flag("skip_broken", "--skip-broken")
+		:flag("nogpgcheck", "--nogpgcheck")
+		:flag("cacheonly", "-C")
+		:value("releasever", "--releasever", { mode = "equals", validate = validate.non_empty_string })
+		:value("installroot", "--installroot", { mode = "equals", validate = validate.non_empty_string })
+		:repeatable("enable_repo", "--enablerepo", { mode = "equals", validate = validate.non_empty_string })
+		:repeatable("disable_repo", "--disablerepo", { mode = "equals", validate = validate.non_empty_string })
+		:extra()
 end
 
 ---@param v string|string[]

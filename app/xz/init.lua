@@ -39,39 +39,23 @@ local Xz = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.decompress then
-		args[#args + 1] = "-d"
-	end
-	if opts.keep then
-		args[#args + 1] = "-k"
-	end
-	if opts.force then
-		args[#args + 1] = "-f"
-	end
-	if opts.stdout then
-		args[#args + 1] = "-c"
-	end
-	if opts.verbose then
-		args[#args + 1] = "-v"
-	end
-	if opts.quiet then
-		args[#args + 1] = "-q"
-	end
-	if opts.extreme then
-		args[#args + 1] = "-e"
-	end
+	local p = args_util.parser(args, opts)
+	p:flag("decompress", "-d")
+		:flag("keep", "-k")
+		:flag("force", "-f")
+		:flag("stdout", "-c")
+		:flag("verbose", "-v")
+		:flag("quiet", "-q")
+		:flag("extreme", "-e")
+
 	if opts.level ~= nil then
 		validate.integer_min(opts.level, "level", 0)
 		assert(opts.level <= 9, "level must be <= 9")
 		args[#args + 1] = "-" .. tostring(opts.level)
 	end
-	if opts.threads ~= nil then
-		validate.integer_non_negative(opts.threads, "threads")
-		args[#args + 1] = "-T"
-		args[#args + 1] = tostring(opts.threads)
-	end
 
-	args_util.append_extra(args, opts.extra)
+	p:value_number("threads", "-T", { integer = true, non_negative = true })
+	p:extra()
 end
 
 ---@param paths string|string[]
