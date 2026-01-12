@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class ClipboardSelectionOpts
@@ -55,7 +56,7 @@ end
 ---@param opts ClipboardCopyOpts|nil
 ---@return ward.Cmd
 function Clipboard.copy(opts)
-	validate.bin(Clipboard.wl_copy_bin, "wl-copy binary")
+	ensure.bin(Clipboard.wl_copy_bin, { label = "wl-copy binary" })
 	opts = opts or {}
 	local args = { Clipboard.wl_copy_bin }
 	apply_selection(args, opts.selection)
@@ -93,7 +94,7 @@ end
 ---@param opts ClipboardPasteOpts|nil
 ---@return ward.Cmd
 function Clipboard.paste(opts)
-	validate.bin(Clipboard.wl_paste_bin, "wl-paste binary")
+	ensure.bin(Clipboard.wl_paste_bin, { label = "wl-paste binary" })
 	opts = opts or {}
 	local args = { Clipboard.wl_paste_bin }
 	apply_selection(args, opts.selection)

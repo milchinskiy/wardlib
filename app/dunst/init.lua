@@ -2,6 +2,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 
 local URGENCY_MAP = { low = true, normal = true, critical = true }
 
@@ -50,7 +51,7 @@ local Dunst = {
 function Dunst.notify(summary, opts)
 	opts = opts or {}
 	local args = { Dunst.bin }
-	validate.bin(Dunst.bin, 'Dunstify binary')
+	ensure.bin(Dunst.bin, { label = 'Dunstify binary' })
 	assert(type(summary) == "string" and #summary > 0, "summary must be a non-empty string")
 
 	local app_name = opts.app_name or DunstifyOptions.app_name
@@ -133,21 +134,21 @@ end
 ---@param id number|string
 ---@return ward.Cmd
 function Dunst.close(id)
-	validate.bin(Dunst.bin, 'Dunstify binary')
+	ensure.bin(Dunst.bin, { label = 'Dunstify binary' })
 	return _cmd.cmd(Dunst.bin, "-C", tostring(id))
 end
 
 ---Dunst capabilities
 ---@return ward.Cmd
 function Dunst.capabilities()
-	validate.bin(Dunst.bin, 'Dunstify binary')
+	ensure.bin(Dunst.bin, { label = 'Dunstify binary' })
 	return _cmd.cmd(Dunst.bin, "--capabilities")
 end
 
 ---Dunst server info
 ---@return ward.Cmd
 function Dunst.serverInfo()
-	validate.bin(Dunst.bin, 'Dunstify binary')
+	ensure.bin(Dunst.bin, { label = 'Dunstify binary' })
 	return _cmd.cmd(Dunst.bin, "--serverinfo")
 end
 

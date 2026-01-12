@@ -14,6 +14,7 @@
 local _cmd = require("ward.process")
 local _env = require("ward.env")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class MkfsOpts
@@ -49,7 +50,7 @@ end
 local function choose_bin(fstype, opts)
 	opts = opts or {}
 	if opts.bin ~= nil then
-		validate.bin(opts.bin, "mkfs binary")
+		ensure.bin(opts.bin, { label = "mkfs binary" })
 		return opts.bin, false
 	end
 
@@ -58,7 +59,7 @@ local function choose_bin(fstype, opts)
 		return specific, false
 	end
 
-	validate.bin(Mkfs.bin, "mkfs binary")
+	ensure.bin(Mkfs.bin, { label = "mkfs binary" })
 	return Mkfs.bin, true
 end
 

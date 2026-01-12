@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class SshCommonOpts
@@ -146,7 +147,7 @@ end
 ---@param opts SshCommonOpts|nil
 ---@return ward.Cmd
 function Ssh.exec(host, remote, opts)
-	validate.bin(Ssh.ssh_bin, "ssh binary")
+	ensure.bin(Ssh.ssh_bin, { label = "ssh binary" })
 	validate_host(host)
 	opts = opts or {}
 
@@ -177,7 +178,7 @@ end
 ---@param opts ScpOpts|nil
 ---@return ward.Cmd
 function Ssh.scp(src, dst, opts)
-	validate.bin(Ssh.scp_bin, "scp binary")
+	ensure.bin(Ssh.scp_bin, { label = "scp binary" })
 	validate_not_empty(src, "src")
 	validate_not_empty(dst, "dst")
 	opts = opts or {}

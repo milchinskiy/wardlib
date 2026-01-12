@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class JqOpts
@@ -176,7 +177,7 @@ end
 ---@param opts JqOpts|nil
 ---@return ward.Cmd
 function Jq.eval(filter, inputs, opts)
-	validate.bin(Jq.bin, "jq binary")
+	ensure.bin(Jq.bin, { label = "jq binary" })
 	local f = filter or "."
 	validate.non_empty_string(f, "filter")
 
@@ -197,7 +198,7 @@ end
 ---@param opts JqOpts|nil
 ---@return ward.Cmd
 function Jq.eval_file(file, inputs, opts)
-	validate.bin(Jq.bin, "jq binary")
+	ensure.bin(Jq.bin, { label = "jq binary" })
 	validate.non_empty_string(file, "file")
 
 	local args = { Jq.bin }
@@ -234,7 +235,7 @@ end
 ---@param opts JqOpts|nil
 ---@return ward.Cmd
 function Jq.raw(argv, opts)
-	validate.bin(Jq.bin, "jq binary")
+	ensure.bin(Jq.bin, { label = "jq binary" })
 	local args = { Jq.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

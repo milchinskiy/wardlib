@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class CpOpts
@@ -94,7 +95,7 @@ end
 ---@param opts CpOpts|nil
 ---@return ward.Cmd
 function Cp.copy(src, dest, opts)
-	validate.bin(Cp.bin, "cp binary")
+	ensure.bin(Cp.bin, { label = "cp binary" })
 	validate.non_empty_string(dest, "dest")
 
 	local args = { Cp.bin }
@@ -122,7 +123,7 @@ function Cp.into(src, dir, opts)
 	local o = args_util.clone_opts(opts)
 	o.target_directory = dir
 
-	validate.bin(Cp.bin, "cp binary")
+	ensure.bin(Cp.bin, { label = "cp binary" })
 	local args = { Cp.bin }
 	apply_opts(args, o)
 	args[#args + 1] = "--"
@@ -138,7 +139,7 @@ end
 ---@param opts CpOpts|nil
 ---@return ward.Cmd
 function Cp.raw(argv, opts)
-	validate.bin(Cp.bin, "cp binary")
+	ensure.bin(Cp.bin, { label = "cp binary" })
 	local args = { Cp.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

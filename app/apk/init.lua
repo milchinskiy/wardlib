@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class ApkCommonOpts
@@ -57,14 +58,14 @@ end
 ---@param opts ApkCommonOpts|nil
 ---@return ward.Cmd
 function Apk.cmd(subcmd, argv, opts)
-	validate.bin(Apk.bin, "apk binary")
+	ensure.bin(Apk.bin, { label = "apk binary" })
 
 	opts = opts or {}
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
 	local args = {}
 	if opts.sudo then
-		validate.bin(Apk.sudo_bin, "sudo binary")
+		ensure.bin(Apk.sudo_bin, { label = "sudo binary" })
 		table.insert(args, Apk.sudo_bin)
 	end
 

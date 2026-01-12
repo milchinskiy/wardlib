@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class AptGetCommonOpts
@@ -40,9 +41,6 @@ local AptGet = {
 	sudo_bin = "sudo",
 }
 
----@param pkgs string|string[]
----@return string[]
-
 --- @param pkgs string|string[]
 --- @return string[]
 local function normalize_pkgs(pkgs)
@@ -61,6 +59,7 @@ local function apply_common(args, opts)
 		if opts.quiet == true then
 			lvl = 1
 		elseif type(opts.quiet) == "number" then
+			---@diagnostic disable-next-line: param-type-mismatch
 			lvl = math.floor(opts.quiet)
 		elseif opts.quiet == false then
 			lvl = 0
@@ -81,14 +80,14 @@ end
 ---@param opts AptGetCommonOpts|nil
 ---@return ward.Cmd
 function AptGet.cmd(subcmd, argv, opts)
-	validate.bin(AptGet.bin, "apt-get binary")
+	ensure.bin(AptGet.bin, { label = "apt-get binary" })
 
 	opts = opts or {}
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
 	local args = {}
 	if opts.sudo then
-		validate.bin(AptGet.sudo_bin, "sudo binary")
+		ensure.bin(AptGet.sudo_bin, { label = "sudo binary" })
 		table.insert(args, AptGet.sudo_bin)
 	end
 

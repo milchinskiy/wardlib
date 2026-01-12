@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class ChownOpts
@@ -94,7 +95,7 @@ end
 ---@param opts ChownOpts|nil
 ---@return ward.Cmd
 function Chown.set(paths, owner, group, opts)
-	validate.bin(Chown.bin, "chown binary")
+	ensure.bin(Chown.bin, { label = "chown binary" })
 	local list = args_util.normalize_string_or_array(paths, "paths")
 	assert(#list > 0, "paths must not be empty")
 	local spec = build_spec(owner, group)
@@ -115,7 +116,7 @@ end
 ---@param opts ChownOpts|nil
 ---@return ward.Cmd
 function Chown.raw(argv, opts)
-	validate.bin(Chown.bin, "chown binary")
+	ensure.bin(Chown.bin, { label = "chown binary" })
 	local args = { Chown.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

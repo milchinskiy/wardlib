@@ -12,6 +12,7 @@
 local _cmd = require("ward.process")
 local tbl = require("util.table")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class MkswapOpts
@@ -168,7 +169,7 @@ end
 ---@param opts MkswapOpts|nil
 ---@return ward.Cmd
 function Swap.mkswap(target, opts)
-	validate.bin(Swap.mkswap_bin, "mkswap binary")
+	ensure.bin(Swap.mkswap_bin, { label = "mkswap binary" })
 	validate.non_empty_string(target, "target")
 
 	local args = { Swap.mkswap_bin }
@@ -184,7 +185,7 @@ end
 ---@param opts SwaponOpts|nil
 ---@return ward.Cmd
 function Swap.swapon(targets, opts)
-	validate.bin(Swap.swapon_bin, "swapon binary")
+	ensure.bin(Swap.swapon_bin, { label = "swapon binary" })
 
 	local args = { Swap.swapon_bin }
 	apply_swapon_opts(args, opts)
@@ -214,7 +215,7 @@ end
 ---@param opts SwapoffOpts|nil
 ---@return ward.Cmd
 function Swap.swapoff(targets, opts)
-	validate.bin(Swap.swapoff_bin, "swapoff binary")
+	ensure.bin(Swap.swapoff_bin, { label = "swapoff binary" })
 
 	local args = { Swap.swapoff_bin }
 	apply_swapoff_opts(args, opts)

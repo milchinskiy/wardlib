@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class ComposeOpts
@@ -166,7 +167,7 @@ end
 ---@return ward.Cmd
 function Compose.cmd(subcmd, argv, opts)
 	local bin = engine_bin(opts)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	validate.non_empty_string(subcmd, "subcmd")
 	local args = { bin, "compose", subcmd }
 	apply_global_opts(args, opts)
@@ -181,7 +182,7 @@ end
 function Compose.up(services, opts)
 	local o = opts or {}
 	local bin = engine_bin(o)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "up" }
 	apply_global_opts(args, o)
 	if o.detach then
@@ -215,7 +216,7 @@ end
 function Compose.down(opts)
 	local o = opts or {}
 	local bin = engine_bin(o)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "down" }
 	apply_global_opts(args, o)
 	if o.remove_orphans then
@@ -244,7 +245,7 @@ end
 function Compose.ps(services, opts)
 	local o = opts or {}
 	local bin = engine_bin(o)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "ps" }
 	apply_global_opts(args, o)
 	if o.all then
@@ -274,7 +275,7 @@ end
 function Compose.logs(services, opts)
 	local o = opts or {}
 	local bin = engine_bin(o)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "logs" }
 	apply_global_opts(args, o)
 	if o.follow then
@@ -311,7 +312,7 @@ end
 function Compose.build(services, opts)
 	local o = opts or {}
 	local bin = engine_bin(o)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "build" }
 	apply_global_opts(args, o)
 	if o.pull then
@@ -337,7 +338,7 @@ end
 function Compose.pull(services, opts)
 	local o = opts or {}
 	local bin = engine_bin(o)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "pull" }
 	apply_global_opts(args, o)
 	if o.include_deps then
@@ -365,7 +366,7 @@ end
 function Compose.stop(services, opts)
 	local o = opts or {}
 	local bin = engine_bin(o)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "stop" }
 	apply_global_opts(args, o)
 	if o.timeout ~= nil then
@@ -384,7 +385,7 @@ end
 function Compose.restart(services, opts)
 	local o = opts or {}
 	local bin = engine_bin(o)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose", "restart" }
 	apply_global_opts(args, o)
 	if o.timeout ~= nil then
@@ -404,7 +405,7 @@ end
 function Compose.exec(service, cmdline, opts)
 	local o = opts or {}
 	local bin = engine_bin(o)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	validate.non_empty_string(service, "service")
 	local args = { bin, "compose", "exec" }
 	apply_global_opts(args, o)
@@ -443,7 +444,7 @@ end
 function Compose.run(service, cmdline, opts)
 	local o = opts or {}
 	local bin = engine_bin(o)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	validate.non_empty_string(service, "service")
 	local args = { bin, "compose", "run" }
 	apply_global_opts(args, o)
@@ -514,7 +515,7 @@ end
 ---@return ward.Cmd
 function Compose.raw(argv, opts)
 	local bin = engine_bin(opts)
-	validate.bin(bin, "compose engine binary")
+	ensure.bin(bin, { label = "compose engine binary" })
 	local args = { bin, "compose" }
 	apply_global_opts(args, opts)
 	append_argv(args, argv)

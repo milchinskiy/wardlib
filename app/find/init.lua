@@ -11,6 +11,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class FindOpts
@@ -203,7 +204,7 @@ end
 ---@param opts FindOpts|nil
 ---@return ward.Cmd
 function Find.run(paths, expr, opts)
-	validate.bin(Find.bin, "find binary")
+	ensure.bin(Find.bin, { label = "find binary" })
 
 	local args = { Find.bin }
 	apply_start_opts(args, opts)
@@ -248,7 +249,7 @@ end
 ---@param opts FindOpts|nil
 ---@return ward.Cmd
 function Find.raw(argv, opts)
-	validate.bin(Find.bin, "find binary")
+	ensure.bin(Find.bin, { label = "find binary" })
 	local args = { Find.bin }
 	apply_start_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

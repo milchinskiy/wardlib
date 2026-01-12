@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class SsOpts
@@ -149,7 +150,7 @@ end
 ---@param opts SsOpts|nil
 ---@return ward.Cmd
 function Ss.show(filter, opts)
-	validate.bin(Ss.bin, "ss binary")
+	ensure.bin(Ss.bin, { label = "ss binary" })
 
 	local args = { Ss.bin }
 	apply_opts(args, opts)

@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class MvOpts
@@ -94,7 +95,7 @@ end
 ---@param opts MvOpts|nil
 ---@return ward.Cmd
 function Mv.move(src, dest, opts)
-	validate.bin(Mv.bin, "mv binary")
+	ensure.bin(Mv.bin, { label = "mv binary" })
 	validate.non_empty_string(dest, "dest")
 
 	local args = { Mv.bin }
@@ -121,7 +122,7 @@ function Mv.into(src, dir, opts)
 	local o = args_util.clone_opts(opts)
 	o.target_directory = dir
 
-	validate.bin(Mv.bin, "mv binary")
+	ensure.bin(Mv.bin, { label = "mv binary" })
 	local args = { Mv.bin }
 	apply_opts(args, o)
 	args[#args + 1] = "--"
@@ -137,7 +138,7 @@ end
 ---@param opts MvOpts|nil
 ---@return ward.Cmd
 function Mv.raw(argv, opts)
-	validate.bin(Mv.bin, "mv binary")
+	ensure.bin(Mv.bin, { label = "mv binary" })
 	local args = { Mv.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

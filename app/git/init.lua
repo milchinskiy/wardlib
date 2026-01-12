@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class GitCommonOpts
@@ -60,7 +61,7 @@ end
 ---@param opts GitCommonOpts|nil
 ---@return ward.Cmd
 function Git.cmd(subcmd, argv, opts)
-	validate.bin(Git.bin, 'git binary')
+	ensure.bin(Git.bin, { label = 'git binary' })
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
 	local args = { Git.bin }

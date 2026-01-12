@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class GzipOpts
@@ -96,7 +97,7 @@ end
 ---@param opts GzipOpts|nil
 ---@return ward.Cmd
 function Gzip.run(paths, opts)
-	validate.bin(Gzip.bin, "gzip binary")
+	ensure.bin(Gzip.bin, { label = "gzip binary" })
 	local args = { Gzip.bin }
 	apply_opts(args, opts)
 	args[#args + 1] = "--"
@@ -132,7 +133,7 @@ end
 ---@param opts GzipOpts|nil
 ---@return ward.Cmd
 function Gzip.raw(argv, opts)
-	validate.bin(Gzip.bin, "gzip binary")
+	ensure.bin(Gzip.bin, { label = "gzip binary" })
 	local args = { Gzip.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

@@ -12,6 +12,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class XbpsCommonOpts
@@ -58,9 +59,6 @@ local Xbps = {
 	sudo_bin = "sudo",
 }
 
----@param pkgs string|string[]
----@return string[]
-
 --- @param pkgs string|string[]
 --- @return string[]
 local function normalize_pkgs(pkgs)
@@ -103,11 +101,11 @@ end
 ---@param opts XbpsCommonOpts|nil
 ---@return ward.Cmd
 local function build(bin, label, argv, opts)
-	validate.bin(bin, tostring(label) .. " binary")
+	ensure.bin(bin, { label = tostring(label) .. " binary" })
 	opts = opts or {}
 	local args = {}
 	if opts.sudo then
-		validate.bin(Xbps.sudo_bin, "sudo binary")
+		ensure.bin(Xbps.sudo_bin, { label = "sudo binary" })
 		table.insert(args, Xbps.sudo_bin)
 	end
 	table.insert(args, bin)

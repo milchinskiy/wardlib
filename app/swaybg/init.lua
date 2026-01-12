@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@alias SwaybgMode "stretch"|"fill"|"fit"|"center"|"tile"
@@ -103,7 +104,7 @@ end
 ---@param color string|nil
 ---@return ward.Cmd
 function Swaybg.set(image, mode, color)
-	validate.bin(Swaybg.bin, 'swaybg binary')
+	ensure.bin(Swaybg.bin, { label = 'swaybg binary' })
 	validate.non_empty_string(image, "image")
 	local out = { image = image }
 	if mode ~= nil then
@@ -122,7 +123,7 @@ end
 ---@param opts SwaybgOpts
 ---@return ward.Cmd
 function Swaybg.run(opts)
-	validate.bin(Swaybg.bin, 'swaybg binary')
+	ensure.bin(Swaybg.bin, { label = 'swaybg binary' })
 	local args = { Swaybg.bin }
 	apply_opts(args, opts)
 	return _cmd.cmd(table.unpack(args))

@@ -17,6 +17,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 local tbl = require("util.table")
 
@@ -128,7 +129,7 @@ end
 ---@param opts SedOpts|nil
 ---@return ward.Cmd
 function Sed.run(inputs, opts)
-	validate.bin(Sed.bin, "sed binary")
+	ensure.bin(Sed.bin, { label = "sed binary" })
 
 	local args = { Sed.bin }
 	apply_opts(args, opts)

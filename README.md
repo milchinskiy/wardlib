@@ -24,9 +24,34 @@ Common approaches:
 - add it via builtin [Ward](https://github.com/milchinskiy/ward)'s `ward.module.git(...)`,
 - add it as a git submodule,
 - vendor/copy the modules you need,
-- or otherwise place it on your Lua/Ward `package.path` so `require(...)` can find it.
+- or otherwise place it on your Lua/Ward `package.path` so `require(...)` can
+find it.
 
 Exact setup may vary by project; see repository folders and module docs for details.
+
+## Contract pattern (recommended)
+
+Most Ward scripts have implicit assumptions (OS, required binaries, required
+env vars, root privileges). `tools.ensure` lets you make those assumptions
+explicit and fail fast with clear errors.
+
+Put this at the top of your script:
+
+```lua
+local ensure = require("tools.ensure")
+
+-- Declare assumptions early
+ensure.os("linux")
+ensure.bins({ "git", "tar", "ssh" })
+
+local token = ensure.env("TOKEN")
+
+-- If privileged operations are required:
+-- ensure.root()
+```
+
+Many wardlib wrappers also use `tools.ensure.bin(...)` internally to validate
+their underlying binaries.
 
 ## Tests
 

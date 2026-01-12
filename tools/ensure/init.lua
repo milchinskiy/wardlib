@@ -5,7 +5,7 @@
 
 local args_util = require("util.args")
 local validate = require("util.validate")
-local str = require("ward.helpers.string")
+local trim = require("ward.helpers.string").trim
 
 local M = {}
 
@@ -37,7 +37,7 @@ local function detect_os(env, process)
 	end
 
 	-- Prefer uname when present. If it is not present, fall back to generic "unix".
-	local uname = env.which("uname")
+	local uname = env.which and env.which("uname")
 	if not uname then
 		return "unix"
 	end
@@ -47,7 +47,7 @@ local function detect_os(env, process)
 		error("tools.ensure.os: failed to run uname -s", 3)
 	end
 
-	local v = str.trim((r.stdout or ""))
+	local v = trim(r.stdout)
 	if #v == 0 then
 		return "unix"
 	end
@@ -123,7 +123,7 @@ function M.bin(name_or_path, opts)
 		error(msg, 2)
 	end
 
-	return env.which(name_or_path) or name_or_path
+	return (env.which and env.which(name_or_path)) or name_or_path
 end
 
 -- Ensure a set of binaries are available.
@@ -188,7 +188,7 @@ function M.root(opts)
 		error("tools.ensure.root: unsupported on Windows", 2)
 	end
 
-	local id = env.which("id")
+	local id = env.which and env.which("id")
 	if not id then
 		error("tools.ensure.root: cannot determine uid (missing 'id' binary)", 2)
 	end
@@ -198,7 +198,7 @@ function M.root(opts)
 		error("tools.ensure.root: failed to run 'id -u'", 2)
 	end
 
-	local uid = str.trim(r.stdout or "")
+	local uid = trim(r.stdout)
 	if uid ~= "0" then
 		local msg = "root privileges required"
 		if opts.allow_sudo_hint ~= false then

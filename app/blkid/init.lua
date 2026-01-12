@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@alias BlkidOutputFmt "full"|"value"|"device"|"export"|"udev"
@@ -94,7 +95,7 @@ end
 ---@param opts BlkidOpts|nil
 ---@return ward.Cmd
 function Blkid.id(devices, opts)
-	validate.bin(Blkid.bin, 'blkid binary')
+	ensure.bin(Blkid.bin, { label = 'blkid binary' })
 
 	local args = { Blkid.bin }
 	apply_opts(args, opts)
@@ -121,7 +122,7 @@ end
 ---@param label string
 ---@return ward.Cmd
 function Blkid.by_label(label)
-	validate.bin(Blkid.bin, 'blkid binary')
+	ensure.bin(Blkid.bin, { label = 'blkid binary' })
 	validate.not_flag(label, "label")
 	return _cmd.cmd(Blkid.bin, "-L", label)
 end
@@ -130,7 +131,7 @@ end
 ---@param uuid string
 ---@return ward.Cmd
 function Blkid.by_uuid(uuid)
-	validate.bin(Blkid.bin, 'blkid binary')
+	ensure.bin(Blkid.bin, { label = 'blkid binary' })
 	validate.not_flag(uuid, "uuid")
 	return _cmd.cmd(Blkid.bin, "-U", uuid)
 end

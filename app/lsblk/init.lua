@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class LsblkOpts
@@ -106,7 +107,7 @@ end
 ---@param opts LsblkOpts|nil
 ---@return ward.Cmd
 function Lsblk.list(devices, opts)
-	validate.bin(Lsblk.bin, 'lsblk binary')
+	ensure.bin(Lsblk.bin, { label = 'lsblk binary' })
 
 	local args = { Lsblk.bin }
 	apply_opts(args, opts)

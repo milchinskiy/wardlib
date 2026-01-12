@@ -10,6 +10,7 @@
 
 local _proc = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class CfdiskOpts
@@ -36,7 +37,6 @@ end
 
 ---@param args string[]
 ---@param extra string[]|nil
-
 local function append_extra(args, extra)
 	args_util.append_extra(args, extra)
 end
@@ -46,7 +46,7 @@ end
 ---@param opts CfdiskOpts|nil
 ---@return ward.Cmd
 function Cfdisk.edit(device, opts)
-	validate.bin(Cfdisk.bin, "cfdisk binary")
+	ensure.bin(Cfdisk.bin, { label = "cfdisk binary" })
 	validate_device(device)
 	opts = opts or {}
 

@@ -7,6 +7,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class PacmanCommonOpts
@@ -40,9 +41,6 @@ local Pacman = {
 	sudo_bin = "sudo",
 }
 
----@param pkgs string|string[]
----@return string[]
-
 --- @param pkgs string|string[]
 --- @return string[]
 local function normalize_pkgs(pkgs)
@@ -64,11 +62,11 @@ end
 ---@param opts PacmanCommonOpts|nil
 ---@return ward.Cmd
 local function build(op, argv, opts)
-	validate.bin(Pacman.bin, "pacman binary")
+	ensure.bin(Pacman.bin, { label = "pacman binary" })
 	opts = opts or {}
 	local args = {}
 	if opts.sudo then
-		validate.bin(Pacman.sudo_bin, "sudo binary")
+		ensure.bin(Pacman.sudo_bin, { label = "sudo binary" })
 		table.insert(args, Pacman.sudo_bin)
 	end
 	table.insert(args, Pacman.bin)

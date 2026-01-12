@@ -14,6 +14,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class ChrootOpts
@@ -61,7 +62,7 @@ end
 ---@param opts ChrootOpts|nil
 ---@return ward.Cmd
 function Chroot.run(root, argv, opts)
-	validate.bin(Chroot.bin, "chroot binary")
+	ensure.bin(Chroot.bin, { label = "chroot binary" })
 	validate_token(root, "root")
 	opts = opts or {}
 

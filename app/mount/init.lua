@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class MountCommonOpts
@@ -75,7 +76,7 @@ end
 ---@param opts MountOpts|nil
 ---@return ward.Cmd
 function Mount.mount(source, target, opts)
-	validate.bin(Mount.mount_bin, "mount binary")
+	ensure.bin(Mount.mount_bin, { label = "mount binary" })
 	opts = opts or {}
 
 	local args = { Mount.mount_bin }
@@ -134,7 +135,7 @@ end
 ---@param opts UmountOpts|nil
 ---@return ward.Cmd
 function Mount.umount(target, opts)
-	validate.bin(Mount.umount_bin, "umount binary")
+	ensure.bin(Mount.umount_bin, { label = "umount binary" })
 	validate_token(target, "target")
 	opts = opts or {}
 

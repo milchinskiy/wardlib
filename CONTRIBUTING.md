@@ -23,7 +23,8 @@ consists of thin wrappers around system tools and small composition utilities.
 
 * `bin` fields:
   * Default executable name is stored on the wrapper table (`Foo.bin`).
-  * Validate with `util.validate.bin(...)` at the top of public entrypoints.
+  * Validate required binaries with `tools.ensure.bin(...)` at the top of public
+  entrypoints.
 
 * Options:
   * `opts.extra` is always an array appended after modeled flags.

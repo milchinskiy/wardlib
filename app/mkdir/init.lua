@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class MkdirOpts
@@ -64,7 +65,7 @@ end
 ---@param opts MkdirOpts|nil
 ---@return ward.Cmd
 function Mkdir.make(paths, opts)
-	validate.bin(Mkdir.bin, "mkdir binary")
+	ensure.bin(Mkdir.bin, { label = "mkdir binary" })
 	local args = { Mkdir.bin }
 	apply_opts(args, opts)
 	args[#args + 1] = "--"
@@ -80,7 +81,7 @@ end
 ---@param opts MkdirOpts|nil
 ---@return ward.Cmd
 function Mkdir.raw(argv, opts)
-	validate.bin(Mkdir.bin, "mkdir binary")
+	ensure.bin(Mkdir.bin, { label = "mkdir binary" })
 	local args = { Mkdir.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

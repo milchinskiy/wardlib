@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class PingOpts
@@ -163,7 +164,7 @@ end
 ---@param opts PingOpts|nil
 ---@return ward.Cmd
 function Ping.ping(dest, opts)
-	validate.bin(Ping.bin, "ping binary")
+	ensure.bin(Ping.bin, { label = "ping binary" })
 	validate.non_empty_string(dest, "dest")
 
 	local args = { Ping.bin }

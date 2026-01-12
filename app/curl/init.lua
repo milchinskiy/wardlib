@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 local tbl = require("util.table")
 
@@ -232,7 +233,7 @@ end
 ---@param opts CurlOpts|nil
 ---@return ward.Cmd
 function Curl.request(urls, opts)
-	validate.bin(Curl.bin, "curl binary")
+	ensure.bin(Curl.bin, { label = "curl binary" })
 
 	local args = { Curl.bin }
 	apply_opts(args, opts)

@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class EfibootmgrOpts
@@ -94,7 +95,7 @@ end
 function Efibootmgr.cmd(opts)
 	opts = opts or {}
 	local bin = opts.bin or Efibootmgr.bin
-	validate.bin(bin, "efibootmgr binary")
+	ensure.bin(bin, { label = "efibootmgr binary" })
 
 	local args = { bin }
 

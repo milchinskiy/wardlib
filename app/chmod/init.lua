@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class ChmodOpts
@@ -81,7 +82,7 @@ end
 ---@param opts ChmodOpts|nil
 ---@return ward.Cmd
 function Chmod.set(paths, mode, opts)
-	validate.bin(Chmod.bin, "chmod binary")
+	ensure.bin(Chmod.bin, { label = "chmod binary" })
 	validate.non_empty_string(mode, "mode")
 
 	local args = { Chmod.bin }
@@ -102,7 +103,7 @@ end
 ---@param opts ChmodOpts|nil
 ---@return ward.Cmd
 function Chmod.reference(paths, ref, opts)
-	validate.bin(Chmod.bin, "chmod binary")
+	ensure.bin(Chmod.bin, { label = "chmod binary" })
 	validate.non_empty_string(ref, "ref")
 	local o = args_util.clone_opts(opts)
 	o.reference = ref
@@ -122,7 +123,7 @@ end
 ---@param opts ChmodOpts|nil
 ---@return ward.Cmd
 function Chmod.raw(argv, opts)
-	validate.bin(Chmod.bin, "chmod binary")
+	ensure.bin(Chmod.bin, { label = "chmod binary" })
 	local args = { Chmod.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

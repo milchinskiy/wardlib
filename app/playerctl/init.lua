@@ -7,6 +7,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class PlayerctlOpts
@@ -69,7 +70,7 @@ end
 ---@param opts PlayerctlOpts|nil
 ---@return ward.Cmd
 function Playerctl.cmd(subcmd, argv, opts)
-	validate.bin(Playerctl.bin, 'playerctl binary')
+	ensure.bin(Playerctl.bin, { label = 'playerctl binary' })
 	validate_token(subcmd, "subcmd")
 	local args = { Playerctl.bin }
 	apply_opts(args, opts)

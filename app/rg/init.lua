@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class RgOpts
@@ -221,7 +222,7 @@ end
 ---@param opts RgOpts|nil
 ---@return ward.Cmd
 function Rg.search(pattern, paths, opts)
-	validate.bin(Rg.bin, "rg binary")
+	ensure.bin(Rg.bin, { label = "rg binary" })
 
 	local args = { Rg.bin }
 	apply_opts(args, opts)
@@ -235,7 +236,7 @@ end
 ---@param opts RgOpts|nil
 ---@return ward.Cmd
 function Rg.files(paths, opts)
-	validate.bin(Rg.bin, "rg binary")
+	ensure.bin(Rg.bin, { label = "rg binary" })
 	local args = { Rg.bin }
 	apply_opts(args, opts)
 	args[#args + 1] = "--files"
@@ -249,7 +250,7 @@ end
 ---@param opts RgOpts|nil
 ---@return ward.Cmd
 function Rg.raw(argv, opts)
-	validate.bin(Rg.bin, "rg binary")
+	ensure.bin(Rg.bin, { label = "rg binary" })
 	local args = { Rg.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

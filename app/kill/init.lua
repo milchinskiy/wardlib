@@ -11,6 +11,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@alias Signal string|number
@@ -230,7 +231,7 @@ end
 ---@param opts KillOpts|nil
 ---@return ward.Cmd
 function Kill.kill(pids, opts)
-	validate.bin(Kill.kill_bin, "kill binary")
+	ensure.bin(Kill.kill_bin, { label = "kill binary" })
 
 	local args = { Kill.kill_bin }
 	apply_kill_opts(args, opts)
@@ -270,7 +271,7 @@ end
 ---@param opts KillallOpts|nil
 ---@return ward.Cmd
 function Kill.killall(names, opts)
-	validate.bin(Kill.killall_bin, "killall binary")
+	ensure.bin(Kill.killall_bin, { label = "killall binary" })
 
 	local args = { Kill.killall_bin }
 	apply_killall_opts(args, opts)
@@ -300,7 +301,7 @@ end
 ---@param opts PkillOpts|nil
 ---@return ward.Cmd
 function Kill.pkill(pattern, opts)
-	validate.bin(Kill.pkill_bin, "pkill binary")
+	ensure.bin(Kill.pkill_bin, { label = "pkill binary" })
 
 	local args = { Kill.pkill_bin }
 	apply_pkill_opts(args, opts)

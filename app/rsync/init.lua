@@ -7,6 +7,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class RsyncOpts
@@ -88,7 +89,7 @@ end
 ---@param opts RsyncOpts|nil
 ---@return ward.Cmd
 function Rsync.sync(src, dest, opts)
-	validate.bin(Rsync.bin, 'rsync binary')
+	ensure.bin(Rsync.bin, { label = 'rsync binary' })
 	validate.non_empty_string(dest, "dest")
 
 	local sources = {}

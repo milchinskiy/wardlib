@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class RmOpts
@@ -59,7 +60,7 @@ end
 ---@param opts RmOpts|nil
 ---@return ward.Cmd
 function Rm.remove(paths, opts)
-	validate.bin(Rm.bin, "rm binary")
+	ensure.bin(Rm.bin, { label = "rm binary" })
 	local list = args_util.normalize_string_or_array(paths, "paths")
 	assert(#list > 0, "paths must not be empty")
 
@@ -78,7 +79,7 @@ end
 ---@param opts RmOpts|nil
 ---@return ward.Cmd
 function Rm.raw(argv, opts)
-	validate.bin(Rm.bin, "rm binary")
+	ensure.bin(Rm.bin, { label = "rm binary" })
 	local args = { Rm.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

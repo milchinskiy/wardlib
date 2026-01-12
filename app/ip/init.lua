@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class IpOpts
@@ -163,7 +164,7 @@ end
 ---@param opts IpOpts|nil
 ---@return ward.Cmd
 local function build(obj, cmd, tail, opts)
-	validate.bin(Ip.bin, "ip binary")
+	ensure.bin(Ip.bin, { label = "ip binary" })
 
 	local args = { Ip.bin }
 	apply_global_opts(args, opts)
@@ -186,7 +187,7 @@ end
 ---@param opts IpOpts|nil
 ---@return ward.Cmd
 function Ip.raw(argv, opts)
-	validate.bin(Ip.bin, "ip binary")
+	ensure.bin(Ip.bin, { label = "ip binary" })
 
 	local args = { Ip.bin }
 	apply_global_opts(args, opts)
@@ -960,7 +961,7 @@ end
 ---@return ward.Cmd
 function Ip.netns_exec(name, argv, opts)
 	non_empty_string(name, "name")
-	validate.bin(Ip.bin, "ip binary")
+	ensure.bin(Ip.bin, { label = "ip binary" })
 
 	local args = { Ip.bin }
 	apply_global_opts(args, opts)
@@ -982,7 +983,7 @@ end
 ---@param opts IpOpts|nil
 ---@return ward.Cmd
 function Ip.monitor(objects, opts)
-	validate.bin(Ip.bin, "ip binary")
+	ensure.bin(Ip.bin, { label = "ip binary" })
 
 	local args = { Ip.bin }
 	apply_global_opts(args, opts)

@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class TracerouteOpts
@@ -136,7 +137,7 @@ end
 ---@param opts TracerouteOpts|nil
 ---@return ward.Cmd
 function Traceroute.trace(host, opts)
-	validate.bin(Traceroute.bin, "traceroute binary")
+	ensure.bin(Traceroute.bin, { label = "traceroute binary" })
 	validate.non_empty_string(host, "host")
 
 	local args = { Traceroute.bin }

@@ -13,6 +13,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class UnzipOpts
@@ -78,7 +79,7 @@ end
 ---@param opts UnzipOpts|nil
 ---@return ward.Cmd
 local function build(zip_path, opts)
-	validate.bin(Unzip.bin, "unzip binary")
+	ensure.bin(Unzip.bin, { label = "unzip binary" })
 	validate.not_flag(zip_path, "zip_path")
 	opts = opts or {}
 
@@ -152,7 +153,7 @@ end
 ---@param opts UnzipOpts|nil
 ---@return ward.Cmd
 function Unzip.raw(argv, opts)
-	validate.bin(Unzip.bin, "unzip binary")
+	ensure.bin(Unzip.bin, { label = "unzip binary" })
 	local args = { Unzip.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

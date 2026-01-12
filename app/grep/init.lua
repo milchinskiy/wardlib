@@ -11,6 +11,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class GrepOpts
@@ -224,7 +225,7 @@ end
 ---@param opts GrepOpts|nil
 ---@return ward.Cmd
 function Grep.search(pattern, inputs, opts)
-	validate.bin(Grep.bin, "grep binary")
+	ensure.bin(Grep.bin, { label = "grep binary" })
 
 	local args = { Grep.bin }
 	apply_opts(args, opts)
@@ -261,7 +262,7 @@ end
 ---@param opts GrepOpts|nil
 ---@return ward.Cmd
 function Grep.raw(argv, opts)
-	validate.bin(Grep.bin, "grep binary")
+	ensure.bin(Grep.bin, { label = "grep binary" })
 	local args = { Grep.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

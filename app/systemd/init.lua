@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 
 ---@class SystemdCommonOpts
 ---@field user boolean? Use per-user systemd manager (`--user`)
@@ -72,7 +73,7 @@ end
 ---@param opts SystemdCommonOpts|nil
 ---@return ward.Cmd
 function Systemd.start(unit, opts)
-	validate.bin(Systemd.systemctl_bin, "systemctl binary")
+	ensure.bin(Systemd.systemctl_bin, { label = "systemctl binary" })
 	validate_unit(unit)
 	local args = { Systemd.systemctl_bin }
 	apply_user_flag(args, opts)
@@ -86,7 +87,7 @@ end
 ---@param opts SystemdCommonOpts|nil
 ---@return ward.Cmd
 function Systemd.stop(unit, opts)
-	validate.bin(Systemd.systemctl_bin, "systemctl binary")
+	ensure.bin(Systemd.systemctl_bin, { label = "systemctl binary" })
 	validate_unit(unit)
 	local args = { Systemd.systemctl_bin }
 	apply_user_flag(args, opts)
@@ -100,7 +101,7 @@ end
 ---@param opts SystemdCommonOpts|nil
 ---@return ward.Cmd
 function Systemd.restart(unit, opts)
-	validate.bin(Systemd.systemctl_bin, "systemctl binary")
+	ensure.bin(Systemd.systemctl_bin, { label = "systemctl binary" })
 	validate_unit(unit)
 	local args = { Systemd.systemctl_bin }
 	apply_user_flag(args, opts)
@@ -114,7 +115,7 @@ end
 ---@param opts SystemdCommonOpts|nil
 ---@return ward.Cmd
 function Systemd.reload(unit, opts)
-	validate.bin(Systemd.systemctl_bin, "systemctl binary")
+	ensure.bin(Systemd.systemctl_bin, { label = "systemctl binary" })
 	validate_unit(unit)
 	local args = { Systemd.systemctl_bin }
 	apply_user_flag(args, opts)
@@ -128,7 +129,7 @@ end
 ---@param opts SystemdEnableDisableOpts|nil
 ---@return ward.Cmd
 function Systemd.enable(unit, opts)
-	validate.bin(Systemd.systemctl_bin, "systemctl binary")
+	ensure.bin(Systemd.systemctl_bin, { label = "systemctl binary" })
 	validate_unit(unit)
 	opts = opts or {}
 	local args = { Systemd.systemctl_bin }
@@ -146,7 +147,7 @@ end
 ---@param opts SystemdEnableDisableOpts|nil
 ---@return ward.Cmd
 function Systemd.disable(unit, opts)
-	validate.bin(Systemd.systemctl_bin, "systemctl binary")
+	ensure.bin(Systemd.systemctl_bin, { label = "systemctl binary" })
 	validate_unit(unit)
 	opts = opts or {}
 	local args = { Systemd.systemctl_bin }
@@ -164,7 +165,7 @@ end
 ---@param opts SystemdCommonOpts|nil
 ---@return ward.Cmd
 function Systemd.is_active(unit, opts)
-	validate.bin(Systemd.systemctl_bin, "systemctl binary")
+	ensure.bin(Systemd.systemctl_bin, { label = "systemctl binary" })
 	validate_unit(unit)
 	local args = { Systemd.systemctl_bin }
 	apply_user_flag(args, opts)
@@ -178,7 +179,7 @@ end
 ---@param opts SystemdCommonOpts|nil
 ---@return ward.Cmd
 function Systemd.is_enabled(unit, opts)
-	validate.bin(Systemd.systemctl_bin, "systemctl binary")
+	ensure.bin(Systemd.systemctl_bin, { label = "systemctl binary" })
 	validate_unit(unit)
 	local args = { Systemd.systemctl_bin }
 	apply_user_flag(args, opts)
@@ -192,7 +193,7 @@ end
 ---@param opts SystemdStatusOpts|nil
 ---@return ward.Cmd
 function Systemd.status(unit, opts)
-	validate.bin(Systemd.systemctl_bin, "systemctl binary")
+	ensure.bin(Systemd.systemctl_bin, { label = "systemctl binary" })
 	validate_unit(unit)
 	opts = opts or {}
 	local args = { Systemd.systemctl_bin }
@@ -218,7 +219,7 @@ end
 ---@param opts SystemdCommonOpts|nil
 ---@return ward.Cmd
 function Systemd.daemon_reload(opts)
-	validate.bin(Systemd.systemctl_bin, "systemctl binary")
+	ensure.bin(Systemd.systemctl_bin, { label = "systemctl binary" })
 	local args = { Systemd.systemctl_bin }
 	apply_user_flag(args, opts)
 	table.insert(args, "daemon-reload")
@@ -230,7 +231,7 @@ end
 ---@param opts SystemdJournalOpts|nil
 ---@return ward.Cmd
 function Systemd.journal(unit, opts)
-	validate.bin(Systemd.journalctl_bin, "journalctl binary")
+	ensure.bin(Systemd.journalctl_bin, { label = "journalctl binary" })
 	opts = opts or {}
 
 	if unit ~= nil then

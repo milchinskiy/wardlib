@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class DockerRunOpts
@@ -472,7 +473,7 @@ end
 ---@param argv string|string[]|nil
 ---@return ward.Cmd
 function Docker.cmd(subcmd, argv)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	validate.non_empty_string(subcmd, "subcmd")
 	local args = { Docker.bin, subcmd }
 	if argv ~= nil then
@@ -490,7 +491,7 @@ end
 ---@param opts DockerRunOpts|nil
 ---@return ward.Cmd
 function Docker.run(image, cmdline, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	validate.non_empty_string(image, "image")
 	local args = { Docker.bin, "run" }
 	apply_run_opts(args, opts)
@@ -510,7 +511,7 @@ end
 ---@param opts DockerExecOpts|nil
 ---@return ward.Cmd
 function Docker.exec(container, cmdline, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	validate.non_empty_string(container, "container")
 	local args = { Docker.bin, "exec" }
 	apply_exec_opts(args, opts)
@@ -529,7 +530,7 @@ end
 ---@param opts DockerBuildOpts|nil
 ---@return ward.Cmd
 function Docker.build(context, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local ctx = context or "."
 	validate.non_empty_string(ctx, "context")
 	local args = { Docker.bin, "build" }
@@ -543,7 +544,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Docker.pull(image, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	validate.non_empty_string(image, "image")
 	local args = { Docker.bin, "pull", image }
 	args_util.append_extra(args, (opts or {}).extra)
@@ -555,7 +556,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Docker.push(image, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	validate.non_empty_string(image, "image")
 	local args = { Docker.bin, "push", image }
 	args_util.append_extra(args, (opts or {}).extra)
@@ -566,7 +567,7 @@ end
 ---@param opts DockerPsOpts|nil
 ---@return ward.Cmd
 function Docker.ps(opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin, "ps" }
 	apply_ps_opts(args, opts)
 	return _cmd.cmd(table.unpack(args))
@@ -576,7 +577,7 @@ end
 ---@param opts DockerImagesOpts|nil
 ---@return ward.Cmd
 function Docker.images(opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin, "images" }
 	apply_images_opts(args, opts)
 	return _cmd.cmd(table.unpack(args))
@@ -587,7 +588,7 @@ end
 ---@param opts DockerLogsOpts|nil
 ---@return ward.Cmd
 function Docker.logs(container, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	validate.non_empty_string(container, "container")
 	local args = { Docker.bin, "logs" }
 	apply_logs_opts(args, opts)
@@ -600,7 +601,7 @@ end
 ---@param opts DockerRmOpts|nil
 ---@return ward.Cmd
 function Docker.rm(containers, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin, "rm" }
 	apply_rm_opts(args, opts)
 	for _, c in ipairs(normalize_list(containers, "containers")) do
@@ -614,7 +615,7 @@ end
 ---@param opts DockerRmiOpts|nil
 ---@return ward.Cmd
 function Docker.rmi(images, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin, "rmi" }
 	apply_rmi_opts(args, opts)
 	for _, img in ipairs(normalize_list(images, "images")) do
@@ -628,7 +629,7 @@ end
 ---@param opts DockerStopOpts|nil
 ---@return ward.Cmd
 function Docker.stop(containers, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin, "stop" }
 	apply_stop_opts(args, opts)
 	for _, c in ipairs(normalize_list(containers, "containers")) do
@@ -642,7 +643,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Docker.start(containers, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin, "start" }
 	args_util.append_extra(args, (opts or {}).extra)
 	for _, c in ipairs(normalize_list(containers, "containers")) do
@@ -656,7 +657,7 @@ end
 ---@param opts DockerStopOpts|nil
 ---@return ward.Cmd
 function Docker.restart(containers, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin, "restart" }
 	apply_stop_opts(args, opts)
 	for _, c in ipairs(normalize_list(containers, "containers")) do
@@ -670,7 +671,7 @@ end
 ---@param opts DockerInspectOpts|nil
 ---@return ward.Cmd
 function Docker.inspect(targets, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin, "inspect" }
 	apply_inspect_opts(args, opts)
 	for _, t in ipairs(normalize_list(targets, "targets")) do
@@ -685,7 +686,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Docker.tag(source, target, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	validate.non_empty_string(source, "source")
 	validate.non_empty_string(target, "target")
 	local args = { Docker.bin, "tag", source, target }
@@ -700,7 +701,7 @@ end
 ---@param opts DockerLoginOpts|nil
 ---@return ward.Cmd
 function Docker.login(registry, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin, "login" }
 	apply_login_opts(args, opts)
 	if registry ~= nil then
@@ -715,7 +716,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Docker.logout(registry, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin, "logout" }
 	args_util.append_extra(args, (opts or {}).extra)
 	if registry ~= nil then
@@ -731,7 +732,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Docker.raw(argv, opts)
-	validate.bin(Docker.bin, "docker binary")
+	ensure.bin(Docker.bin, { label = "docker binary" })
 	local args = { Docker.bin }
 	args_util.append_extra(args, (opts or {}).extra)
 	local av = args_util.normalize_string_or_array(argv, "argv")

@@ -7,6 +7,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 
 ---@class Gsettings
 ---@field bin string
@@ -31,7 +32,7 @@ end
 ---@param args string[]
 ---@return ward.Cmd
 local function cmd(args)
-	validate.bin(Gsettings.bin, 'gsettings binary')
+	ensure.bin(Gsettings.bin, { label = 'gsettings binary' })
 	local argv = { Gsettings.bin }
 	for _, v in ipairs(args) do
 		table.insert(argv, v)

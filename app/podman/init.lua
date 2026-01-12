@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class PodmanRunOpts
@@ -468,7 +469,7 @@ end
 ---@param argv string|string[]|nil
 ---@return ward.Cmd
 function Podman.cmd(subcmd, argv)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	validate.non_empty_string(subcmd, "subcmd")
 	local args = { Podman.bin, subcmd }
 	if argv ~= nil then
@@ -486,7 +487,7 @@ end
 ---@param opts PodmanRunOpts|nil
 ---@return ward.Cmd
 function Podman.run(image, cmdline, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	validate.non_empty_string(image, "image")
 	local args = { Podman.bin, "run" }
 	apply_run_opts(args, opts)
@@ -506,7 +507,7 @@ end
 ---@param opts PodmanExecOpts|nil
 ---@return ward.Cmd
 function Podman.exec(container, cmdline, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	validate.non_empty_string(container, "container")
 	local args = { Podman.bin, "exec" }
 	apply_exec_opts(args, opts)
@@ -525,7 +526,7 @@ end
 ---@param opts PodmanBuildOpts|nil
 ---@return ward.Cmd
 function Podman.build(context, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local ctx = context or "."
 	validate.non_empty_string(ctx, "context")
 	local args = { Podman.bin, "build" }
@@ -539,7 +540,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Podman.pull(image, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	validate.non_empty_string(image, "image")
 	local args = { Podman.bin, "pull", image }
 	args_util.append_extra(args, (opts or {}).extra)
@@ -551,7 +552,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Podman.push(image, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	validate.non_empty_string(image, "image")
 	local args = { Podman.bin, "push", image }
 	args_util.append_extra(args, (opts or {}).extra)
@@ -562,7 +563,7 @@ end
 ---@param opts PodmanPsOpts|nil
 ---@return ward.Cmd
 function Podman.ps(opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin, "ps" }
 	apply_ps_opts(args, opts)
 	return _cmd.cmd(table.unpack(args))
@@ -572,7 +573,7 @@ end
 ---@param opts PodmanImagesOpts|nil
 ---@return ward.Cmd
 function Podman.images(opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin, "images" }
 	apply_images_opts(args, opts)
 	return _cmd.cmd(table.unpack(args))
@@ -583,7 +584,7 @@ end
 ---@param opts PodmanLogsOpts|nil
 ---@return ward.Cmd
 function Podman.logs(container, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	validate.non_empty_string(container, "container")
 	local args = { Podman.bin, "logs" }
 	apply_logs_opts(args, opts)
@@ -596,7 +597,7 @@ end
 ---@param opts PodmanRmOpts|nil
 ---@return ward.Cmd
 function Podman.rm(containers, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin, "rm" }
 	apply_rm_opts(args, opts)
 	for _, c in ipairs(normalize_list(containers, "containers")) do
@@ -610,7 +611,7 @@ end
 ---@param opts PodmanRmiOpts|nil
 ---@return ward.Cmd
 function Podman.rmi(images, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin, "rmi" }
 	apply_rmi_opts(args, opts)
 	for _, img in ipairs(normalize_list(images, "images")) do
@@ -624,7 +625,7 @@ end
 ---@param opts PodmanStopOpts|nil
 ---@return ward.Cmd
 function Podman.stop(containers, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin, "stop" }
 	apply_stop_opts(args, opts)
 	for _, c in ipairs(normalize_list(containers, "containers")) do
@@ -638,7 +639,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Podman.start(containers, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin, "start" }
 	args_util.append_extra(args, (opts or {}).extra)
 	for _, c in ipairs(normalize_list(containers, "containers")) do
@@ -652,7 +653,7 @@ end
 ---@param opts PodmanStopOpts|nil
 ---@return ward.Cmd
 function Podman.restart(containers, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin, "restart" }
 	apply_stop_opts(args, opts)
 	for _, c in ipairs(normalize_list(containers, "containers")) do
@@ -666,7 +667,7 @@ end
 ---@param opts PodmanInspectOpts|nil
 ---@return ward.Cmd
 function Podman.inspect(targets, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin, "inspect" }
 	apply_inspect_opts(args, opts)
 	for _, t in ipairs(normalize_list(targets, "targets")) do
@@ -681,7 +682,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Podman.tag(source, target, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	validate.non_empty_string(source, "source")
 	validate.non_empty_string(target, "target")
 	local args = { Podman.bin, "tag", source, target }
@@ -696,7 +697,7 @@ end
 ---@param opts PodmanLoginOpts|nil
 ---@return ward.Cmd
 function Podman.login(registry, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin, "login" }
 	apply_login_opts(args, opts)
 	if registry ~= nil then
@@ -711,7 +712,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Podman.logout(registry, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin, "logout" }
 	args_util.append_extra(args, (opts or {}).extra)
 	if registry ~= nil then
@@ -727,7 +728,7 @@ end
 ---@param opts { extra: string[]? }|nil
 ---@return ward.Cmd
 function Podman.raw(argv, opts)
-	validate.bin(Podman.bin, "podman binary")
+	ensure.bin(Podman.bin, { label = "podman binary" })
 	local args = { Podman.bin }
 	args_util.append_extra(args, (opts or {}).extra)
 	local av = args_util.normalize_string_or_array(argv, "argv")

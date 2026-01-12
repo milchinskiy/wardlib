@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class Sha256sumOpts
@@ -95,7 +96,7 @@ end
 ---@param opts Sha256sumOpts|nil
 ---@return ward.Cmd
 function Sha256sum.sum(files, opts)
-	validate.bin(Sha256sum.bin, "sha256sum binary")
+	ensure.bin(Sha256sum.bin, { label = "sha256sum binary" })
 	local args = { Sha256sum.bin }
 	apply_opts(args, opts)
 
@@ -119,7 +120,7 @@ end
 ---@param opts Sha256sumOpts|nil
 ---@return ward.Cmd
 function Sha256sum.check(check_files, opts)
-	validate.bin(Sha256sum.bin, "sha256sum binary")
+	ensure.bin(Sha256sum.bin, { label = "sha256sum binary" })
 	local args = { Sha256sum.bin, "-c" }
 	apply_opts(args, opts)
 
@@ -140,7 +141,7 @@ end
 ---@param opts Sha256sumOpts|nil
 ---@return ward.Cmd
 function Sha256sum.raw(argv, opts)
-	validate.bin(Sha256sum.bin, "sha256sum binary")
+	ensure.bin(Sha256sum.bin, { label = "sha256sum binary" })
 	local args = { Sha256sum.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

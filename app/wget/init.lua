@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 local tbl = require("util.table")
 
@@ -199,7 +200,7 @@ end
 ---@param opts WgetOpts|nil
 ---@return ward.Cmd
 function Wget.fetch(urls, opts)
-	validate.bin(Wget.bin, "wget binary")
+	ensure.bin(Wget.bin, { label = "wget binary" })
 
 	local args = { Wget.bin }
 	apply_opts(args, opts)

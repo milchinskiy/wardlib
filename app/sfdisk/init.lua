@@ -13,7 +13,7 @@
 -- helper below builds `printf "%s" <script> | sfdisk ...` for you.
 
 local _proc = require("ward.process")
-local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class SfdiskOpts
@@ -69,7 +69,6 @@ end
 
 ---@param args string[]
 ---@param extra string[]|nil
-
 local function append_extra(args, extra)
 	args_util.append_extra(args, extra)
 end
@@ -79,7 +78,7 @@ end
 ---@param opts SfdiskOpts|nil
 ---@return ward.Cmd
 function Sfdisk.cmd(argv, opts)
-	validate.bin(Sfdisk.bin, "sfdisk binary")
+	ensure.bin(Sfdisk.bin, { label = "sfdisk binary" })
 	opts = opts or {}
 
 	local args = { Sfdisk.bin }

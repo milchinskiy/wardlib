@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 
 ---@class AwkOptKV
 ---@field [string] any
@@ -231,7 +232,7 @@ end
 ---@param argv string[]|nil
 ---@return ward.Cmd
 function Awk.cmd(argv)
-	validate.bin(Awk.bin, 'awk binary')
+	ensure.bin(Awk.bin, { label = 'awk binary' })
 	argv = argv or {}
 	assert(type(argv) == "table" and is_array(argv), "argv must be an array")
 	local args = { Awk.bin }
@@ -248,7 +249,7 @@ end
 ---@param opts AwkOpts|nil
 ---@return ward.Cmd
 function Awk.eval(program, inputs, opts)
-	validate.bin(Awk.bin, 'awk binary')
+	ensure.bin(Awk.bin, { label = 'awk binary' })
 	validate.non_empty_string(program, "program")
 
 	local args = { Awk.bin }
@@ -273,7 +274,7 @@ end
 ---@param opts AwkOpts|nil
 ---@return ward.Cmd
 function Awk.source(programs, inputs, opts)
-	validate.bin(Awk.bin, 'awk binary')
+	ensure.bin(Awk.bin, { label = 'awk binary' })
 	local ps = as_string_list(programs, "programs")
 	assert(#ps > 0, "programs must not be empty")
 
@@ -303,7 +304,7 @@ end
 ---@param opts AwkOpts|nil
 ---@return ward.Cmd
 function Awk.file(scripts, inputs, opts)
-	validate.bin(Awk.bin, 'awk binary')
+	ensure.bin(Awk.bin, { label = 'awk binary' })
 	local ss = as_string_list(scripts, "scripts")
 	assert(#ss > 0, "scripts must not be empty")
 

@@ -12,6 +12,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class ChattrOpts
@@ -60,7 +61,7 @@ end
 ---@param opts ChattrOpts|nil
 ---@return ward.Cmd
 function Chattr.set(paths, mode, opts)
-	validate.bin(Chattr.bin, "chattr binary")
+	ensure.bin(Chattr.bin, { label = "chattr binary" })
 	validate.non_empty_string(mode, "mode")
 	local list = args_util.normalize_string_or_array(paths, "paths")
 	assert(#list > 0, "paths must not be empty")
@@ -81,7 +82,7 @@ end
 ---@param opts ChattrOpts|nil
 ---@return ward.Cmd
 function Chattr.raw(argv, opts)
-	validate.bin(Chattr.bin, "chattr binary")
+	ensure.bin(Chattr.bin, { label = "chattr binary" })
 	local args = { Chattr.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

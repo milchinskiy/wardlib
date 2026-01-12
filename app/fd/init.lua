@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class FdOpts
@@ -194,7 +195,7 @@ end
 ---@param opts FdOpts|nil
 ---@return ward.Cmd
 function Fd.search(pattern, paths, opts)
-	validate.bin(Fd.bin, "fd binary")
+	ensure.bin(Fd.bin, { label = "fd binary" })
 
 	local p = pattern
 	if p == nil then
@@ -230,7 +231,7 @@ end
 ---@param opts FdOpts|nil
 ---@return ward.Cmd
 function Fd.raw(argv, opts)
-	validate.bin(Fd.bin, "fd binary")
+	ensure.bin(Fd.bin, { label = "fd binary" })
 	local args = { Fd.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

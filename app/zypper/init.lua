@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class ZypperCommonOpts
@@ -101,13 +102,13 @@ end
 ---@param opts ZypperCommonOpts|nil
 ---@return ward.Cmd
 function Zypper.cmd(subcmd, argv, opts)
-	validate.bin(Zypper.bin, "zypper binary")
+	ensure.bin(Zypper.bin, { label = "zypper binary" })
 	opts = opts or {}
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
 	local args = {}
 	if opts.sudo then
-		validate.bin(Zypper.sudo_bin, "sudo binary")
+		ensure.bin(Zypper.sudo_bin, { label = "sudo binary" })
 		args[#args + 1] = Zypper.sudo_bin
 	end
 	args[#args + 1] = Zypper.bin
@@ -216,7 +217,7 @@ end
 ---@param opts ZypperCommonOpts|nil
 ---@return ward.Cmd
 function Zypper.raw(argv, opts)
-	validate.bin(Zypper.bin, "zypper binary")
+	ensure.bin(Zypper.bin, { label = "zypper binary" })
 	local args = { Zypper.bin }
 	apply_common(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

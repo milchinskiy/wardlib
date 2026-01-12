@@ -10,6 +10,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class YayCommonOpts
@@ -40,9 +41,6 @@ local Yay = {
 	sudo_bin = "sudo",
 }
 
----@param pkgs string|string[]
----@return string[]
-
 --- @param pkgs string|string[]
 --- @return string[]
 local function normalize_pkgs(pkgs)
@@ -66,11 +64,11 @@ end
 ---@param opts YayCommonOpts|nil
 ---@return ward.Cmd
 local function build(argv, opts)
-	validate.bin(Yay.bin, "yay binary")
+	ensure.bin(Yay.bin, { label = "yay binary" })
 	opts = opts or {}
 	local args = {}
 	if opts.sudo then
-		validate.bin(Yay.sudo_bin, "sudo binary")
+		ensure.bin(Yay.sudo_bin, { label = "sudo binary" })
 		table.insert(args, Yay.sudo_bin)
 	end
 	table.insert(args, Yay.bin)

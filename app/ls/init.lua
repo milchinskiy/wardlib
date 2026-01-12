@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class LsOpts
@@ -119,7 +120,7 @@ end
 ---@param opts LsOpts|nil
 ---@return ward.Cmd
 function Ls.list(paths, opts)
-	validate.bin(Ls.bin, "ls binary")
+	ensure.bin(Ls.bin, { label = "ls binary" })
 	local args = { Ls.bin }
 	apply_opts(args, opts)
 	args[#args + 1] = "--"
@@ -136,7 +137,7 @@ end
 ---@param opts LsOpts|nil
 ---@return ward.Cmd
 function Ls.raw(argv, opts)
-	validate.bin(Ls.bin, "ls binary")
+	ensure.bin(Ls.bin, { label = "ls binary" })
 	local args = { Ls.bin }
 	apply_opts(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")

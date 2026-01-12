@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@alias FehBgMode "center"|"fill"|"max"|"scale"|"tile"
@@ -191,7 +192,7 @@ end
 ---@param opts FehOpts|nil
 ---@return ward.Cmd
 function Feh.view(inputs, opts)
-	validate.bin(Feh.bin, 'feh binary')
+	ensure.bin(Feh.bin, { label = 'feh binary' })
 	local args = { Feh.bin }
 	apply_view_opts(args, opts)
 	apply_inputs(args, inputs)
@@ -203,7 +204,7 @@ end
 ---@param opts FehBgOpts|nil
 ---@return ward.Cmd
 function Feh.bg(image, opts)
-	validate.bin(Feh.bin, 'feh binary')
+	ensure.bin(Feh.bin, { label = 'feh binary' })
 	validate.non_empty_string(image, "image")
 	local args = { Feh.bin }
 	apply_bg_opts(args, opts)
@@ -216,7 +217,7 @@ end
 ---@param opts FehBgOpts|nil
 ---@return ward.Cmd
 function Feh.bg_multi(images, opts)
-	validate.bin(Feh.bin, 'feh binary')
+	ensure.bin(Feh.bin, { label = 'feh binary' })
 	local args = { Feh.bin }
 	apply_bg_opts(args, opts)
 	apply_inputs(args, images)

@@ -2,7 +2,7 @@
 
 -- Tinytest suite for gzip module (init.lua)
 --
--- This suite mocks ward modules used by util.validate.bin:
+-- This suite mocks ward modules used by tools.ensure.bin:
 --   * ward.process (cmd)
 --   * ward.env     (is_in_path)
 --   * ward.fs      (is_exists, is_executable)

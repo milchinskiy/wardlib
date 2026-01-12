@@ -9,6 +9,7 @@
 
 local _cmd = require("ward.process")
 local validate = require("util.validate")
+local ensure = require("tools.ensure")
 local args_util = require("util.args")
 
 ---@class DnfCommonOpts
@@ -134,13 +135,13 @@ end
 ---@param opts DnfCommonOpts|nil
 ---@return ward.Cmd
 function Dnf.cmd(subcmd, argv, opts)
-	validate.bin(Dnf.bin, "dnf binary")
+	ensure.bin(Dnf.bin, { label = "dnf binary" })
 	opts = opts or {}
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
 	local args = {}
 	if opts.sudo then
-		validate.bin(Dnf.sudo_bin, "sudo binary")
+		ensure.bin(Dnf.sudo_bin, { label = "sudo binary" })
 		args[#args + 1] = Dnf.sudo_bin
 	end
 	args[#args + 1] = Dnf.bin
@@ -233,7 +234,7 @@ end
 ---@param opts DnfCommonOpts|nil
 ---@return ward.Cmd
 function Dnf.raw(argv, opts)
-	validate.bin(Dnf.bin, "dnf binary")
+	ensure.bin(Dnf.bin, { label = "dnf binary" })
 	local args = { Dnf.bin }
 	apply_common(args, opts)
 	local av = args_util.normalize_string_or_array(argv, "argv")
