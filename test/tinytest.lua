@@ -159,6 +159,20 @@ function M.new(opts)
 			error(msg or "expected deep equality", 2)
 		end
 	end
+	function t:contains(a, b)
+		if type(a) == "string" then
+			return a:find(b, 1, true)
+		elseif type(a) == "table" then
+			for _, v in ipairs(a) do
+				if v == b then
+					return true
+				end
+			end
+			return false
+		else
+			error("contains: first argument must be string or table", 2)
+		end
+	end
 
 	local function safe_call(phase, fn)
 		if not fn then
