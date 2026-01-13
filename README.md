@@ -32,13 +32,13 @@ Exact setup may vary by project; see repository folders and module docs for deta
 ## Contract pattern (recommended)
 
 Most Ward scripts have implicit assumptions (OS, required binaries, required
-env vars, root privileges). `tools.ensure` lets you make those assumptions
+env vars, root privileges). `wardlib.tools.ensure` lets you make those assumptions
 explicit and fail fast with clear errors.
 
 Put this at the top of your script:
 
 ```lua
-local ensure = require("tools.ensure")
+local ensure = require("wardlib.tools.ensure")
 
 -- Declare assumptions early
 ensure.os("linux")
