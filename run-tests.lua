@@ -19,7 +19,7 @@ local term = require("ward.term")
 -- Common options:
 --   * require("wardlib.tinytest")
 --   * require("tinytest")
-local tinytest = require("test.tinytest")
+local tinytest = require("wardlib.test.tinytest")
 
 local function has_glob_chars(s)
 	return s:find("*", 1, true) ~= nil or s:find("?", 1, true) ~= nil or s:find("[", 1, true) ~= nil
