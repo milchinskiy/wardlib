@@ -119,12 +119,9 @@ function M.new(opts)
 	end
 	function t:contains(a, b)
 		if type(a) == "string" then
-			return a:find(b, 1, true)
+			return require("ward.helpers.string").contains(a, b)
 		elseif type(a) == "table" then
-			for _, v in ipairs(a) do
-				if v == b then return true end
-			end
-			return false
+			return require("ward.helpers.table").contains(a, b)
 		else
 			error("contains: first argument must be string or table", 2)
 		end
