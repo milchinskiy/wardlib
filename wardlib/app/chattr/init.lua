@@ -11,9 +11,9 @@
 -- - `chattr` is Linux/EXT-focused; feature sets differ across filesystems.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class ChattrOpts
 ---@field recursive boolean? `-R`

@@ -8,9 +8,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class ChmodOpts
 ---@field recursive boolean? `-R`
@@ -51,9 +51,7 @@ local function apply_opts(args, opts)
 		:value("reference", "--reference", {
 			label = "reference",
 			mode = "equals",
-			validate = function(v, label)
-				validate.non_empty_string(v, label)
-			end,
+			validate = function(v, label) validate.non_empty_string(v, label) end,
 		})
 		:extra("extra")
 end

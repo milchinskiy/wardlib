@@ -71,9 +71,7 @@ return function(tinytest)
 		package.loaded[MODULE] = loaded_orig[MODULE]
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
 	local function load()
 		local ok, mod = pcall(require, MODULE)

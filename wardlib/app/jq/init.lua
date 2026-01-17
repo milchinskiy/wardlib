@@ -8,9 +8,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class JqOpts
 ---@field null_input boolean? `-n` (use null input)
@@ -80,27 +80,19 @@ local function apply_opts(args, opts)
 	-- Variable bindings. Stable-sorted for deterministic argv.
 	p:repeatable_map("arg", "--arg", {
 		label = "arg",
-		validate_key = function(k, l)
-			validate_var_name(k, l .. " name")
-		end,
+		validate_key = function(k, l) validate_var_name(k, l .. " name") end,
 	})
 	p:repeatable_map("argjson", "--argjson", {
 		label = "argjson",
-		validate_key = function(k, l)
-			validate_var_name(k, l .. " name")
-		end,
+		validate_key = function(k, l) validate_var_name(k, l .. " name") end,
 	})
 	p:repeatable_map("slurpfile", "--slurpfile", {
 		label = "slurpfile",
-		validate_key = function(k, l)
-			validate_var_name(k, l .. " name")
-		end,
+		validate_key = function(k, l) validate_var_name(k, l .. " name") end,
 	})
 	p:repeatable_map("rawfile", "--rawfile", {
 		label = "rawfile",
-		validate_key = function(k, l)
-			validate_var_name(k, l .. " name")
-		end,
+		validate_key = function(k, l) validate_var_name(k, l .. " name") end,
 	})
 
 	p:extra()
@@ -109,9 +101,7 @@ end
 ---@param args string[]
 ---@param inputs string|string[]|nil
 local function apply_inputs(args, inputs)
-	if inputs == nil then
-		return
-	end
+	if inputs == nil then return end
 	local list = args_util.normalize_string_or_array(inputs, "inputs")
 	for _, p in ipairs(list) do
 		validate.not_flag(p, "input")

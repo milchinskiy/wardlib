@@ -121,17 +121,11 @@ return function(tinytest)
 		t:ok(false, "failed to require jq module. Tried:\n" .. table.concat(errs, "\n"))
 	end
 
-	local function last_cmd_obj()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd_obj() return calls.cmd[#calls.cmd] end
 
-	t:before_all(function()
-		install_mocks()
-	end)
+	t:before_all(function() install_mocks() end)
 
-	t:after_all(function()
-		restore_originals()
-	end)
+	t:after_all(function() restore_originals() end)
 
 	t:before_each(function()
 		reset_calls()
@@ -195,9 +189,7 @@ return function(tinytest)
 		local mod = load_module()
 		local Jq = mod.Jq
 
-		local ok = pcall(function()
-			Jq.eval(".", nil, { color_output = true, monochrome_output = true })
-		end)
+		local ok = pcall(function() Jq.eval(".", nil, { color_output = true, monochrome_output = true }) end)
 		t:falsy(ok)
 	end)
 

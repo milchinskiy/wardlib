@@ -9,9 +9,9 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class IpOpts
 ---@field inet4 boolean? `-4`
@@ -74,14 +74,10 @@ end
 local function apply_global_opts(args, opts)
 	opts = opts or {}
 
-	if opts.inet4 and opts.inet6 then
-		error("inet4 and inet6 are mutually exclusive")
-	end
+	if opts.inet4 and opts.inet6 then error("inet4 and inet6 are mutually exclusive") end
 
 	local function validate_color(v, label)
-		if type(v) ~= "string" then
-			error(label .. " must be boolean or string")
-		end
+		if type(v) ~= "string" then error(label .. " must be boolean or string") end
 		validate.not_flag(v, label)
 	end
 
@@ -168,9 +164,7 @@ function Ip.link_show(dev, opts)
 		tail[#tail + 1] = dev
 	end
 	if opts ~= nil then
-		if opts.up then
-			tail[#tail + 1] = "up"
-		end
+		if opts.up then tail[#tail + 1] = "up" end
 		if opts.master ~= nil then
 			non_empty_string(opts.master, "master")
 			tail[#tail + 1] = "master"
@@ -216,17 +210,11 @@ function Ip.link_set(dev, opts)
 	non_empty_string(dev, "dev")
 	opts = opts or {}
 
-	if opts.up and opts.down then
-		error("up and down are mutually exclusive")
-	end
+	if opts.up and opts.down then error("up and down are mutually exclusive") end
 
 	local tail = { "dev", dev }
-	if opts.up then
-		tail[#tail + 1] = "up"
-	end
-	if opts.down then
-		tail[#tail + 1] = "down"
-	end
+	if opts.up then tail[#tail + 1] = "up" end
+	if opts.down then tail[#tail + 1] = "down" end
 	if opts.mtu ~= nil then
 		validate.number_min(opts.mtu, "mtu", 0)
 		tail[#tail + 1] = "mtu"
@@ -262,9 +250,7 @@ function Ip.link_set(dev, opts)
 		tail[#tail + 1] = "master"
 		tail[#tail + 1] = opts.master
 	end
-	if opts.nomaster then
-		tail[#tail + 1] = "nomaster"
-	end
+	if opts.nomaster then tail[#tail + 1] = "nomaster" end
 	if opts.set_netns ~= nil then
 		non_empty_string(opts.set_netns, "set_netns")
 		tail[#tail + 1] = "netns"
@@ -296,9 +282,7 @@ function Ip.addr_show(dev, opts)
 		tail[#tail + 1] = dev
 	end
 	opts = opts or {}
-	if opts.up then
-		tail[#tail + 1] = "up"
-	end
+	if opts.up then tail[#tail + 1] = "up" end
 	if opts.scope ~= nil then
 		non_empty_string(opts.scope, "scope")
 		tail[#tail + 1] = "scope"
@@ -366,9 +350,7 @@ local function addr_change(action, addr, dev, opts)
 		tail[#tail + 1] = "preferred_lft"
 		tail[#tail + 1] = tostring(opts.preferred_lft)
 	end
-	if opts.noprefixroute then
-		tail[#tail + 1] = "noprefixroute"
-	end
+	if opts.noprefixroute then tail[#tail + 1] = "noprefixroute" end
 
 	args_util.append_extra(tail, opts.extra_after)
 	return build("addr", action, tail, opts)
@@ -378,17 +360,13 @@ end
 ---@param dev string
 ---@param opts IpAddrChangeOpts|nil
 ---@return ward.Cmd
-function Ip.addr_add(addr, dev, opts)
-	return addr_change("add", addr, dev, opts)
-end
+function Ip.addr_add(addr, dev, opts) return addr_change("add", addr, dev, opts) end
 
 ---@param addr string
 ---@param dev string
 ---@param opts IpAddrChangeOpts|nil
 ---@return ward.Cmd
-function Ip.addr_del(addr, dev, opts)
-	return addr_change("del", addr, dev, opts)
-end
+function Ip.addr_del(addr, dev, opts) return addr_change("del", addr, dev, opts) end
 
 ---@class IpAddrFlushOpts: IpOpts
 ---@field scope string? `scope <scope>` selector
@@ -593,9 +571,7 @@ local function route_change(action, dst, opts)
 		tail[#tail + 1] = "type"
 		tail[#tail + 1] = opts.type
 	end
-	if opts.onlink then
-		tail[#tail + 1] = "onlink"
-	end
+	if opts.onlink then tail[#tail + 1] = "onlink" end
 	if opts.mtu ~= nil then
 		validate.number_min(opts.mtu, "mtu", 0)
 		tail[#tail + 1] = "mtu"
@@ -634,23 +610,17 @@ end
 ---@param dst string
 ---@param opts IpRouteChangeOpts|nil
 ---@return ward.Cmd
-function Ip.route_add(dst, opts)
-	return route_change("add", dst, opts)
-end
+function Ip.route_add(dst, opts) return route_change("add", dst, opts) end
 
 ---@param dst string
 ---@param opts IpRouteChangeOpts|nil
 ---@return ward.Cmd
-function Ip.route_replace(dst, opts)
-	return route_change("replace", dst, opts)
-end
+function Ip.route_replace(dst, opts) return route_change("replace", dst, opts) end
 
 ---@param dst string
 ---@param opts IpRouteChangeOpts|nil
 ---@return ward.Cmd
-function Ip.route_del(dst, opts)
-	return route_change("del", dst, opts)
-end
+function Ip.route_del(dst, opts) return route_change("del", dst, opts) end
 
 -- =========================
 -- neigh
@@ -678,12 +648,8 @@ function Ip.neigh_show(dev, opts)
 		tail[#tail + 1] = "nud"
 		tail[#tail + 1] = opts.nud
 	end
-	if opts.proxy then
-		tail[#tail + 1] = "proxy"
-	end
-	if opts.router then
-		tail[#tail + 1] = "router"
-	end
+	if opts.proxy then tail[#tail + 1] = "proxy" end
+	if opts.router then tail[#tail + 1] = "router" end
 	args_util.append_extra(tail, opts.extra_after)
 	return build("neigh", "show", tail, opts)
 end
@@ -716,12 +682,8 @@ local function neigh_change(action, dst, lladdr, dev, opts)
 		tail[#tail + 1] = "nud"
 		tail[#tail + 1] = opts.nud
 	end
-	if opts.router then
-		tail[#tail + 1] = "router"
-	end
-	if opts.proxy then
-		tail[#tail + 1] = "proxy"
-	end
+	if opts.router then tail[#tail + 1] = "router" end
+	if opts.proxy then tail[#tail + 1] = "proxy" end
 
 	args_util.append_extra(tail, opts.extra_after)
 	return build("neigh", action, tail, opts)
@@ -732,18 +694,14 @@ end
 ---@param dev string
 ---@param opts IpNeighChangeOpts|nil
 ---@return ward.Cmd
-function Ip.neigh_add(dst, lladdr, dev, opts)
-	return neigh_change("add", dst, lladdr, dev, opts)
-end
+function Ip.neigh_add(dst, lladdr, dev, opts) return neigh_change("add", dst, lladdr, dev, opts) end
 
 ---@param dst string
 ---@param lladdr string|nil
 ---@param dev string
 ---@param opts IpNeighChangeOpts|nil
 ---@return ward.Cmd
-function Ip.neigh_del(dst, lladdr, dev, opts)
-	return neigh_change("del", dst, lladdr, dev, opts)
-end
+function Ip.neigh_del(dst, lladdr, dev, opts) return neigh_change("del", dst, lladdr, dev, opts) end
 
 ---@class IpNeighFlushOpts: IpOpts
 ---@field nud string? `nud <state>` selector
@@ -766,9 +724,7 @@ function Ip.neigh_flush(dev, opts)
 		tail[#tail + 1] = "nud"
 		tail[#tail + 1] = opts.nud
 	end
-	if opts.proxy then
-		tail[#tail + 1] = "proxy"
-	end
+	if opts.proxy then tail[#tail + 1] = "proxy" end
 	args_util.append_extra(tail, opts.extra_after)
 	return build("neigh", "flush", tail, opts)
 end
@@ -843,9 +799,7 @@ local function rule_change(action, opts)
 		tail[#tail + 1] = tostring(opts.fwmark)
 	end
 	local table_id = opts.table
-	if table_id == nil then
-		table_id = opts.lookup
-	end
+	if table_id == nil then table_id = opts.lookup end
 	if table_id ~= nil then
 		tail[#tail + 1] = "table"
 		tail[#tail + 1] = tostring(table_id)
@@ -867,15 +821,11 @@ end
 
 ---@param opts IpRuleChangeOpts|nil
 ---@return ward.Cmd
-function Ip.rule_add(opts)
-	return rule_change("add", opts)
-end
+function Ip.rule_add(opts) return rule_change("add", opts) end
 
 ---@param opts IpRuleChangeOpts|nil
 ---@return ward.Cmd
-function Ip.rule_del(opts)
-	return rule_change("del", opts)
-end
+function Ip.rule_del(opts) return rule_change("del", opts) end
 
 -- =========================
 -- netns
@@ -883,9 +833,7 @@ end
 
 ---@param opts IpOpts|nil
 ---@return ward.Cmd
-function Ip.netns_list(opts)
-	return build("netns", "list", nil, opts)
-end
+function Ip.netns_list(opts) return build("netns", "list", nil, opts) end
 
 ---@param name string
 ---@param opts IpOpts|nil

@@ -9,9 +9,9 @@
 -- Consumers decide how to execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class AwkOptKV
 ---@field [string] any
@@ -54,18 +54,12 @@ local Awk = {
 ---@param t any
 ---@return boolean
 local function is_array(t)
-	if type(t) ~= "table" then
-		return false
-	end
+	if type(t) ~= "table" then return false end
 	local n = #t
 	-- #t counts contiguous numeric keys from 1..n, but we still ensure no non-numeric keys
 	for k, _ in pairs(t) do
-		if type(k) ~= "number" then
-			return false
-		end
-		if k < 1 or k > n or k % 1 ~= 0 then
-			return false
-		end
+		if type(k) ~= "number" then return false end
+		if k < 1 or k > n or k % 1 ~= 0 then return false end
 	end
 	return true
 end
@@ -74,12 +68,8 @@ end
 ---@param label string
 ---@return string[]
 local function as_string_list(v, label)
-	if v == nil then
-		return {}
-	end
-	if type(v) == "string" then
-		return { v }
-	end
+	if v == nil then return {} end
+	if type(v) == "string" then return { v } end
 	assert(type(v) == "table", label .. " must be a string or array")
 	assert(is_array(v), label .. " must be an array")
 	for _, s in ipairs(v) do
@@ -192,9 +182,7 @@ function Awk.eval(program, inputs, opts)
 
 	table.insert(args, program)
 
-	if opts and opts.assigns ~= nil then
-		apply_assigns(args, opts.assigns)
-	end
+	if opts and opts.assigns ~= nil then apply_assigns(args, opts.assigns) end
 
 	for _, f in ipairs(as_string_list(inputs, "inputs")) do
 		table.insert(args, f)
@@ -222,9 +210,7 @@ function Awk.source(programs, inputs, opts)
 		table.insert(args, p)
 	end
 
-	if opts and opts.assigns ~= nil then
-		apply_assigns(args, opts.assigns)
-	end
+	if opts and opts.assigns ~= nil then apply_assigns(args, opts.assigns) end
 
 	for _, f in ipairs(as_string_list(inputs, "inputs")) do
 		table.insert(args, f)
@@ -252,9 +238,7 @@ function Awk.file(scripts, inputs, opts)
 		table.insert(args, s)
 	end
 
-	if opts and opts.assigns ~= nil then
-		apply_assigns(args, opts.assigns)
-	end
+	if opts and opts.assigns ~= nil then apply_assigns(args, opts.assigns) end
 
 	for _, f in ipairs(as_string_list(inputs, "inputs")) do
 		table.insert(args, f)

@@ -13,8 +13,8 @@
 
 local _cmd = require("ward.process")
 local _env = require("ward.env")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class MkfsOpts
 ---@field bin string? Override binary (name or absolute path). When set, it is used directly and no `-t` is added.
@@ -38,9 +38,7 @@ local function validate_token(value, label)
 	assert(not value:find("%s"), label .. " must not contain whitespace: " .. tostring(value))
 end
 
-local function append_extra(args, extra)
-	args_util.append_extra(args, extra)
-end
+local function append_extra(args, extra) args_util.append_extra(args, extra) end
 
 ---@param fstype string
 ---@param opts MkfsOpts|nil
@@ -54,9 +52,7 @@ local function choose_bin(fstype, opts)
 	end
 
 	local specific = "mkfs." .. fstype
-	if _env.is_in_path(specific) then
-		return specific, false
-	end
+	if _env.is_in_path(specific) then return specific, false end
 
 	ensure.bin(Mkfs.bin, { label = "mkfs binary" })
 	return Mkfs.bin, true
@@ -88,25 +84,15 @@ function Mkfs.format(fstype, device, opts)
 	return _cmd.cmd(table.unpack(args))
 end
 
-function Mkfs.ext4(device, opts)
-	return Mkfs.format("ext4", device, opts)
-end
+function Mkfs.ext4(device, opts) return Mkfs.format("ext4", device, opts) end
 
-function Mkfs.xfs(device, opts)
-	return Mkfs.format("xfs", device, opts)
-end
+function Mkfs.xfs(device, opts) return Mkfs.format("xfs", device, opts) end
 
-function Mkfs.btrfs(device, opts)
-	return Mkfs.format("btrfs", device, opts)
-end
+function Mkfs.btrfs(device, opts) return Mkfs.format("btrfs", device, opts) end
 
-function Mkfs.vfat(device, opts)
-	return Mkfs.format("vfat", device, opts)
-end
+function Mkfs.vfat(device, opts) return Mkfs.format("vfat", device, opts) end
 
-function Mkfs.f2fs(device, opts)
-	return Mkfs.format("f2fs", device, opts)
-end
+function Mkfs.f2fs(device, opts) return Mkfs.format("f2fs", device, opts) end
 
 return {
 	Mkfs = Mkfs,

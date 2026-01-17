@@ -9,9 +9,9 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class GitCommonOpts
 ---@field dir string? Run in repository directory via `-C <dir>`
@@ -81,15 +81,9 @@ end
 function Git.status(opts)
 	opts = opts or {}
 	local argv = {}
-	if opts.short then
-		table.insert(argv, "-s")
-	end
-	if opts.branch then
-		table.insert(argv, "-b")
-	end
-	if opts.porcelain then
-		table.insert(argv, "--porcelain=v1")
-	end
+	if opts.short then table.insert(argv, "-s") end
+	if opts.branch then table.insert(argv, "-b") end
+	if opts.porcelain then table.insert(argv, "--porcelain=v1") end
 	args_util.append_extra(argv, opts.extra)
 	return Git.cmd("status", argv, opts)
 end
@@ -97,16 +91,12 @@ end
 ---`git rev-parse --show-toplevel`
 ---@param opts GitCommonOpts|nil
 ---@return ward.Cmd
-function Git.root(opts)
-	return Git.cmd("rev-parse", { "--show-toplevel" }, opts)
-end
+function Git.root(opts) return Git.cmd("rev-parse", { "--show-toplevel" }, opts) end
 
 ---`git rev-parse --is-inside-work-tree` (exit code indicates repo state)
 ---@param opts GitCommonOpts|nil
 ---@return ward.Cmd
-function Git.is_repo(opts)
-	return Git.cmd("rev-parse", { "--is-inside-work-tree" }, opts)
-end
+function Git.is_repo(opts) return Git.cmd("rev-parse", { "--is-inside-work-tree" }, opts) end
 
 ---`git clone <url> [dest]`
 ---@param url string
@@ -131,9 +121,7 @@ function Git.clone(url, dest, opts)
 		table.insert(argv, "--branch")
 		table.insert(argv, opts.branch)
 	end
-	if opts.recursive then
-		table.insert(argv, "--recursive")
-	end
+	if opts.recursive then table.insert(argv, "--recursive") end
 	args_util.append_extra(argv, opts.extra)
 	table.insert(argv, url)
 	if dest ~= nil then
@@ -153,9 +141,7 @@ end
 function Git.push(remote, branch, opts)
 	opts = opts or {}
 	local argv = {}
-	if opts.upstream then
-		table.insert(argv, "-u")
-	end
+	if opts.upstream then table.insert(argv, "-u") end
 	args_util.append_extra(argv, opts.extra)
 	if remote ~= nil then
 		validate.not_flag(remote, "remote")

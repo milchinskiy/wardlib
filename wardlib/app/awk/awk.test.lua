@@ -89,9 +89,7 @@ return function(tinytest)
 		return mod
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
 	t:before_all(install_mocks)
 	t:after_all(restore)
@@ -185,9 +183,7 @@ return function(tinytest)
 		-- PATH bin
 		Awk.bin = "awk"
 		env_ok = false
-		local ok1 = pcall(function()
-			Awk.cmd({ "--version" })
-		end)
+		local ok1 = pcall(function() Awk.cmd({ "--version" }) end)
 		t:falsy(ok1)
 		t:eq(calls.is_in_path[#calls.is_in_path], "awk")
 
@@ -196,9 +192,7 @@ return function(tinytest)
 		Awk.bin = "/usr/bin/awk"
 		fs_exists["/usr/bin/awk"] = true
 		fs_exec["/usr/bin/awk"] = true
-		local ok2 = pcall(function()
-			Awk.cmd({ "--version" })
-		end)
+		local ok2 = pcall(function() Awk.cmd({ "--version" }) end)
 		t:truthy(ok2)
 		t:eq(calls.is_exists[#calls.is_exists], "/usr/bin/awk")
 		t:eq(calls.is_executable[#calls.is_executable], "/usr/bin/awk")

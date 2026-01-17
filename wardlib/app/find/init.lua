@@ -10,8 +10,8 @@
 -- anything not modeled here.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class FindOpts
 ---@field follow_mode 'P'|'L'|'H'? Filesystem traversal: `-P` (default), `-L`, `-H` (must be before paths)
@@ -156,9 +156,7 @@ end
 ---@param paths string|string[]|nil
 ---@param opts FindOpts|nil
 ---@return ward.Cmd
-function Find.search(paths, opts)
-	return Find.run(paths, nil, opts)
-end
+function Find.search(paths, opts) return Find.run(paths, nil, opts) end
 
 ---Low-level escape hatch.
 ---Builds: `find <modeled-start-opts...> <argv...>`

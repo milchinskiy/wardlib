@@ -8,9 +8,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class PodmanRunOpts
 ---@field detach boolean? `-d`
@@ -166,44 +166,28 @@ local function apply_run_opts(args, opts)
 		:value_string("pull", "--pull", "pull")
 		:flag("privileged", "--privileged")
 		:repeatable("env", "-e", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("env_file", "--env-file", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("publish", "-p", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("volume", "-v", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("add_host", "--add-host", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("label", "--label", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("cap_add", "--cap-add", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("cap_drop", "--cap-drop", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:extra()
 end
@@ -220,9 +204,7 @@ local function apply_exec_opts(args, opts)
 		:value_string("user", "-u", "user")
 		:value_string("workdir", "-w", "workdir")
 		:repeatable("env", "-e", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:extra()
 end
@@ -234,15 +216,11 @@ local function apply_build_opts(args, opts)
 	args_util
 		.parser(args, opts)
 		:repeatable("tag", "-t", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:value_string("file", "-f", "file")
 		:repeatable("build_arg", "--build-arg", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:value_string("target", "--target", "target")
 		:value_string("platform", "--platform", "platform")
@@ -267,9 +245,7 @@ local function apply_ps_opts(args, opts)
 		:flag("size", "-s")
 		:value_string("format", "--format", "format")
 		:repeatable("filter", "--filter", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:extra()
 end
@@ -286,9 +262,7 @@ local function apply_images_opts(args, opts)
 		:flag("digests", "--digests")
 		:value_string("format", "--format", "format")
 		:repeatable("filter", "--filter", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:extra()
 end

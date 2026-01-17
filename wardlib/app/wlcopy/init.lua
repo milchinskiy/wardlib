@@ -9,8 +9,8 @@
 -- command; feeding stdin is the caller's responsibility.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class ClipboardSelectionOpts
 ---@field selection "clipboard"|"primary"|nil
@@ -41,9 +41,7 @@ local Clipboard = {
 ---@param args string[]
 ---@param selection "clipboard"|"primary"|nil
 local function apply_selection(args, selection)
-	if selection == nil or selection == "clipboard" then
-		return
-	end
+	if selection == nil or selection == "clipboard" then return end
 	if selection == "primary" then
 		table.insert(args, "--primary")
 		return

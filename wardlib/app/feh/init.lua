@@ -8,9 +8,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@alias FehBgMode "center"|"fill"|"max"|"scale"|"tile"
 
@@ -90,9 +90,7 @@ end
 ---@param args string[]
 ---@param inputs string|string[]|nil
 local function apply_inputs(args, inputs)
-	if inputs == nil then
-		return
-	end
+	if inputs == nil then return end
 	local list = args_util.normalize_string_or_array(inputs, "inputs")
 	assert(#list > 0, "inputs list must be non-empty")
 	for _, p in ipairs(list) do

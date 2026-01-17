@@ -9,8 +9,8 @@
 -- can be passed through with `opts.extra`.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class MountCommonOpts
 ---@field extra string[]? Extra args appended before positional args
@@ -76,12 +76,8 @@ function Mount.mount(source, target, opts)
 
 	p:extra()
 
-	if source ~= nil then
-		args[#args + 1] = args_util.token(source, "source")
-	end
-	if target ~= nil then
-		args[#args + 1] = args_util.token(target, "target")
-	end
+	if source ~= nil then args[#args + 1] = args_util.token(source, "source") end
+	if target ~= nil then args[#args + 1] = args_util.token(target, "target") end
 
 	return _cmd.cmd(table.unpack(args))
 end

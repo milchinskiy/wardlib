@@ -13,8 +13,8 @@
 -- Everything else can be passed through via `opts.extra`.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class ChrootOpts
 ---@field userspec string? Add `--userspec=<user>:<group>`
@@ -36,9 +36,7 @@ local function validate_token(value, label)
 end
 
 local function join_groups(value)
-	if value == nil then
-		return nil
-	end
+	if value == nil then return nil end
 	if type(value) == "string" then
 		assert(#value > 0, "groups must be a non-empty string")
 		return value
@@ -51,9 +49,7 @@ local function join_groups(value)
 	return table.concat(out, ",")
 end
 
-local function append_extra(args, extra)
-	args_util.append_extra(args, extra)
-end
+local function append_extra(args, extra) args_util.append_extra(args, extra) end
 
 ---`chroot [opts] <newroot> [command [args...]]`
 ---@param root string
@@ -73,13 +69,9 @@ function Chroot.run(root, argv, opts)
 	end
 
 	local g = join_groups(opts.groups)
-	if g ~= nil then
-		table.insert(args, "--groups=" .. g)
-	end
+	if g ~= nil then table.insert(args, "--groups=" .. g) end
 
-	if opts.skip_chdir then
-		table.insert(args, "--skip-chdir")
-	end
+	if opts.skip_chdir then table.insert(args, "--skip-chdir") end
 
 	append_extra(args, opts.extra)
 	table.insert(args, root)

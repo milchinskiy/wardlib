@@ -8,8 +8,8 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class RmOpts
 ---@field force boolean? `-f`
@@ -31,9 +31,7 @@ local Rm = {
 ---@param opts RmOpts|nil
 local function apply_opts(args, opts)
 	opts = opts or {}
-	if opts.force and opts.interactive then
-		error("force and interactive are mutually exclusive")
-	end
+	if opts.force and opts.interactive then error("force and interactive are mutually exclusive") end
 	args_util
 		.parser(args, opts)
 		:flag("force", "-f")

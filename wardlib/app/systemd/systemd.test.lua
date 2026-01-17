@@ -115,17 +115,11 @@ return function(tinytest)
 		t:ok(false, "failed to require systemd module. Tried:\n" .. table.concat(errs, "\n"))
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
-	t:before_all(function()
-		install_mocks()
-	end)
+	t:before_all(function() install_mocks() end)
 
-	t:after_all(function()
-		restore_originals()
-	end)
+	t:after_all(function() restore_originals() end)
 
 	t:before_each(function()
 		reset_calls()
@@ -227,9 +221,7 @@ return function(tinytest)
 		local mod = load_module()
 		local Systemd = mod.Systemd
 
-		local ok = pcall(function()
-			Systemd.start("-f")
-		end)
+		local ok = pcall(function() Systemd.start("-f") end)
 		t:falsy(ok)
 	end)
 

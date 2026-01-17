@@ -8,9 +8,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class ChownOpts
 ---@field recursive boolean? `-R`
@@ -55,21 +55,11 @@ end
 ---@param group string|nil
 ---@return string
 local function build_spec(owner, group)
-	if owner == nil and group == nil then
-		error("either owner or group must be provided")
-	end
-	if owner ~= nil then
-		validate.non_empty_string(owner, "owner")
-	end
-	if group ~= nil then
-		validate.non_empty_string(group, "group")
-	end
-	if owner == nil then
-		return ":" .. group
-	end
-	if group == nil then
-		return owner
-	end
+	if owner == nil and group == nil then error("either owner or group must be provided") end
+	if owner ~= nil then validate.non_empty_string(owner, "owner") end
+	if group ~= nil then validate.non_empty_string(group, "group") end
+	if owner == nil then return ":" .. group end
+	if group == nil then return owner end
 	return owner .. ":" .. group
 end
 

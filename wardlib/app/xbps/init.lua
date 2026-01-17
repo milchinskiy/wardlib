@@ -11,9 +11,9 @@
 --   * xbps-query
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class XbpsCommonOpts
 ---@field sudo boolean? Prefix with `sudo`
@@ -61,9 +61,7 @@ local Xbps = {
 
 --- @param pkgs string|string[]
 --- @return string[]
-local function normalize_pkgs(pkgs)
-	return args_util.normalize_string_or_array(pkgs, "pkg")
-end
+local function normalize_pkgs(pkgs) return args_util.normalize_string_or_array(pkgs, "pkg") end
 
 ---@param args string[]
 ---@param opts XbpsCommonOpts|nil
@@ -159,9 +157,7 @@ function Xbps.remove_orphans(opts)
 	opts = opts or {}
 	local argv = {}
 	apply_common(argv, opts)
-	if opts.yes then
-		table.insert(argv, "-y")
-	end
+	if opts.yes then table.insert(argv, "-y") end
 	table.insert(argv, "-o")
 	return build(Xbps.remove_bin, "xbps-remove", argv, opts)
 end
@@ -174,9 +170,7 @@ function Xbps.clean_cache(opts, all)
 	opts = opts or {}
 	local argv = {}
 	apply_common(argv, opts)
-	if opts.yes then
-		table.insert(argv, "-y")
-	end
+	if opts.yes then table.insert(argv, "-y") end
 	if all then
 		table.insert(argv, "-OO")
 	else
@@ -194,9 +188,7 @@ function Xbps.search(pattern, opts)
 	validate.non_empty_string(pattern, "pattern")
 	local argv = {}
 	apply_common(argv, opts)
-	if opts.regex then
-		table.insert(argv, "--regex")
-	end
+	if opts.regex then table.insert(argv, "--regex") end
 	table.insert(argv, "-Rs")
 	table.insert(argv, pattern)
 	return build(Xbps.query_bin, "xbps-query", argv, opts)

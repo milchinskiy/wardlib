@@ -90,9 +90,7 @@ return function(tinytest)
 		t:ok(false, "failed to require cp module. Tried:\n" .. table.concat(errs, "\n"))
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
 	t:before_all(install_mocks)
 	t:after_all(restore_originals)
@@ -119,9 +117,7 @@ return function(tinytest)
 
 	t:test("force and interactive are mutually exclusive", function()
 		local Cp = load_module().Cp
-		local ok = pcall(function()
-			Cp.copy("a", "b", { force = true, interactive = true })
-		end)
+		local ok = pcall(function() Cp.copy("a", "b", { force = true, interactive = true }) end)
 		t:falsy(ok)
 	end)
 

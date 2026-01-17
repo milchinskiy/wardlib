@@ -2,8 +2,8 @@
 ---
 --- Common argv-building helpers for wardlib wrappers.
 
-local validate = require("wardlib.util.validate")
 local tbl = require("wardlib.util.table")
+local validate = require("wardlib.util.validate")
 
 local M = {}
 
@@ -13,17 +13,11 @@ local M = {}
 ---@param t any
 ---@return boolean
 function M.is_array_strict(t)
-	if type(t) ~= "table" then
-		return false
-	end
+	if type(t) ~= "table" then return false end
 	local n = #t
 	for k, _ in pairs(t) do
-		if type(k) ~= "number" then
-			return false
-		end
-		if k < 1 or k > n or k % 1 ~= 0 then
-			return false
-		end
+		if type(k) ~= "number" then return false end
+		if k < 1 or k > n or k % 1 ~= 0 then return false end
 	end
 	return true
 end
@@ -37,9 +31,7 @@ function M.sorted_keys(m)
 	for k, _ in pairs(m) do
 		keys[#keys + 1] = k
 	end
-	table.sort(keys, function(a, b)
-		return tostring(a) < tostring(b)
-	end)
+	table.sort(keys, function(a, b) return tostring(a) < tostring(b) end)
 	return keys
 end
 
@@ -66,9 +58,7 @@ end
 ---@param label string
 ---@return string|nil
 function M.join_csv(v, label)
-	if v == nil then
-		return nil
-	end
+	if v == nil then return nil end
 	if type(v) == "string" then
 		validate.non_empty_string(v, label)
 		return v
@@ -94,9 +84,7 @@ end
 ---@param label string
 ---@return string[]
 function M.kv_list(v, label)
-	if v == nil then
-		return {}
-	end
+	if v == nil then return {} end
 	assert(type(v) == "table", label .. " must be a table")
 	-- Array form: assume each entry is already a "k=v" string.
 	if M.is_array_strict(v) then
@@ -142,9 +130,7 @@ end
 ---@param flag string
 ---@return wardlib.util.args.OptParser
 function OptParser:flag(key, flag)
-	if self.opts[key] then
-		self.args[#self.args + 1] = flag
-	end
+	if self.opts[key] then self.args[#self.args + 1] = flag end
 	return self
 end
 
@@ -160,18 +146,12 @@ end
 ---@return wardlib.util.args.OptParser
 function OptParser:value(key, flag, cfg)
 	local v = self.opts[key]
-	if v == nil then
-		return self
-	end
+	if v == nil then return self end
 	cfg = cfg or {}
 	local label = cfg.label or key
-	if cfg.validate ~= nil then
-		cfg.validate(v, label)
-	end
+	if cfg.validate ~= nil then cfg.validate(v, label) end
 	local sv = v
-	if cfg.tostring ~= false then
-		sv = tostring(v)
-	end
+	if cfg.tostring ~= false then sv = tostring(v) end
 	local mode = cfg.mode or "pair"
 	if mode == "equals" then
 		self.args[#self.args + 1] = flag .. "=" .. tostring(sv)
@@ -209,9 +189,7 @@ end
 ---@return wardlib.util.args.OptParser
 function OptParser:value_number(key, flag, cfg)
 	local v = self.opts[key]
-	if v == nil then
-		return self
-	end
+	if v == nil then return self end
 	cfg = cfg or {}
 	local label = cfg.label or key
 	if cfg.integer then
@@ -221,9 +199,7 @@ function OptParser:value_number(key, flag, cfg)
 	else
 		validate.number_min(v, label)
 	end
-	if cfg.min ~= nil then
-		validate.number_min(v, label, cfg.min)
-	end
+	if cfg.min ~= nil then validate.number_min(v, label, cfg.min) end
 	return self:value(key, flag, { label = label, mode = cfg.mode })
 end
 
@@ -240,16 +216,12 @@ end
 ---@return wardlib.util.args.OptParser
 function OptParser:repeatable(key, flag, cfg)
 	local v = self.opts[key]
-	if v == nil then
-		return self
-	end
+	if v == nil then return self end
 	cfg = cfg or {}
 	local label = cfg.label or key
 	local values = M.normalize_string_or_array(v, label)
 	for _, s in ipairs(values) do
-		if cfg.validate ~= nil then
-			cfg.validate(s, label)
-		end
+		if cfg.validate ~= nil then cfg.validate(s, label) end
 		local mode = cfg.mode or "pair"
 		if mode == "equals" then
 			self.args[#self.args + 1] = flag .. "=" .. tostring(s)
@@ -269,9 +241,7 @@ end
 ---@return wardlib.util.args.OptParser
 function OptParser:repeatable_map(key, flag, cfg)
 	local m = self.opts[key]
-	if m == nil then
-		return self
-	end
+	if m == nil then return self end
 	assert(type(m) == "table", (cfg and cfg.label or key) .. " must be a table")
 	cfg = cfg or {}
 	local key_label = cfg.key_label or (key .. " key")
@@ -279,12 +249,8 @@ function OptParser:repeatable_map(key, flag, cfg)
 	for _, k in ipairs(M.sorted_keys(m)) do
 		local vv = m[k]
 		assert(vv ~= nil, key .. "['" .. k .. "'] is nil")
-		if cfg.key_validate ~= nil then
-			cfg.key_validate(k, key_label)
-		end
-		if cfg.value_validate ~= nil then
-			cfg.value_validate(vv, value_label)
-		end
+		if cfg.key_validate ~= nil then cfg.key_validate(k, key_label) end
+		if cfg.value_validate ~= nil then cfg.value_validate(vv, value_label) end
 		self.args[#self.args + 1] = flag
 		self.args[#self.args + 1] = tostring(k)
 		self.args[#self.args + 1] = tostring(vv)
@@ -303,9 +269,7 @@ end
 ---@return wardlib.util.args.OptParser
 function OptParser:bool_or_value(key, flag, cfg)
 	local v = self.opts[key]
-	if v == nil then
-		return self
-	end
+	if v == nil then return self end
 	if v == true then
 		self.args[#self.args + 1] = flag
 		return self
@@ -322,9 +286,7 @@ end
 ---@return wardlib.util.args.OptParser
 function OptParser:bool_or_equals(key, flag, cfg)
 	local v = self.opts[key]
-	if v == nil then
-		return self
-	end
+	if v == nil then return self end
 	if v == true then
 		self.args[#self.args + 1] = flag
 		return self
@@ -332,9 +294,7 @@ function OptParser:bool_or_equals(key, flag, cfg)
 	assert(v ~= false, key .. " must be true or a value")
 	cfg = cfg or {}
 	local label = cfg.label or key
-	if cfg.validate ~= nil then
-		cfg.validate(v, label)
-	end
+	if cfg.validate ~= nil then cfg.validate(v, label) end
 	self.args[#self.args + 1] = flag .. "=" .. tostring(v)
 	return self
 end
@@ -349,9 +309,7 @@ end
 ---@return wardlib.util.args.OptParser
 function OptParser:count(key, flag, cfg)
 	local v = self.opts[key]
-	if v == nil then
-		return self
-	end
+	if v == nil then return self end
 	cfg = cfg or {}
 	local label = cfg.label or key
 	local min = cfg.min or 1
@@ -378,13 +336,9 @@ function OptParser:mutually_exclusive(keys, label)
 	assert(type(keys) == "table" and #keys > 0, "keys must be a non-empty array")
 	local set = {}
 	for _, k in ipairs(keys) do
-		if self.opts[k] then
-			set[#set + 1] = k
-		end
+		if self.opts[k] then set[#set + 1] = k end
 	end
-	if #set > 1 then
-		error((label or "options") .. " are mutually exclusive: " .. table.concat(set, ", "))
-	end
+	if #set > 1 then error((label or "options") .. " are mutually exclusive: " .. table.concat(set, ", ")) end
 	return self
 end
 
@@ -400,9 +354,7 @@ end
 --- @param args string[]
 --- @param extra string[]|nil
 function M.append_extra(args, extra)
-	if extra == nil then
-		return
-	end
+	if extra == nil then return end
 	assert(type(extra) == "table", "extra must be an array")
 	for _, v in ipairs(extra) do
 		args[#args + 1] = tostring(v)

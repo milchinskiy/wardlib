@@ -51,13 +51,9 @@ return function(tinytest)
 			local Cmd = {}
 			Cmd.__index = Cmd
 
-			function Cmd:new(argv)
-				return setmetatable({ argv = argv }, Cmd)
-			end
+			function Cmd:new(argv) return setmetatable({ argv = argv }, Cmd) end
 
-			function Cmd:__bor(rhs)
-				return { kind = "pipe", left = self, right = rhs }
-			end
+			function Cmd:__bor(rhs) return { kind = "pipe", left = self, right = rhs } end
 
 			return {
 				cmd = function(...)
@@ -123,13 +119,9 @@ return function(tinytest)
 		end
 	end
 
-	t:before_all(function()
-		install_mocks()
-	end)
+	t:before_all(function() install_mocks() end)
 
-	t:after_all(function()
-		restore_originals()
-	end)
+	t:after_all(function() restore_originals() end)
 
 	t:before_each(function()
 		reset_calls()

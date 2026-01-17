@@ -5,69 +5,45 @@ local time = require("ward.time")
 local M = {}
 
 local function to_s(x)
-	if type(x) == "string" then
-		return x
-	end
+	if type(x) == "string" then return x end
 	return tostring(x)
 end
 
 local function is_array(tbl)
-	if type(tbl) ~= "table" then
-		return false
-	end
+	if type(tbl) ~= "table" then return false end
 	for i = 1, #tbl do
-		if tbl[i] == nil then
-			return false
-		end
+		if tbl[i] == nil then return false end
 	end
 	return true
 end
 
-local function looks_like_path(s)
-	return s:find("/", 1, true) ~= nil or s:sub(-4) == ".lua"
-end
+local function looks_like_path(s) return s:find("/", 1, true) ~= nil or s:sub(-4) == ".lua" end
 
 -- Alias-safe deep equality (bijective visited maps)
 local function deep_equal(a, b, seen_a, seen_b)
-	if a == b then
-		return true
-	end
-	if type(a) ~= type(b) then
-		return false
-	end
-	if type(a) ~= "table" then
-		return false
-	end
+	if a == b then return true end
+	if type(a) ~= type(b) then return false end
+	if type(a) ~= "table" then return false end
 
 	seen_a = seen_a or {}
 	seen_b = seen_b or {}
 
-	if seen_a[a] ~= nil or seen_b[b] ~= nil then
-		return seen_a[a] == b and seen_b[b] == a
-	end
+	if seen_a[a] ~= nil or seen_b[b] ~= nil then return seen_a[a] == b and seen_b[b] == a end
 	seen_a[a] = b
 	seen_b[b] = a
 
 	for k, va in pairs(a) do
 		local vb = b[k]
-		if vb == nil then
-			return false
-		end
-		if not deep_equal(va, vb, seen_a, seen_b) then
-			return false
-		end
+		if vb == nil then return false end
+		if not deep_equal(va, vb, seen_a, seen_b) then return false end
 	end
 	for k, _ in pairs(b) do
-		if a[k] == nil then
-			return false
-		end
+		if a[k] == nil then return false end
 	end
 	return true
 end
 
-local function err_obj(phase, err)
-	return { phase = phase, message = to_s(err) }
-end
+local function err_obj(phase, err) return { phase = phase, message = to_s(err) } end
 
 --- Try to get duration in seconds
 ---@param t0 number
@@ -78,9 +54,7 @@ local function try_duration(t0)
 		local d = t1 - t0
 		return d:seconds()
 	end)
-	if ok then
-		return s
-	end
+	if ok then return s end
 	return nil
 end
 
@@ -124,49 +98,31 @@ function M.new(opts)
 
 	-- Assertions
 	function t:ok(cond, msg)
-		if not cond then
-			error(msg or "assertion failed", 2)
-		end
+		if not cond then error(msg or "assertion failed", 2) end
 	end
 	function t:eq(a, b, msg)
-		if a ~= b then
-			error(msg or ("expected: " .. to_s(a) .. " == " .. to_s(b)), 2)
-		end
+		if a ~= b then error(msg or ("expected: " .. to_s(a) .. " == " .. to_s(b)), 2) end
 	end
 	function t:falsy(v, msg)
-		if v then
-			error(msg or "expected falsy", 2)
-		end
+		if v then error(msg or "expected falsy", 2) end
 	end
 	function t:truthy(v, msg)
-		if not v then
-			error(msg or "expected truthy", 2)
-		end
+		if not v then error(msg or "expected truthy", 2) end
 	end
 	function t:match(s, pat, msg)
-		if type(s) ~= "string" then
-			error(msg or "match: first argument must be string", 2)
-		end
-		if type(pat) ~= "string" then
-			error(msg or "match: pattern must be string", 2)
-		end
-		if not string.find(s, pat) then
-			error(msg or ("expected match: " .. pat), 2)
-		end
+		if type(s) ~= "string" then error(msg or "match: first argument must be string", 2) end
+		if type(pat) ~= "string" then error(msg or "match: pattern must be string", 2) end
+		if not string.find(s, pat) then error(msg or ("expected match: " .. pat), 2) end
 	end
 	function t:deep_eq(a, b, msg)
-		if not deep_equal(a, b) then
-			error(msg or "expected deep equality", 2)
-		end
+		if not deep_equal(a, b) then error(msg or "expected deep equality", 2) end
 	end
 	function t:contains(a, b)
 		if type(a) == "string" then
 			return a:find(b, 1, true)
 		elseif type(a) == "table" then
 			for _, v in ipairs(a) do
-				if v == b then
-					return true
-				end
+				if v == b then return true end
 			end
 			return false
 		else
@@ -175,13 +131,9 @@ function M.new(opts)
 	end
 
 	local function safe_call(phase, fn)
-		if not fn then
-			return true
-		end
+		if not fn then return true end
 		local ok, err = pcall(fn)
-		if ok then
-			return true
-		end
+		if ok then return true end
 		return false, err_obj(phase, err)
 	end
 
@@ -219,9 +171,7 @@ function M.new(opts)
 		}
 
 		local function emit(ev)
-			if reporter then
-				reporter(ev)
-			end
+			if reporter then reporter(ev) end
 		end
 
 		emit({ kind = "suite_start", suite = self.name, planned = planned })
@@ -315,9 +265,7 @@ function M.new(opts)
 						duration = dur,
 						error = e_test,
 					})
-					if fail_fast then
-						break
-					end
+					if fail_fast then break end
 				end
 			end
 		end
@@ -358,23 +306,17 @@ local function load_suite(spec)
 
 	if looks_like_path(spec) then
 		local chunk, err = loadfile(spec)
-		if not chunk then
-			return nil, err_obj("load", "loadfile failed: " .. to_s(err))
-		end
+		if not chunk then return nil, err_obj("load", "loadfile failed: " .. to_s(err)) end
 		ok, ret = pcall(chunk)
 	else
 		ok, ret = pcall(require, spec)
 	end
 
-	if not ok then
-		return nil, err_obj("load", ret)
-	end
+	if not ok then return nil, err_obj("load", ret) end
 
 	if type(ret) == "function" then
 		local ok2, v = pcall(ret, M)
-		if not ok2 then
-			return nil, err_obj("load", v)
-		end
+		if not ok2 then return nil, err_obj("load", v) end
 		ret = v
 	end
 
@@ -453,9 +395,7 @@ function M.run(specs, opts)
 
 	local only = opts.only
 	local function filter(name)
-		if not only or only == "" then
-			return true
-		end
+		if not only or only == "" then return true end
 		return name:find(only, 1, true) ~= nil
 	end
 
@@ -514,9 +454,7 @@ function M.run(specs, opts)
 		)
 	end
 
-	if all.failed > 0 then
-		term.println(string.format("%sFAIL:\t%d%s", term.ansi.red, all.failed, term.ansi.reset))
-	end
+	if all.failed > 0 then term.println(string.format("%sFAIL:\t%d%s", term.ansi.red, all.failed, term.ansi.reset)) end
 
 	if all.skipped > 0 then
 		term.println(string.format("%sSKIP:\t%d%s", term.ansi.bright_black, all.skipped, term.ansi.reset))

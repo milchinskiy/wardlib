@@ -6,8 +6,8 @@
 -- `ward.process.cmd(...)` objects.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class PlayerctlOpts
 ---@field player string? `--player <name>`
@@ -44,9 +44,7 @@ local function apply_opts(args, opts)
 		:flag("all_players", "--all-players")
 		:repeatable("ignore", "--ignore-player", {
 			label = "ignore",
-			validate = function(v, l)
-				args_util.token(v, l)
-			end,
+			validate = function(v, l) args_util.token(v, l) end,
 		})
 		:extra()
 end
@@ -69,33 +67,19 @@ function Playerctl.cmd(subcmd, argv, opts)
 	return _cmd.cmd(table.unpack(args))
 end
 
-function Playerctl.play(opts)
-	return Playerctl.cmd("play", nil, opts)
-end
+function Playerctl.play(opts) return Playerctl.cmd("play", nil, opts) end
 
-function Playerctl.pause(opts)
-	return Playerctl.cmd("pause", nil, opts)
-end
+function Playerctl.pause(opts) return Playerctl.cmd("pause", nil, opts) end
 
-function Playerctl.play_pause(opts)
-	return Playerctl.cmd("play-pause", nil, opts)
-end
+function Playerctl.play_pause(opts) return Playerctl.cmd("play-pause", nil, opts) end
 
-function Playerctl.next(opts)
-	return Playerctl.cmd("next", nil, opts)
-end
+function Playerctl.next(opts) return Playerctl.cmd("next", nil, opts) end
 
-function Playerctl.previous(opts)
-	return Playerctl.cmd("previous", nil, opts)
-end
+function Playerctl.previous(opts) return Playerctl.cmd("previous", nil, opts) end
 
-function Playerctl.stop(opts)
-	return Playerctl.cmd("stop", nil, opts)
-end
+function Playerctl.stop(opts) return Playerctl.cmd("stop", nil, opts) end
 
-function Playerctl.status(opts)
-	return Playerctl.cmd("status", nil, opts)
-end
+function Playerctl.status(opts) return Playerctl.cmd("status", nil, opts) end
 
 ---`playerctl metadata [--format <fmt>]`
 ---@param opts PlayerctlMetadataOpts|nil

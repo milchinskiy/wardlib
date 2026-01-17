@@ -16,10 +16,10 @@
 --   If you need stricter portability, set `extra` explicitly.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 local tbl = require("wardlib.util.table")
+local validate = require("wardlib.util.validate")
 
 ---@class SedOpts
 ---@field extended boolean? `-E` (extended regex)
@@ -71,9 +71,7 @@ local function apply_opts(args, opts)
 			-- Use GNU-compatible concatenated form.
 			-- For strict BSD compatibility, callers may pass extra = {"-i", ".bak"}.
 			validate.non_empty_string(in_place, "in_place")
-			if in_place:sub(1, 1) == "-" then
-				error("in_place suffix must not start with '-'")
-			end
+			if in_place:sub(1, 1) == "-" then error("in_place suffix must not start with '-'") end
 			table.insert(args, "-i" .. in_place)
 		else
 			error("in_place must be boolean or string")
@@ -85,9 +83,7 @@ local function apply_opts(args, opts)
 		:repeatable("expression", "-e", { label = "expression" })
 		:repeatable("file", "-f", {
 			label = "file",
-			validate = function(v, label)
-				validate.not_flag(v, label)
-			end,
+			validate = function(v, label) validate.not_flag(v, label) end,
 		})
 		:extra("extra")
 end
@@ -95,9 +91,7 @@ end
 ---@param args string[]
 ---@param inputs string|string[]|nil
 local function apply_inputs(args, inputs)
-	if inputs == nil then
-		return
-	end
+	if inputs == nil then return end
 	if type(inputs) == "string" then
 		validate.not_flag(inputs, "input")
 		table.insert(args, inputs)

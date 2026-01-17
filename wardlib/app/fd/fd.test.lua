@@ -121,17 +121,11 @@ return function(tinytest)
 		t:ok(false, "failed to require fd module. Tried:\n" .. table.concat(errs, "\n"))
 	end
 
-	local function last_cmd_obj()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd_obj() return calls.cmd[#calls.cmd] end
 
-	t:before_all(function()
-		install_mocks()
-	end)
+	t:before_all(function() install_mocks() end)
 
-	t:after_all(function()
-		restore_originals()
-	end)
+	t:after_all(function() restore_originals() end)
 
 	t:before_each(function()
 		reset_calls()
@@ -181,9 +175,7 @@ return function(tinytest)
 		local mod = load_module()
 		local Fd = mod.Fd
 
-		local ok = pcall(function()
-			Fd.search(".", nil, { exec = { "echo", "x" }, exec_batch = { "echo", "y" } })
-		end)
+		local ok = pcall(function() Fd.search(".", nil, { exec = { "echo", "x" }, exec_batch = { "echo", "y" } }) end)
 		t:falsy(ok)
 	end)
 

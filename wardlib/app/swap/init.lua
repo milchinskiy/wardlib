@@ -10,10 +10,10 @@
 -- Wrappers construct `ward.process.cmd(...)` invocations; they do not parse output.
 
 local _cmd = require("ward.process")
+local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 local tbl = require("wardlib.util.table")
 local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
-local args_util = require("wardlib.util.args")
 
 ---@class MkswapOpts
 ---@field label string? `-L <label>`
@@ -57,9 +57,7 @@ local Swap = {
 
 ---@param v any
 ---@param label string
-local function validate_number(v, label)
-	assert(type(v) == "number", label .. " must be a number")
-end
+local function validate_number(v, label) assert(type(v) == "number", label .. " must be a number") end
 
 ---@param args string[]
 ---@param opts MkswapOpts|nil
@@ -74,9 +72,7 @@ local function apply_mkswap_opts(args, opts)
 		:value_number("pagesize", "--pagesize", { label = "pagesize", min = 0 })
 		:extra("extra")
 
-	if opts.pagesize ~= nil then
-		assert(opts.pagesize > 0, "pagesize must be > 0")
-	end
+	if opts.pagesize ~= nil then assert(opts.pagesize > 0, "pagesize must be > 0") end
 end
 
 ---@param args string[]

@@ -83,9 +83,7 @@ return function(tinytest)
 		return mod
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
 	t:before_all(install_mocks)
 	t:after_all(restore)

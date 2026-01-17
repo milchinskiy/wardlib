@@ -10,9 +10,9 @@
 -- for anything not modeled here.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class GrepOpts
 ---@field extended boolean? `-E` (ERE)
@@ -62,18 +62,10 @@ local function apply_opts(args, opts)
 
 	-- matcher selection
 	local matcher_count = 0
-	if opts.extended then
-		matcher_count = matcher_count + 1
-	end
-	if opts.fixed then
-		matcher_count = matcher_count + 1
-	end
-	if opts.perl then
-		matcher_count = matcher_count + 1
-	end
-	if matcher_count > 1 then
-		error("extended/fixed/perl are mutually exclusive")
-	end
+	if opts.extended then matcher_count = matcher_count + 1 end
+	if opts.fixed then matcher_count = matcher_count + 1 end
+	if opts.perl then matcher_count = matcher_count + 1 end
+	if matcher_count > 1 then error("extended/fixed/perl are mutually exclusive") end
 	if opts.extended then
 		args[#args + 1] = "-E"
 	elseif opts.fixed then
@@ -82,13 +74,9 @@ local function apply_opts(args, opts)
 		args[#args + 1] = "-P"
 	end
 
-	if opts.with_filename and opts.no_filename then
-		error("with_filename and no_filename are mutually exclusive")
-	end
+	if opts.with_filename and opts.no_filename then error("with_filename and no_filename are mutually exclusive") end
 
-	if opts.recursive and opts.recursive_follow then
-		error("recursive and recursive_follow are mutually exclusive")
-	end
+	if opts.recursive and opts.recursive_follow then error("recursive and recursive_follow are mutually exclusive") end
 
 	-- context
 	if opts.context ~= nil and (opts.after_context ~= nil or opts.before_context ~= nil) then
@@ -138,9 +126,7 @@ end
 ---@param args string[]
 ---@param inputs string|string[]|nil
 local function apply_inputs(args, inputs)
-	if inputs == nil then
-		return
-	end
+	if inputs == nil then return end
 	local list = args_util.normalize_string_or_array(inputs, "inputs")
 	for _, p in ipairs(list) do
 		validate.not_flag(p, "input")

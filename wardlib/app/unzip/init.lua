@@ -12,9 +12,9 @@
 -- do not start with '-'.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class UnzipOpts
 ---@field to string? Destination directory (`-d <dir>`)
@@ -44,9 +44,7 @@ local Unzip = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.overwrite and opts.never_overwrite then
-		error("overwrite and never_overwrite are mutually exclusive")
-	end
+	if opts.overwrite and opts.never_overwrite then error("overwrite and never_overwrite are mutually exclusive") end
 
 	args_util
 		.parser(args, opts)

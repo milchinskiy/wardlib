@@ -9,9 +9,9 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class SsOpts
 ---@field tcp boolean? `-t`
@@ -53,14 +53,10 @@ local function apply_opts(args, opts)
 	opts = opts or {}
 
 	-- Address family
-	if opts.inet4 and opts.inet6 then
-		error("inet4 and inet6 are mutually exclusive")
-	end
+	if opts.inet4 and opts.inet6 then error("inet4 and inet6 are mutually exclusive") end
 
 	-- Process / packet sockets
-	if opts.process and opts.packet then
-		error("process and packet are mutually exclusive")
-	end
+	if opts.process and opts.packet then error("process and packet are mutually exclusive") end
 
 	local p = args_util.parser(args, opts)
 	-- Address family
@@ -83,9 +79,7 @@ local function apply_opts(args, opts)
 		:flag("summary", "-s")
 
 	-- Process / packet
-	if opts.process or opts.packet then
-		args[#args + 1] = "-p"
-	end
+	if opts.process or opts.packet then args[#args + 1] = "-p" end
 
 	-- SELinux context
 	if opts.context ~= nil then

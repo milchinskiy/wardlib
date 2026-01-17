@@ -8,9 +8,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class CpOpts
 ---@field recursive boolean? `-r, -R`
@@ -39,9 +39,7 @@ local Cp = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.force and opts.interactive then
-		error("force and interactive are mutually exclusive")
-	end
+	if opts.force and opts.interactive then error("force and interactive are mutually exclusive") end
 
 	args_util
 		.parser(args, opts)

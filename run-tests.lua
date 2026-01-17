@@ -132,9 +132,7 @@ local function main(argv)
 		fail_fast = opts.fail_fast,
 	})
 
-	if (not opts.list) and r.failed > 0 then
-		require("ward.process").exit(1)
-	end
+	if (not opts.list) and r.failed > 0 then require("ward.process").exit(1) end
 	return r
 end
 

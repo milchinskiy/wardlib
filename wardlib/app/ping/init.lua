@@ -9,9 +9,9 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class PingOpts
 ---@field inet4 boolean? `-4`
@@ -53,9 +53,7 @@ local Ping = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.inet4 and opts.inet6 then
-		error("inet4 and inet6 are mutually exclusive")
-	end
+	if opts.inet4 and opts.inet6 then error("inet4 and inet6 are mutually exclusive") end
 
 	local p = args_util.parser(args, opts)
 	p:flag("inet4", "-4")
@@ -70,9 +68,7 @@ local function apply_opts(args, opts)
 		:value_number("mark", "-m", { min = 0 })
 
 	local iface = opts.interface
-	if iface == nil then
-		iface = opts.source
-	end
+	if iface == nil then iface = opts.source end
 	if iface ~= nil then
 		validate.non_empty_string(iface, "interface")
 		args[#args + 1] = "-I"

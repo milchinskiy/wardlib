@@ -83,9 +83,7 @@ return function(tinytest)
 		return mod
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
 	t:before_all(install_mocks)
 	t:after_all(restore)
@@ -133,9 +131,7 @@ return function(tinytest)
 		-- PATH bin
 		Grep.bin = "grep"
 		env_ok = false
-		local ok1 = pcall(function()
-			Grep.search("x", "f", nil)
-		end)
+		local ok1 = pcall(function() Grep.search("x", "f", nil) end)
 		t:falsy(ok1)
 		t:eq(calls.is_in_path[#calls.is_in_path], "grep")
 
@@ -144,9 +140,7 @@ return function(tinytest)
 		Grep.bin = "/usr/bin/grep"
 		fs_exists["/usr/bin/grep"] = true
 		fs_exec["/usr/bin/grep"] = true
-		local ok2 = pcall(function()
-			Grep.search("x", "f", nil)
-		end)
+		local ok2 = pcall(function() Grep.search("x", "f", nil) end)
 		t:truthy(ok2)
 		t:eq(calls.is_exists[#calls.is_exists], "/usr/bin/grep")
 		t:eq(calls.is_executable[#calls.is_executable], "/usr/bin/grep")

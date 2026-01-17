@@ -46,13 +46,9 @@ local tbl = require("wardlib.util.table")
 
 local M = {}
 
-local function _is_array(t)
-	return tbl.is_array(t)
-end
+local function _is_array(t) return tbl.is_array(t) end
 
-local function _clone_array(t)
-	return tbl.clone_array(t)
-end
+local function _clone_array(t) return tbl.clone_array(t) end
 
 --- Best-effort extraction of argv from a Ward cmd object or argv array.
 ---
@@ -64,18 +60,12 @@ end
 ---   * { _spec = { argv = {"sudo"} } }-> {"sudo"}
 ---
 local function _as_argv(prefix)
-	if type(prefix) == "string" then
-		return { prefix }
-	end
+	if type(prefix) == "string" then return { prefix } end
 
-	if _is_array(prefix) then
-		return _clone_array(prefix)
-	end
+	if _is_array(prefix) then return _clone_array(prefix) end
 
 	if type(prefix) == "table" then
-		if type(prefix.argv) == "table" and _is_array(prefix.argv) then
-			return _clone_array(prefix.argv)
-		end
+		if type(prefix.argv) == "table" and _is_array(prefix.argv) then return _clone_array(prefix.argv) end
 		if type(prefix.spec) == "table" and type(prefix.spec.argv) == "table" and _is_array(prefix.spec.argv) then
 			return _clone_array(prefix.spec.argv)
 		end
@@ -96,9 +86,7 @@ function M.scope(mw, fn, ...)
 	process.push_middleware(mw)
 	local packed = table.pack(pcall(fn, ...))
 	process.pop_middleware()
-	if packed[1] then
-		return table.unpack(packed, 2, packed.n)
-	end
+	if packed[1] then return table.unpack(packed, 2, packed.n) end
 	error(packed[2], 0)
 end
 
@@ -120,22 +108,16 @@ function M.middleware.prefix(prefix, opts)
 	local field = opts.field or "argv"
 
 	return function(spec)
-		if type(spec) ~= "table" then
-			return spec
-		end
+		if type(spec) ~= "table" then return spec end
 
 		local argv = spec[field]
-		if type(argv) ~= "table" or not _is_array(argv) then
-			return spec
-		end
+		if type(argv) ~= "table" or not _is_array(argv) then return spec end
 
 		local out = {}
 		for i = 1, #p do
 			out[#out + 1] = p[i]
 		end
-		if sep ~= nil then
-			out[#out + 1] = sep
-		end
+		if sep ~= nil then out[#out + 1] = sep end
 		for i = 1, #argv do
 			out[#out + 1] = argv[i]
 		end
@@ -156,12 +138,8 @@ function M.middleware.sudo(opts)
 	opts = opts or {}
 	local argv = { "sudo" }
 
-	if opts.non_interactive ~= false then
-		argv[#argv + 1] = "-n"
-	end
-	if opts.preserve_env then
-		argv[#argv + 1] = "-E"
-	end
+	if opts.non_interactive ~= false then argv[#argv + 1] = "-n" end
+	if opts.preserve_env then argv[#argv + 1] = "-E" end
 
 	return M.middleware.prefix(argv, { sep = opts.sep, field = opts.field })
 end
@@ -177,12 +155,8 @@ function M.middleware.doas(opts)
 	opts = opts or {}
 	local argv = { "doas" }
 
-	if opts.non_interactive ~= false then
-		argv[#argv + 1] = "-n"
-	end
-	if opts.keep_env then
-		argv[#argv + 1] = "-E"
-	end
+	if opts.non_interactive ~= false then argv[#argv + 1] = "-n" end
+	if opts.keep_env then argv[#argv + 1] = "-E" end
 
 	return M.middleware.prefix(argv, { sep = opts.sep, field = opts.field })
 end
@@ -220,9 +194,7 @@ function M.wrap(mw_or_prefix, cmd, opts)
 
 		__call = function(_, ...)
 			-- If cmd is callable, call it under scope.
-			if type(cmd) ~= "function" then
-				error("tools.with: wrapped value is not callable")
-			end
+			if type(cmd) ~= "function" then error("tools.with: wrapped value is not callable") end
 			return M.scope(mw, cmd, ...)
 		end,
 	})

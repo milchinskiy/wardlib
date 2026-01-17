@@ -8,8 +8,8 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class SshCommonOpts
 ---@field user string? Username (prepended as `user@host`)
@@ -185,18 +185,10 @@ function Ssh.scp(src, dst, opts)
 	local args = { Ssh.scp_bin }
 	apply_common(args, opts, "-P")
 
-	if opts.recursive then
-		table.insert(args, "-r")
-	end
-	if opts.preserve_times then
-		table.insert(args, "-p")
-	end
-	if opts.compress then
-		table.insert(args, "-C")
-	end
-	if opts.quiet then
-		table.insert(args, "-q")
-	end
+	if opts.recursive then table.insert(args, "-r") end
+	if opts.preserve_times then table.insert(args, "-p") end
+	if opts.compress then table.insert(args, "-C") end
+	if opts.quiet then table.insert(args, "-q") end
 
 	table.insert(args, src)
 	table.insert(args, dst)

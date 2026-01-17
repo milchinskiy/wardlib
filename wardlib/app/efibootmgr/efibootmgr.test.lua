@@ -113,17 +113,11 @@ return function(tinytest)
 		t:ok(false, "failed to require efibootmgr module. Tried:\\n" .. table.concat(errs, "\\n"))
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
-	t:before_all(function()
-		install_mocks()
-	end)
+	t:before_all(function() install_mocks() end)
 
-	t:after_all(function()
-		restore_originals()
-	end)
+	t:after_all(function() restore_originals() end)
 
 	t:before_each(function()
 		reset_calls()
@@ -191,9 +185,7 @@ return function(tinytest)
 
 	t:test("rejects invalid bootnum string", function()
 		local mod = load_module()
-		local ok = pcall(function()
-			mod.Efibootmgr.delete("--bad")
-		end)
+		local ok = pcall(function() mod.Efibootmgr.delete("--bad") end)
 		t:falsy(ok)
 	end)
 

@@ -8,8 +8,8 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class MkdirOpts
 ---@field parents boolean? `-p`

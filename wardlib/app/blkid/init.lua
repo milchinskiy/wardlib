@@ -9,9 +9,9 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@alias BlkidOutputFmt "full"|"value"|"device"|"export"|"udev"
 
@@ -48,15 +48,11 @@ local function apply_opts(args, opts)
 		:value_token("output", "-o", "output")
 		:repeatable("tags", "-s", {
 			label = "tag",
-			validate = function(v, label)
-				validate.not_flag(v, label)
-			end,
+			validate = function(v, label) validate.not_flag(v, label) end,
 		})
 		:repeatable("match", "-t", {
 			label = "match",
-			validate = function(v, label)
-				validate.not_flag(v, label)
-			end,
+			validate = function(v, label) validate.not_flag(v, label) end,
 		})
 		:extra("extra")
 end

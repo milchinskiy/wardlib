@@ -71,3 +71,4 @@
 
 - [with](./with.md)
 - [ensure](./ensure.md)
+- [cli](./cli.md)

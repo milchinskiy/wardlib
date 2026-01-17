@@ -9,8 +9,8 @@
 -- objects.
 
 local _proc = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class CfdiskOpts
 ---@field color "auto"|"never"|"always"|nil Add `--color[=when]`
@@ -36,9 +36,7 @@ end
 
 ---@param args string[]
 ---@param extra string[]|nil
-local function append_extra(args, extra)
-	args_util.append_extra(args, extra)
-end
+local function append_extra(args, extra) args_util.append_extra(args, extra) end
 
 ---Interactive editor: `cfdisk [opts...] <device>`
 ---@param device string
@@ -65,12 +63,8 @@ function Cfdisk.edit(device, opts)
 		table.insert(args, "--sector-size")
 		table.insert(args, tostring(opts.sector_size))
 	end
-	if opts.zero then
-		table.insert(args, "--zero")
-	end
-	if opts.read_only then
-		table.insert(args, "--read-only")
-	end
+	if opts.zero then table.insert(args, "--zero") end
+	if opts.read_only then table.insert(args, "--read-only") end
 
 	append_extra(args, opts.extra)
 	table.insert(args, device)

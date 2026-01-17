@@ -49,9 +49,7 @@ return function(tinytest)
 				end,
 				is_in_path = function(name_or_path)
 					table.insert(calls.is_in_path, name_or_path)
-					if in_path_map[name_or_path] ~= nil then
-						return in_path_map[name_or_path]
-					end
+					if in_path_map[name_or_path] ~= nil then return in_path_map[name_or_path] end
 					return false
 				end,
 			}
@@ -78,9 +76,7 @@ return function(tinytest)
 					local key = table.concat(argv, "\0")
 					local out = cmd_output_map[key] or { ok = true, stdout = "" }
 					return {
-						output = function()
-							return { ok = out.ok, stdout = out.stdout }
-						end,
+						output = function() return { ok = out.ok, stdout = out.stdout } end,
 					}
 				end,
 			}
@@ -107,9 +103,7 @@ return function(tinytest)
 		end
 	end
 
-	local function mod()
-		return require("wardlib.tools.ensure")
-	end
+	local function mod() return require("wardlib.tools.ensure") end
 
 	-- --- tests ---
 
@@ -144,9 +138,7 @@ return function(tinytest)
 		install_mocks()
 
 		local ensure = mod()
-		local ok, err = pcall(function()
-			ensure.bin("jq")
-		end)
+		local ok, err = pcall(function() ensure.bin("jq") end)
 		t:eq(ok, false)
 		t:contains(err, "not found in PATH")
 		t:contains(err, "jq")
@@ -199,9 +191,7 @@ return function(tinytest)
 		install_mocks()
 
 		local ensure = mod()
-		local ok, err = pcall(function()
-			ensure.root({ allow_sudo_hint = false })
-		end)
+		local ok, err = pcall(function() ensure.root({ allow_sudo_hint = false }) end)
 		t:eq(ok, false)
 		t:contains(err, "root privileges required")
 		restore_originals()

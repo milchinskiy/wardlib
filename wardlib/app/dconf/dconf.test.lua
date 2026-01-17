@@ -119,17 +119,11 @@ return function(tinytest)
 		t:ok(false, "failed to require dconf module. Tried:\n" .. table.concat(errs, "\n"))
 	end
 
-	local function last_cmd_obj()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd_obj() return calls.cmd[#calls.cmd] end
 
-	t:before_all(function()
-		install_mocks()
-	end)
+	t:before_all(function() install_mocks() end)
 
-	t:after_all(function()
-		restore_originals()
-	end)
+	t:after_all(function() restore_originals() end)
 
 	t:before_each(function()
 		reset_calls()
@@ -193,9 +187,7 @@ return function(tinytest)
 		Dconf.dump("/org/test/")
 		t:deep_eq(last_cmd_obj().argv, { "dconf", "dump", "/org/test/" })
 
-		local ok = pcall(function()
-			Dconf.list("/org/test")
-		end)
+		local ok = pcall(function() Dconf.list("/org/test") end)
 		t:falsy(ok)
 	end)
 

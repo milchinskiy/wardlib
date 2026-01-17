@@ -7,8 +7,8 @@
 -- them and how to capture output.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class wardlib.DconfRaw
 ---@field __raw true
@@ -68,9 +68,7 @@ end
 ---@param value any
 ---@return string
 function Dconf.encode(value)
-	if type(value) == "table" and value.__raw == true then
-		return tostring(value.value)
-	end
+	if type(value) == "table" and value.__raw == true then return tostring(value.value) end
 
 	local t = type(value)
 	if t == "string" then

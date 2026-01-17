@@ -8,9 +8,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class ZypperCommonOpts
 ---@field sudo boolean? Prefix the command with `sudo`
@@ -50,9 +50,7 @@ local Zypper = {
 local function apply_common(args, opts)
 	opts = opts or {}
 
-	if opts.refresh and opts.no_refresh then
-		error("refresh and no_refresh are mutually exclusive")
-	end
+	if opts.refresh and opts.no_refresh then error("refresh and no_refresh are mutually exclusive") end
 
 	args_util
 		.parser(args, opts)
@@ -108,25 +106,19 @@ end
 ---`zypper refresh`
 ---@param opts ZypperCommonOpts|nil
 ---@return ward.Cmd
-function Zypper.refresh(opts)
-	return Zypper.cmd("refresh", nil, opts)
-end
+function Zypper.refresh(opts) return Zypper.cmd("refresh", nil, opts) end
 
 ---`zypper install <pkgs...>`
 ---@param pkgs string|string[]
 ---@param opts ZypperCommonOpts|nil
 ---@return ward.Cmd
-function Zypper.install(pkgs, opts)
-	return Zypper.cmd("install", normalize_list(pkgs, "pkgs"), opts)
-end
+function Zypper.install(pkgs, opts) return Zypper.cmd("install", normalize_list(pkgs, "pkgs"), opts) end
 
 ---`zypper remove <pkgs...>`
 ---@param pkgs string|string[]
 ---@param opts ZypperCommonOpts|nil
 ---@return ward.Cmd
-function Zypper.remove(pkgs, opts)
-	return Zypper.cmd("remove", normalize_list(pkgs, "pkgs"), opts)
-end
+function Zypper.remove(pkgs, opts) return Zypper.cmd("remove", normalize_list(pkgs, "pkgs"), opts) end
 
 ---`zypper update [pkgs...]`
 ---@param pkgs string|string[]|nil
@@ -134,18 +126,14 @@ end
 ---@return ward.Cmd
 function Zypper.update(pkgs, opts)
 	local argv = nil
-	if pkgs ~= nil then
-		argv = normalize_list(pkgs, "pkgs")
-	end
+	if pkgs ~= nil then argv = normalize_list(pkgs, "pkgs") end
 	return Zypper.cmd("update", argv, opts)
 end
 
 ---`zypper dup`
 ---@param opts ZypperCommonOpts|nil
 ---@return ward.Cmd
-function Zypper.dup(opts)
-	return Zypper.cmd("dup", nil, opts)
-end
+function Zypper.dup(opts) return Zypper.cmd("dup", nil, opts) end
 
 ---`zypper search <term>`
 ---@param term string
@@ -160,17 +148,13 @@ end
 ---@param pkgs string|string[]
 ---@param opts ZypperCommonOpts|nil
 ---@return ward.Cmd
-function Zypper.info(pkgs, opts)
-	return Zypper.cmd("info", normalize_list(pkgs, "pkgs"), opts)
-end
+function Zypper.info(pkgs, opts) return Zypper.cmd("info", normalize_list(pkgs, "pkgs"), opts) end
 
 ---List configured repositories.
 ---Builds: `zypper repos`
 ---@param opts ZypperCommonOpts|nil
 ---@return ward.Cmd
-function Zypper.repos_list(opts)
-	return Zypper.cmd("repos", nil, opts)
-end
+function Zypper.repos_list(opts) return Zypper.cmd("repos", nil, opts) end
 
 ---Add a repository.
 ---Builds: `zypper addrepo <uri> <alias>`

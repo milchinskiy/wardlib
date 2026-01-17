@@ -9,8 +9,8 @@
 -- passed through via `opts.extra`.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class EfibootmgrOpts
 ---@field bin string? Override binary (name or absolute path)
@@ -98,54 +98,26 @@ function Efibootmgr.cmd(opts)
 
 	local args = { bin }
 
-	if opts.verbose then
-		table.insert(args, "-v")
-	end
-	if opts.quiet then
-		table.insert(args, "-q")
-	end
-	if opts.remove_dups then
-		table.insert(args, "-D")
-	end
-	if opts.write_signature then
-		table.insert(args, "-w")
-	end
-	if opts.driver then
-		table.insert(args, "-r")
-	end
-	if opts.sysprep then
-		table.insert(args, "-y")
-	end
-	if opts.full_dev_path then
-		table.insert(args, "--full-dev-path")
-	end
-	if opts.file_dev_path then
-		table.insert(args, "--file-dev-path")
-	end
-	if opts.unicode then
-		table.insert(args, "-u")
-	end
+	if opts.verbose then table.insert(args, "-v") end
+	if opts.quiet then table.insert(args, "-q") end
+	if opts.remove_dups then table.insert(args, "-D") end
+	if opts.write_signature then table.insert(args, "-w") end
+	if opts.driver then table.insert(args, "-r") end
+	if opts.sysprep then table.insert(args, "-y") end
+	if opts.full_dev_path then table.insert(args, "--full-dev-path") end
+	if opts.file_dev_path then table.insert(args, "--file-dev-path") end
+	if opts.unicode then table.insert(args, "-u") end
 
 	if opts.bootnum ~= nil then
 		table.insert(args, "-b")
 		table.insert(args, to_hex4(opts.bootnum, "bootnum"))
 	end
 
-	if opts.active then
-		table.insert(args, "-a")
-	end
-	if opts.inactive then
-		table.insert(args, "-A")
-	end
-	if opts.delete_bootnum then
-		table.insert(args, "-B")
-	end
-	if opts.create then
-		table.insert(args, "-c")
-	end
-	if opts.create_only then
-		table.insert(args, "-C")
-	end
+	if opts.active then table.insert(args, "-a") end
+	if opts.inactive then table.insert(args, "-A") end
+	if opts.delete_bootnum then table.insert(args, "-B") end
+	if opts.create then table.insert(args, "-c") end
+	if opts.create_only then table.insert(args, "-C") end
 
 	if opts.disk ~= nil then
 		validate_token(opts.disk, "disk")
@@ -175,17 +147,13 @@ function Efibootmgr.cmd(opts)
 		table.insert(args, "-n")
 		table.insert(args, to_hex4(opts.bootnext, "bootnext"))
 	end
-	if opts.delete_bootnext then
-		table.insert(args, "-N")
-	end
+	if opts.delete_bootnext then table.insert(args, "-N") end
 
 	if opts.bootorder ~= nil then
 		table.insert(args, "-o")
 		table.insert(args, join_bootorder(opts.bootorder))
 	end
-	if opts.delete_bootorder then
-		table.insert(args, "-O")
-	end
+	if opts.delete_bootorder then table.insert(args, "-O") end
 
 	if opts.timeout ~= nil then
 		assert(
@@ -195,9 +163,7 @@ function Efibootmgr.cmd(opts)
 		table.insert(args, "-t")
 		table.insert(args, tostring(opts.timeout))
 	end
-	if opts.delete_timeout then
-		table.insert(args, "-T")
-	end
+	if opts.delete_timeout then table.insert(args, "-T") end
 
 	if opts.append_binary_args ~= nil then
 		assert(
@@ -212,9 +178,7 @@ function Efibootmgr.cmd(opts)
 	return _cmd.cmd(table.unpack(args))
 end
 
-function Efibootmgr.list(opts)
-	return Efibootmgr.cmd(opts)
-end
+function Efibootmgr.list(opts) return Efibootmgr.cmd(opts) end
 
 function Efibootmgr.set_bootnext(bootnum, opts)
 	local o = args_util.clone_opts(opts, { "extra" })

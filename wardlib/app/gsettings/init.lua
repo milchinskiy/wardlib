@@ -6,8 +6,8 @@
 -- `ward.process.cmd(...)` objects.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class Gsettings
 ---@field bin string
@@ -56,9 +56,7 @@ function Gsettings.list_keys(schema)
 	return cmd({ "list-keys", schema })
 end
 
-function Gsettings.list_schemas()
-	return cmd({ "list-schemas" })
-end
+function Gsettings.list_schemas() return cmd({ "list-schemas" }) end
 
 function Gsettings.list_recursively(schema_or_path)
 	if schema_or_path ~= nil then

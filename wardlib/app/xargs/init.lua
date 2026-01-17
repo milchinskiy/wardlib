@@ -8,8 +8,8 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class XargsOpts
 ---@field null_input boolean? `-0`
@@ -35,9 +35,7 @@ local Xargs = {
 ---@param opts XargsOpts|nil
 local function apply_opts(args, opts)
 	opts = opts or {}
-	if opts.null_input and opts.delimiter ~= nil then
-		error("null_input and delimiter are mutually exclusive")
-	end
+	if opts.null_input and opts.delimiter ~= nil then error("null_input and delimiter are mutually exclusive") end
 
 	args_util
 		.parser(args, opts)

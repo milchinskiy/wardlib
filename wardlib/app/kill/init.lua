@@ -10,9 +10,9 @@
 -- Wrappers construct `ward.process.cmd(...)` invocations; they do not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@alias Signal string|number
 
@@ -72,17 +72,13 @@ local Kill = {
 
 ---@param v any
 ---@param label string
-local function validate_number(v, label)
-	assert(type(v) == "number", label .. " must be a number")
-end
+local function validate_number(v, label) assert(type(v) == "number", label .. " must be a number") end
 
 ---@param sig Signal
 ---@return string
 local function normalize_signal(sig)
 	local t = type(sig)
-	if t == "number" then
-		return tostring(sig)
-	end
+	if t == "number" then return tostring(sig) end
 	if t == "string" then
 		validate.non_empty_string(sig, "signal")
 		-- allow "TERM" or "SIGTERM"; do not force prefix
@@ -95,12 +91,8 @@ end
 ---@param opts KillOpts|nil
 local function apply_kill_opts(args, opts)
 	opts = opts or {}
-	if opts.list then
-		table.insert(args, "-l")
-	end
-	if opts.table then
-		table.insert(args, "-L")
-	end
+	if opts.list then table.insert(args, "-l") end
+	if opts.table then table.insert(args, "-L") end
 	if opts.signal ~= nil then
 		-- many kill implementations accept: kill -s SIGTERM pid
 		local sig = normalize_signal(opts.signal)
@@ -119,27 +111,13 @@ local function apply_killall_opts(args, opts)
 		table.insert(args, "-s")
 		table.insert(args, sig)
 	end
-	if opts.exact then
-		table.insert(args, "-e")
-	end
-	if opts.ignore_case then
-		table.insert(args, "-I")
-	end
-	if opts.interactive then
-		table.insert(args, "-i")
-	end
-	if opts.wait then
-		table.insert(args, "-w")
-	end
-	if opts.regexp then
-		table.insert(args, "-r")
-	end
-	if opts.verbose then
-		table.insert(args, "-v")
-	end
-	if opts.quiet then
-		table.insert(args, "-q")
-	end
+	if opts.exact then table.insert(args, "-e") end
+	if opts.ignore_case then table.insert(args, "-I") end
+	if opts.interactive then table.insert(args, "-i") end
+	if opts.wait then table.insert(args, "-w") end
+	if opts.regexp then table.insert(args, "-r") end
+	if opts.verbose then table.insert(args, "-v") end
+	if opts.quiet then table.insert(args, "-q") end
 	if opts.user ~= nil then
 		validate.non_empty_string(opts.user, "user")
 		table.insert(args, "-u")
@@ -157,30 +135,14 @@ local function apply_pkill_opts(args, opts)
 		-- pkill supports -<sig> or -SIGTERM. We'll use the compact -<sig> form.
 		table.insert(args, "-" .. sig)
 	end
-	if opts.full then
-		table.insert(args, "-f")
-	end
-	if opts.exact then
-		table.insert(args, "-x")
-	end
-	if opts.newest then
-		table.insert(args, "-n")
-	end
-	if opts.oldest then
-		table.insert(args, "-o")
-	end
-	if opts.invert then
-		table.insert(args, "-v")
-	end
-	if opts.count then
-		table.insert(args, "-c")
-	end
-	if opts.list_name then
-		table.insert(args, "-l")
-	end
-	if opts.list_full then
-		table.insert(args, "-a")
-	end
+	if opts.full then table.insert(args, "-f") end
+	if opts.exact then table.insert(args, "-x") end
+	if opts.newest then table.insert(args, "-n") end
+	if opts.oldest then table.insert(args, "-o") end
+	if opts.invert then table.insert(args, "-v") end
+	if opts.count then table.insert(args, "-c") end
+	if opts.list_name then table.insert(args, "-l") end
+	if opts.list_full then table.insert(args, "-a") end
 	if opts.parent ~= nil then
 		validate_number(opts.parent, "parent")
 		table.insert(args, "-P")
@@ -320,9 +282,7 @@ end
 ---@return ward.Cmd
 function Kill.pid(pid, sig)
 	local opts = {}
-	if sig ~= nil then
-		opts.signal = sig
-	end
+	if sig ~= nil then opts.signal = sig end
 	return Kill.kill(pid, opts)
 end
 
@@ -333,9 +293,7 @@ end
 function Kill.by_name(name, sig)
 	validate.non_empty_string(name, "name")
 	local opts = {}
-	if sig ~= nil then
-		opts.signal = sig
-	end
+	if sig ~= nil then opts.signal = sig end
 	return Kill.killall(name, opts)
 end
 
@@ -347,12 +305,8 @@ end
 function Kill.by_pattern(pattern, sig, full)
 	validate.non_empty_string(pattern, "pattern")
 	local opts = {}
-	if sig ~= nil then
-		opts.signal = sig
-	end
-	if full ~= nil then
-		opts.full = full
-	end
+	if sig ~= nil then opts.signal = sig end
+	if full ~= nil then opts.full = full end
 	return Kill.pkill(pattern, opts)
 end
 

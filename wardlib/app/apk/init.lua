@@ -9,9 +9,9 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class ApkCommonOpts
 ---@field sudo boolean? Prefix with `sudo`
@@ -42,9 +42,7 @@ local Apk = {
 
 --- @param pkgs string|string[]
 --- @return string[]
-local function normalize_pkgs(pkgs)
-	return args_util.normalize_string_or_array(pkgs, "pkg")
-end
+local function normalize_pkgs(pkgs) return args_util.normalize_string_or_array(pkgs, "pkg") end
 
 ---@param args string[]
 ---@param opts ApkCommonOpts|nil

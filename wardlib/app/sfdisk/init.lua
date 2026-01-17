@@ -13,8 +13,8 @@
 -- helper below builds `printf "%s" <script> | sfdisk ...` for you.
 
 local _proc = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class SfdiskOpts
 ---@field force boolean? Add `--force`
@@ -69,9 +69,7 @@ end
 
 ---@param args string[]
 ---@param extra string[]|nil
-local function append_extra(args, extra)
-	args_util.append_extra(args, extra)
-end
+local function append_extra(args, extra) args_util.append_extra(args, extra) end
 
 ---Generic constructor: `sfdisk [opts...] <argv...>`
 ---@param argv string[]|nil
@@ -82,18 +80,10 @@ function Sfdisk.cmd(argv, opts)
 	opts = opts or {}
 
 	local args = { Sfdisk.bin }
-	if opts.force then
-		table.insert(args, "--force")
-	end
-	if opts.no_reread then
-		table.insert(args, "--no-reread")
-	end
-	if opts.no_act then
-		table.insert(args, "--no-act")
-	end
-	if opts.quiet then
-		table.insert(args, "--quiet")
-	end
+	if opts.force then table.insert(args, "--force") end
+	if opts.no_reread then table.insert(args, "--no-reread") end
+	if opts.no_act then table.insert(args, "--no-act") end
+	if opts.quiet then table.insert(args, "--quiet") end
 	if opts.lock ~= nil then
 		if opts.lock == true or opts.lock == "yes" then
 			table.insert(args, "--lock")
@@ -174,18 +164,10 @@ function Sfdisk.write(device, opts)
 end
 
 local function _kv(v)
-	if v == nil then
-		return nil
-	end
-	if type(v) == "number" then
-		return tostring(v)
-	end
-	if type(v) == "string" then
-		return v
-	end
-	if type(v) == "boolean" then
-		return v and true or nil
-	end
+	if v == nil then return nil end
+	if type(v) == "number" then return tostring(v) end
+	if type(v) == "string" then return v end
+	if type(v) == "boolean" then return v and true or nil end
 	return tostring(v)
 end
 
@@ -208,9 +190,7 @@ local function encode_partition(part)
 
 	local function add_kv(key, val)
 		local vv = _kv(val)
-		if vv == nil then
-			return
-		end
+		if vv == nil then return end
 		if vv == true then
 			table.insert(fields, key)
 		else
@@ -225,9 +205,7 @@ local function encode_partition(part)
 	add_kv("uuid", part.uuid)
 	add_kv("name", part.name)
 	add_kv("attrs", part.attrs)
-	if part.bootable then
-		add_kv("bootable", true)
-	end
+	if part.bootable then add_kv("bootable", true) end
 
 	if part.extra ~= nil then
 		assert(type(part.extra) == "table", "partition.extra must be a table")
@@ -250,12 +228,8 @@ function Sfdisk.script(spec)
 
 	local function add_header(key, val)
 		local vv = _kv(val)
-		if vv == nil then
-			return
-		end
-		if vv == true then
-			vv = "yes"
-		end
+		if vv == nil then return end
+		if vv == true then vv = "yes" end
 		table.insert(out, string.format("%s: %s", key, vv))
 	end
 
@@ -298,9 +272,7 @@ function Sfdisk.apply(device, spec_or_script, opts)
 	local script
 	if type(spec_or_script) == "string" then
 		script = spec_or_script
-		if not script:match("\n$") then
-			script = script .. "\n"
-		end
+		if not script:match("\n$") then script = script .. "\n" end
 	else
 		script = Sfdisk.script(spec_or_script)
 	end

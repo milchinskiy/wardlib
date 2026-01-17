@@ -41,12 +41,8 @@ return function(tinytest)
 		end
 		package.preload["ward.fs"] = function()
 			return {
-				is_exists = function()
-					return false
-				end,
-				is_executable = function()
-					return false
-				end,
+				is_exists = function() return false end,
+				is_executable = function() return false end,
 			}
 		end
 		package.loaded["ward.process"] = nil
@@ -65,9 +61,7 @@ return function(tinytest)
 		package.loaded[MODULE] = loaded_orig[MODULE]
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
 	t:before_all(install_mocks)
 	t:after_all(restore)
@@ -105,9 +99,7 @@ return function(tinytest)
 
 	t:test("refresh and no_refresh are mutually exclusive", function()
 		local Zypper = require(MODULE).Zypper
-		local ok = pcall(function()
-			Zypper.refresh({ refresh = true, no_refresh = true })
-		end)
+		local ok = pcall(function() Zypper.refresh({ refresh = true, no_refresh = true }) end)
 		t:falsy(ok)
 	end)
 

@@ -8,9 +8,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class DnfCommonOpts
 ---@field sudo boolean? Prefix the command with `sudo`
@@ -53,9 +53,7 @@ local Dnf = {
 local function apply_common(args, opts)
 	opts = opts or {}
 
-	if opts.assume_yes and opts.assume_no then
-		error("assume_yes and assume_no are mutually exclusive")
-	end
+	if opts.assume_yes and opts.assume_no then error("assume_yes and assume_no are mutually exclusive") end
 
 	args_util
 		.parser(args, opts)
@@ -119,17 +117,13 @@ end
 ---@param pkgs string|string[]
 ---@param opts DnfCommonOpts|nil
 ---@return ward.Cmd
-function Dnf.install(pkgs, opts)
-	return Dnf.cmd("install", normalize_list(pkgs, "pkgs"), opts)
-end
+function Dnf.install(pkgs, opts) return Dnf.cmd("install", normalize_list(pkgs, "pkgs"), opts) end
 
 ---`dnf remove <pkgs...>`
 ---@param pkgs string|string[]
 ---@param opts DnfCommonOpts|nil
 ---@return ward.Cmd
-function Dnf.remove(pkgs, opts)
-	return Dnf.cmd("remove", normalize_list(pkgs, "pkgs"), opts)
-end
+function Dnf.remove(pkgs, opts) return Dnf.cmd("remove", normalize_list(pkgs, "pkgs"), opts) end
 
 ---`dnf update [pkgs...]`
 ---@param pkgs string|string[]|nil
@@ -137,9 +131,7 @@ end
 ---@return ward.Cmd
 function Dnf.update(pkgs, opts)
 	local argv = nil
-	if pkgs ~= nil then
-		argv = normalize_list(pkgs, "pkgs")
-	end
+	if pkgs ~= nil then argv = normalize_list(pkgs, "pkgs") end
 	return Dnf.cmd("update", argv, opts)
 end
 
@@ -149,25 +141,19 @@ end
 ---@return ward.Cmd
 function Dnf.upgrade(pkgs, opts)
 	local argv = nil
-	if pkgs ~= nil then
-		argv = normalize_list(pkgs, "pkgs")
-	end
+	if pkgs ~= nil then argv = normalize_list(pkgs, "pkgs") end
 	return Dnf.cmd("upgrade", argv, opts)
 end
 
 ---`dnf autoremove`
 ---@param opts DnfCommonOpts|nil
 ---@return ward.Cmd
-function Dnf.autoremove(opts)
-	return Dnf.cmd("autoremove", nil, opts)
-end
+function Dnf.autoremove(opts) return Dnf.cmd("autoremove", nil, opts) end
 
 ---`dnf makecache`
 ---@param opts DnfCommonOpts|nil
 ---@return ward.Cmd
-function Dnf.makecache(opts)
-	return Dnf.cmd("makecache", nil, opts)
-end
+function Dnf.makecache(opts) return Dnf.cmd("makecache", nil, opts) end
 
 ---`dnf search <term>`
 ---@param term string
@@ -182,9 +168,7 @@ end
 ---@param pkgs string|string[]
 ---@param opts DnfCommonOpts|nil
 ---@return ward.Cmd
-function Dnf.info(pkgs, opts)
-	return Dnf.cmd("info", normalize_list(pkgs, "pkgs"), opts)
-end
+function Dnf.info(pkgs, opts) return Dnf.cmd("info", normalize_list(pkgs, "pkgs"), opts) end
 
 ---Low-level escape hatch.
 ---Builds: `dnf <modeled-opts...> <argv...>`

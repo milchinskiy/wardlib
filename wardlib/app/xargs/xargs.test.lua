@@ -41,12 +41,8 @@ return function(tinytest)
 		end
 		package.preload["ward.fs"] = function()
 			return {
-				is_exists = function()
-					return false
-				end,
-				is_executable = function()
-					return false
-				end,
+				is_exists = function() return false end,
+				is_executable = function() return false end,
 			}
 		end
 		package.loaded["ward.process"] = nil
@@ -65,9 +61,7 @@ return function(tinytest)
 		package.loaded[MODULE] = loaded_orig[MODULE]
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
 	t:before_all(install_mocks)
 	t:after_all(restore)
@@ -85,9 +79,7 @@ return function(tinytest)
 
 	t:test("delimiter vs null_input exclusivity", function()
 		local Xargs = require(MODULE).Xargs
-		local ok = pcall(function()
-			Xargs.run("echo", { null_input = true, delimiter = "," })
-		end)
+		local ok = pcall(function() Xargs.run("echo", { null_input = true, delimiter = "," }) end)
 		t:falsy(ok)
 	end)
 

@@ -9,9 +9,9 @@
 -- packages. This module focuses on the common package-management flows.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class YayCommonOpts
 ---@field sudo boolean? Prefix with `sudo`
@@ -43,9 +43,7 @@ local Yay = {
 
 --- @param pkgs string|string[]
 --- @return string[]
-local function normalize_pkgs(pkgs)
-	return args_util.normalize_string_or_array(pkgs, "pkg")
-end
+local function normalize_pkgs(pkgs) return args_util.normalize_string_or_array(pkgs, "pkg") end
 
 ---@param args string[]
 ---@param opts YayCommonOpts|nil
@@ -115,15 +113,9 @@ end
 function Yay.remove(pkgs, opts)
 	opts = opts or {}
 	local flags = ""
-	if opts.nosave then
-		flags = flags .. "n"
-	end
-	if opts.recursive then
-		flags = flags .. "s"
-	end
-	if opts.cascade then
-		flags = flags .. "c"
-	end
+	if opts.nosave then flags = flags .. "n" end
+	if opts.recursive then flags = flags .. "s" end
+	if opts.cascade then flags = flags .. "c" end
 	local argv = { "-R" .. flags }
 	apply_common(argv, opts)
 	for _, p in ipairs(normalize_pkgs(pkgs)) do

@@ -8,9 +8,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class LsOpts
 ---@field all boolean? `-a`
@@ -42,22 +42,12 @@ local Ls = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.all and opts.almost_all then
-		error("all and almost_all are mutually exclusive")
-	end
+	if opts.all and opts.almost_all then error("all and almost_all are mutually exclusive") end
 	local sort_count = 0
-	if opts.sort_time then
-		sort_count = sort_count + 1
-	end
-	if opts.sort_size then
-		sort_count = sort_count + 1
-	end
-	if opts.no_sort then
-		sort_count = sort_count + 1
-	end
-	if sort_count > 1 then
-		error("sort_time, sort_size, and no_sort are mutually exclusive")
-	end
+	if opts.sort_time then sort_count = sort_count + 1 end
+	if opts.sort_size then sort_count = sort_count + 1 end
+	if opts.no_sort then sort_count = sort_count + 1 end
+	if sort_count > 1 then error("sort_time, sort_size, and no_sort are mutually exclusive") end
 
 	local p = args_util.parser(args, opts)
 	p:flag("all", "-a")

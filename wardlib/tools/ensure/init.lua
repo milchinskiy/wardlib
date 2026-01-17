@@ -24,60 +24,38 @@ local function is_windows(env)
 	--  * Many Windows environments export OS=Windows_NT.
 
 	local sep = package.config:sub(1, 1)
-	if sep == "\\" then
-		return true
-	end
+	if sep == "\\" then return true end
 
 	return env.get("OS") == "Windows_NT"
 end
 
 local function detect_os(env, process)
-	if is_windows(env) then
-		return "windows"
-	end
+	if is_windows(env) then return "windows" end
 
 	-- Prefer uname when present. If it is not present, fall back to generic "unix".
 	local uname = env.which and env.which("uname")
-	if not uname then
-		return "unix"
-	end
+	if not uname then return "unix" end
 
 	local r = process.cmd(uname, "-s"):output()
-	if not r.ok then
-		error("tools.ensure.os: failed to run uname -s", 3)
-	end
+	if not r.ok then error("tools.ensure.os: failed to run uname -s", 3) end
 
 	local v = trim(r.stdout)
-	if #v == 0 then
-		return "unix"
-	end
+	if #v == 0 then return "unix" end
 	v = v:lower()
 
 	-- Normalize common uname values
-	if v == "linux" then
-		return "linux"
-	end
-	if v == "darwin" then
-		return "darwin"
-	end
-	if v == "freebsd" then
-		return "freebsd"
-	end
-	if v == "openbsd" then
-		return "openbsd"
-	end
-	if v == "netbsd" then
-		return "netbsd"
-	end
+	if v == "linux" then return "linux" end
+	if v == "darwin" then return "darwin" end
+	if v == "freebsd" then return "freebsd" end
+	if v == "openbsd" then return "openbsd" end
+	if v == "netbsd" then return "netbsd" end
 
 	return v
 end
 
 local function normalize_allowed_os(v)
 	v = tostring(v):lower()
-	if v == "posix" then
-		return "unix"
-	end
+	if v == "posix" then return "unix" end
 	return v
 end
 
@@ -100,16 +78,12 @@ function M.bin(name_or_path, opts)
 	if is_path then
 		if not fs.is_exists(name_or_path) then
 			local msg = string.format("%s does not exist: %s", label, name_or_path)
-			if hint then
-				msg = msg .. "\nHint: " .. hint
-			end
+			if hint then msg = msg .. "\nHint: " .. hint end
 			error(msg, 2)
 		end
 		if not fs.is_executable(name_or_path) then
 			local msg = string.format("%s is not executable: %s", label, name_or_path)
-			if hint then
-				msg = msg .. "\nHint: " .. hint
-			end
+			if hint then msg = msg .. "\nHint: " .. hint end
 			error(msg, 2)
 		end
 		return name_or_path
@@ -117,9 +91,7 @@ function M.bin(name_or_path, opts)
 
 	if not env.is_in_path(name_or_path) then
 		local msg = string.format("%s not found in PATH: %s", label, name_or_path)
-		if hint then
-			msg = msg .. "\nHint: " .. hint
-		end
+		if hint then msg = msg .. "\nHint: " .. hint end
 		error(msg, 2)
 	end
 
@@ -155,17 +127,13 @@ function M.env(keys, opts)
 		local v = env.get(k)
 		if v == nil or (not allow_empty and v == "") then
 			local msg = string.format("required environment variable is not set: %s", k)
-			if hint then
-				msg = msg .. "\nHint: " .. hint
-			end
+			if hint then msg = msg .. "\nHint: " .. hint end
 			error(msg, 3)
 		end
 		return v
 	end
 
-	if type(keys) == "string" then
-		return require_one(keys)
-	end
+	if type(keys) == "string" then return require_one(keys) end
 
 	assert(type(keys) == "table", "env keys must be a string or string[]")
 	assert(#keys > 0, "env keys must be non-empty")
@@ -184,26 +152,18 @@ function M.root(opts)
 	local env = require("ward.env")
 	local process = require("ward.process")
 
-	if is_windows(env) then
-		error("tools.ensure.root: unsupported on Windows", 2)
-	end
+	if is_windows(env) then error("tools.ensure.root: unsupported on Windows", 2) end
 
 	local id = env.which and env.which("id")
-	if not id then
-		error("tools.ensure.root: cannot determine uid (missing 'id' binary)", 2)
-	end
+	if not id then error("tools.ensure.root: cannot determine uid (missing 'id' binary)", 2) end
 
 	local r = process.cmd(id, "-u"):output()
-	if not r.ok then
-		error("tools.ensure.root: failed to run 'id -u'", 2)
-	end
+	if not r.ok then error("tools.ensure.root: failed to run 'id -u'", 2) end
 
 	local uid = trim(r.stdout)
 	if uid ~= "0" then
 		local msg = "root privileges required"
-		if opts.allow_sudo_hint ~= false then
-			msg = msg .. "\nHint: re-run with sudo (or as root)."
-		end
+		if opts.allow_sudo_hint ~= false then msg = msg .. "\nHint: re-run with sudo (or as root)." end
 		error(msg, 2)
 	end
 
@@ -227,19 +187,13 @@ function M.os(allowed, opts)
 	local current = detect_os(env, process)
 	local current_norm = normalize_allowed_os(current)
 
-	if allowed_set[current_norm] then
-		return current_norm
-	end
+	if allowed_set[current_norm] then return current_norm end
 
 	-- unix/posix means "anything except windows".
-	if allowed_set["unix"] and current_norm ~= "windows" then
-		return current_norm
-	end
+	if allowed_set["unix"] and current_norm ~= "windows" then return current_norm end
 
 	local msg = string.format("unsupported OS: %s (allowed: %s)", current_norm, join(allowed_list))
-	if opts.hint then
-		msg = msg .. "\nHint: " .. opts.hint
-	end
+	if opts.hint then msg = msg .. "\nHint: " .. opts.hint end
 	error(msg, 2)
 end
 

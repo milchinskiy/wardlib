@@ -113,17 +113,11 @@ return function(tinytest)
 		t:ok(false, "failed to require mkfs module. Tried:\\n" .. table.concat(errs, "\\n"))
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
-	t:before_all(function()
-		install_mocks()
-	end)
+	t:before_all(function() install_mocks() end)
 
-	t:after_all(function()
-		restore_originals()
-	end)
+	t:after_all(function() restore_originals() end)
 
 	t:before_each(function()
 		reset_calls()
@@ -176,9 +170,7 @@ return function(tinytest)
 		env_in_path["mkfs"] = true
 		local mod = load_module()
 
-		local ok = pcall(function()
-			mod.Mkfs.format("--bad", "/dev/sda1")
-		end)
+		local ok = pcall(function() mod.Mkfs.format("--bad", "/dev/sda1") end)
 		t:falsy(ok)
 	end)
 

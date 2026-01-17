@@ -111,9 +111,7 @@ return function(tinytest)
 		t:ok(false, "failed to require gzip module. Tried:\n" .. table.concat(errs, "\n"))
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
 	t:before_all(install_mocks)
 	t:after_all(restore_originals)

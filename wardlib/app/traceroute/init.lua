@@ -9,9 +9,9 @@
 -- execute returned commands and interpret results.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class TracerouteOpts
 ---@field inet4 boolean? `-4`
@@ -46,16 +46,10 @@ local Traceroute = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.inet4 and opts.inet6 then
-		error("inet4 and inet6 are mutually exclusive")
-	end
+	if opts.inet4 and opts.inet6 then error("inet4 and inet6 are mutually exclusive") end
 
-	if opts.icmp and (opts.tcp or opts.udp) then
-		error("icmp is mutually exclusive with tcp/udp")
-	end
-	if opts.tcp and opts.udp then
-		error("tcp and udp are mutually exclusive")
-	end
+	if opts.icmp and (opts.tcp or opts.udp) then error("icmp is mutually exclusive with tcp/udp") end
+	if opts.tcp and opts.udp then error("tcp and udp are mutually exclusive") end
 
 	args_util
 		.parser(args, opts)

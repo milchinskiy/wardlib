@@ -13,9 +13,9 @@
 -- The module does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class ArchiveCommonOpts
 ---@field dir string? For create: `-C <dir>` before the input paths
@@ -43,9 +43,7 @@ local Archive = {
 local function apply_common(args, opts, allow_dir, for_extract)
 	opts = opts or {}
 
-	if opts.verbose then
-		table.insert(args, "-v")
-	end
+	if opts.verbose then table.insert(args, "-v") end
 
 	if opts.compression ~= nil then
 		local c = opts.compression

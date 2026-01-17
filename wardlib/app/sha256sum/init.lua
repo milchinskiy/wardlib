@@ -8,8 +8,8 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class Sha256sumOpts
 ---@field binary boolean? `-b` (read files in binary mode)
@@ -37,9 +37,7 @@ local Sha256sum = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.binary and opts.text then
-		error("binary and text are mutually exclusive")
-	end
+	if opts.binary and opts.text then error("binary and text are mutually exclusive") end
 
 	args_util
 		.parser(args, opts)
@@ -59,9 +57,7 @@ end
 ---@param label string
 ---@return string[]|nil
 local function normalize_files_opt(files, label)
-	if files == nil then
-		return nil
-	end
+	if files == nil then return nil end
 	local list = args_util.normalize_string_or_array(files, label)
 	assert(#list > 0, label .. " must not be empty")
 	return list

@@ -8,8 +8,8 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class FdOpts
 ---@field hidden boolean? `-H, --hidden`
@@ -56,24 +56,14 @@ local function apply_opts(args, opts)
 
 	-- search mode
 	local mode_count = 0
-	if opts.glob then
-		mode_count = mode_count + 1
-	end
-	if opts.fixed_strings then
-		mode_count = mode_count + 1
-	end
-	if mode_count > 1 then
-		error("glob and fixed_strings are mutually exclusive")
-	end
+	if opts.glob then mode_count = mode_count + 1 end
+	if opts.fixed_strings then mode_count = mode_count + 1 end
+	if mode_count > 1 then error("glob and fixed_strings are mutually exclusive") end
 
 	-- case
-	if opts.case_sensitive and opts.ignore_case then
-		error("case_sensitive and ignore_case are mutually exclusive")
-	end
+	if opts.case_sensitive and opts.ignore_case then error("case_sensitive and ignore_case are mutually exclusive") end
 
-	if opts.exec ~= nil and opts.exec_batch ~= nil then
-		error("exec and exec_batch are mutually exclusive")
-	end
+	if opts.exec ~= nil and opts.exec_batch ~= nil then error("exec and exec_batch are mutually exclusive") end
 
 	local p = args_util.parser(args, opts)
 	p:flag("glob", "-g")
@@ -133,9 +123,7 @@ function Fd.search(pattern, paths, opts)
 	ensure.bin(Fd.bin, { label = "fd binary" })
 
 	local p = pattern
-	if p == nil then
-		p = "."
-	end
+	if p == nil then p = "." end
 	assert(type(p) == "string", "pattern must be a string")
 
 	local args = { Fd.bin }
@@ -156,9 +144,7 @@ end
 ---@param paths string|string[]|nil
 ---@param opts FdOpts|nil
 ---@return ward.Cmd
-function Fd.all(paths, opts)
-	return Fd.search(".", paths, opts)
-end
+function Fd.all(paths, opts) return Fd.search(".", paths, opts) end
 
 ---Low-level escape hatch.
 ---Builds: `fd <modeled-opts...> <argv...>`

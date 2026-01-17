@@ -8,9 +8,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class RgOpts
 ---@field fixed boolean? `-F` (fixed strings)
@@ -62,9 +62,7 @@ local Rg = {
 local function apply_opts(args, opts)
 	opts = opts or {}
 
-	if opts.no_filename and opts.with_filename then
-		error("no_filename and with_filename are mutually exclusive")
-	end
+	if opts.no_filename and opts.with_filename then error("no_filename and with_filename are mutually exclusive") end
 
 	-- context
 	if opts.context ~= nil and (opts.after_context ~= nil or opts.before_context ~= nil) then
@@ -124,9 +122,7 @@ end
 ---@param args string[]
 ---@param paths string|string[]|nil
 local function apply_paths(args, paths)
-	if paths == nil then
-		return
-	end
+	if paths == nil then return end
 	local list = args_util.normalize_string_or_array(paths, "paths")
 	for _, p in ipairs(list) do
 		validate.not_flag(p, "path")

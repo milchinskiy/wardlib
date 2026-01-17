@@ -27,19 +27,13 @@ return function(tinytest)
 
 	local stack = {}
 
-	local function reset_stack()
-		stack = {}
-	end
+	local function reset_stack() stack = {} end
 
 	local function install_mocks()
 		package.preload["ward.process"] = function()
 			return {
-				push_middleware = function(mw)
-					stack[#stack + 1] = mw
-				end,
-				pop_middleware = function()
-					stack[#stack] = nil
-				end,
+				push_middleware = function(mw) stack[#stack + 1] = mw end,
+				pop_middleware = function() stack[#stack] = nil end,
 			}
 		end
 
@@ -61,9 +55,7 @@ return function(tinytest)
 		local errs = {}
 		for _, name in ipairs(MODULE_CANDIDATES) do
 			local ok, mod = pcall(require, name)
-			if ok and type(mod) == "table" then
-				return mod
-			end
+			if ok and type(mod) == "table" then return mod end
 			errs[#errs + 1] = name .. ": " .. tostring(mod)
 		end
 		t:ok(false, "failed to require tools.with. Tried:\n" .. table.concat(errs, "\n"))
@@ -74,13 +66,9 @@ return function(tinytest)
 		t:falsy(ok)
 	end
 
-	t:before_all(function()
-		install_mocks()
-	end)
+	t:before_all(function() install_mocks() end)
 
-	t:after_all(function()
-		restore_originals()
-	end)
+	t:after_all(function() restore_originals() end)
 
 	t:before_each(function()
 		reset_stack()
@@ -116,9 +104,7 @@ return function(tinytest)
 
 	t:test("_as_argv rejects unsupported types", function()
 		local w = load_module()
-		throws(function()
-			w._as_argv(123)
-		end)
+		throws(function() w._as_argv(123) end)
 	end)
 
 	t:test("middleware.prefix prefixes argv (and sep)", function()
@@ -139,20 +125,14 @@ return function(tinytest)
 
 	t:test("scope pushes/pops on success", function()
 		local w = load_module()
-		w.scope(function(s)
-			return s
-		end, function()
-			t:eq(#stack, 1)
-		end)
+		w.scope(function(s) return s end, function() t:eq(#stack, 1) end)
 		t:eq(#stack, 0)
 	end)
 
 	t:test("scope pushes/pops on error", function()
 		local w = load_module()
 		local ok = pcall(function()
-			w.scope(function(s)
-				return s
-			end, function()
+			w.scope(function(s) return s end, function()
 				t:eq(#stack, 1)
 				error("boom")
 			end)
@@ -164,9 +144,7 @@ return function(tinytest)
 	t:test("with(prefix, cmd) wraps method calls under scope", function()
 		local w = load_module()
 		local cmd = {
-			run = function(self)
-				return #stack
-			end,
+			run = function(self) return #stack end,
 		}
 
 		local wrapped = w.with({ "sudo" }, cmd)
@@ -176,9 +154,7 @@ return function(tinytest)
 
 	t:test("with(prefix, fn) scopes block", function()
 		local w = load_module()
-		w.with({ "sudo" }, function()
-			t:eq(#stack, 1)
-		end)
+		w.with({ "sudo" }, function() t:eq(#stack, 1) end)
 		t:eq(#stack, 0)
 	end)
 

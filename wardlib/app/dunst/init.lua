@@ -1,9 +1,9 @@
 ---@diagnostic disable: undefined-doc-name
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 local URGENCY_MAP = { low = true, normal = true, critical = true }
 
@@ -72,9 +72,7 @@ function Dunst.notify(summary, opts)
 	args_util
 		.parser(args, eff)
 		:value("app_name", "-a", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:value("urgency", "-u", {
 			validate = function(v, l)
@@ -88,29 +86,19 @@ function Dunst.notify(summary, opts)
 			end,
 		})
 		:value("hints", "-h", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:value("action", "-A", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:value("icon", "-i", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:value("raw_icon", "-I", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:value("category", "-c", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:value("replaceId", "-r", {
 			validate = function(v, _)
@@ -123,9 +111,7 @@ function Dunst.notify(summary, opts)
 	args[#args + 1] = summary
 
 	local body = opts.body or DunstifyOptions.body
-	if body ~= nil then
-		args[#args + 1] = body
-	end
+	if body ~= nil then args[#args + 1] = body end
 
 	return _cmd.cmd(table.unpack(args))
 end

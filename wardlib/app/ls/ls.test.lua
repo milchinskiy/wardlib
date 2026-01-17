@@ -83,9 +83,7 @@ return function(tinytest)
 		return mod
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
 	t:before_all(install_mocks)
 	t:after_all(restore_originals)
@@ -104,9 +102,7 @@ return function(tinytest)
 
 	t:test("sort exclusivity", function()
 		local Ls = load_module().Ls
-		local ok = pcall(function()
-			Ls.list(".", { sort_time = true, sort_size = true })
-		end)
+		local ok = pcall(function() Ls.list(".", { sort_time = true, sort_size = true }) end)
 		t:falsy(ok)
 	end)
 

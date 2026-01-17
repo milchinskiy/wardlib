@@ -83,9 +83,7 @@ return function(tinytest)
 		return mod
 	end
 
-	local function last_cmd()
-		return calls.cmd[#calls.cmd]
-	end
+	local function last_cmd() return calls.cmd[#calls.cmd] end
 
 	t:before_all(install_mocks)
 	t:after_all(restore)
@@ -137,9 +135,7 @@ return function(tinytest)
 		-- PATH bin
 		Rg.bin = "rg"
 		env_ok = false
-		local ok1 = pcall(function()
-			Rg.search("x", ".", nil)
-		end)
+		local ok1 = pcall(function() Rg.search("x", ".", nil) end)
 		t:falsy(ok1)
 		t:eq(calls.is_in_path[#calls.is_in_path], "rg")
 
@@ -148,9 +144,7 @@ return function(tinytest)
 		Rg.bin = "/usr/bin/rg"
 		fs_exists["/usr/bin/rg"] = true
 		fs_exec["/usr/bin/rg"] = true
-		local ok2 = pcall(function()
-			Rg.search("x", ".", nil)
-		end)
+		local ok2 = pcall(function() Rg.search("x", ".", nil) end)
 		t:truthy(ok2)
 		t:eq(calls.is_exists[#calls.is_exists], "/usr/bin/rg")
 		t:eq(calls.is_executable[#calls.is_executable], "/usr/bin/rg")

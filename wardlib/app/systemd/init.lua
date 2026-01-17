@@ -9,8 +9,8 @@
 -- output. Consumers can choose how to execute the returned commands.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class SystemdCommonOpts
 ---@field user boolean? Use per-user systemd manager (`--user`)
@@ -195,9 +195,7 @@ function Systemd.status(unit, opts)
 	args[#args + 1] = "status"
 
 	local no_pager = opts.no_pager
-	if no_pager == nil then
-		no_pager = true
-	end
+	if no_pager == nil then no_pager = true end
 	local eff = { no_pager = no_pager, full = opts.full }
 
 	args_util.parser(args, eff):flag("no_pager", "--no-pager"):flag("full", "--full")
@@ -225,14 +223,10 @@ function Systemd.journal(unit, opts)
 	ensure.bin(Systemd.journalctl_bin, { label = "journalctl binary" })
 	opts = opts or {}
 
-	if unit ~= nil then
-		validate_unit(unit)
-	end
+	if unit ~= nil then validate_unit(unit) end
 
 	local no_pager = opts.no_pager
-	if no_pager == nil then
-		no_pager = true
-	end
+	if no_pager == nil then no_pager = true end
 
 	local eff = {
 		user = opts.user,
@@ -252,9 +246,7 @@ function Systemd.journal(unit, opts)
 		:flag("user", "--user")
 		:flag("no_pager", "--no-pager")
 		:value("unit", "-u", {
-			validate = function(v)
-				validate_unit(v)
-			end,
+			validate = function(v) validate_unit(v) end,
 		})
 		:flag("follow", "-f")
 		:value_number("lines", "-n", { integer = true, non_negative = true })

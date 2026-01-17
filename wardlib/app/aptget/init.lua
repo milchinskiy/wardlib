@@ -9,8 +9,8 @@
 -- prefix commands with `sudo`.
 
 local _cmd = require("ward.process")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
 
 ---@class AptGetCommonOpts
 ---@field sudo boolean? Prefix with `sudo`
@@ -42,9 +42,7 @@ local AptGet = {
 
 --- @param pkgs string|string[]
 --- @return string[]
-local function normalize_pkgs(pkgs)
-	return args_util.normalize_string_or_array(pkgs, "pkg")
-end
+local function normalize_pkgs(pkgs) return args_util.normalize_string_or_array(pkgs, "pkg") end
 
 ---@param args string[]
 ---@param opts AptGetCommonOpts|nil
@@ -104,23 +102,17 @@ end
 ---`apt-get update`
 ---@param opts AptGetCommonOpts|nil
 ---@return ward.Cmd
-function AptGet.update(opts)
-	return AptGet.cmd("update", nil, opts)
-end
+function AptGet.update(opts) return AptGet.cmd("update", nil, opts) end
 
 ---`apt-get upgrade`
 ---@param opts AptGetCommonOpts|nil
 ---@return ward.Cmd
-function AptGet.upgrade(opts)
-	return AptGet.cmd("upgrade", nil, opts)
-end
+function AptGet.upgrade(opts) return AptGet.cmd("upgrade", nil, opts) end
 
 ---`apt-get dist-upgrade`
 ---@param opts AptGetCommonOpts|nil
 ---@return ward.Cmd
-function AptGet.dist_upgrade(opts)
-	return AptGet.cmd("dist-upgrade", nil, opts)
-end
+function AptGet.dist_upgrade(opts) return AptGet.cmd("dist-upgrade", nil, opts) end
 
 ---`apt-get install ...`
 ---@param pkgs string|string[]
@@ -153,16 +145,12 @@ end
 ---`apt-get autoremove`
 ---@param opts AptGetCommonOpts|nil
 ---@return ward.Cmd
-function AptGet.autoremove(opts)
-	return AptGet.cmd("autoremove", nil, opts)
-end
+function AptGet.autoremove(opts) return AptGet.cmd("autoremove", nil, opts) end
 
 ---`apt-get clean`
 ---@param opts AptGetCommonOpts|nil
 ---@return ward.Cmd
-function AptGet.clean(opts)
-	return AptGet.cmd("clean", nil, opts)
-end
+function AptGet.clean(opts) return AptGet.cmd("clean", nil, opts) end
 
 return {
 	AptGet = AptGet,

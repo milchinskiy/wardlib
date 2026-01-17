@@ -9,9 +9,9 @@
 -- This module intentionally does not parse output.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class ComposeOpts
 ---@field engine string? Engine selector. If nil or 'docker' => uses `docker`. If 'podman' => uses `podman`.
@@ -108,12 +108,8 @@ local Compose = {}
 ---@return string
 local function engine_bin(opts)
 	local eng = opts and opts.engine or nil
-	if eng == nil or eng == "docker" then
-		return "docker"
-	end
-	if eng == "podman" then
-		return "podman"
-	end
+	if eng == nil or eng == "docker" then return "docker" end
+	if eng == "podman" then return "podman" end
 	error("invalid compose engine: " .. tostring(eng))
 end
 
@@ -125,19 +121,13 @@ local function apply_global_opts(args, opts)
 		.parser(args, opts)
 		:value_string("project_name", "-p", "project_name")
 		:repeatable("file", "-f", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("env_file", "--env-file", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("profile", "--profile", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:value_string("ansi", "--ansi", "ansi")
 		:value_string("progress", "--progress", "progress")
@@ -147,9 +137,7 @@ end
 ---@param args string[]
 ---@param argv string|string[]|nil
 local function append_argv(args, argv)
-	if argv == nil then
-		return
-	end
+	if argv == nil then return end
 	local av = args_util.normalize_string_or_array(argv, "argv")
 	for _, s in ipairs(av) do
 		args[#args + 1] = s
@@ -371,9 +359,7 @@ function Compose.exec(service, cmdline, opts)
 		:value_string("user", "-u", "user")
 		:value_string("workdir", "-w", "workdir")
 		:repeatable("env", "-e", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 
 	args[#args + 1] = service
@@ -403,19 +389,13 @@ function Compose.run(service, cmdline, opts)
 		:value_string("user", "-u", "user")
 		:value_string("workdir", "-w", "workdir")
 		:repeatable("env", "-e", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("publish", "-p", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:repeatable("volume", "-v", {
-			validate = function(v, l)
-				validate.non_empty_string(v, l)
-			end,
+			validate = function(v, l) validate.non_empty_string(v, l) end,
 		})
 		:flag("no_deps", "--no-deps")
 		:flag("service_ports", "--service-ports")
@@ -428,16 +408,12 @@ end
 ---`(<engine>) compose config`
 ---@param opts ComposeOpts|nil
 ---@return ward.Cmd
-function Compose.config(opts)
-	return Compose.cmd("config", nil, opts)
-end
+function Compose.config(opts) return Compose.cmd("config", nil, opts) end
 
 ---`(<engine>) compose version`
 ---@param opts ComposeOpts|nil
 ---@return ward.Cmd
-function Compose.version(opts)
-	return Compose.cmd("version", nil, opts)
-end
+function Compose.version(opts) return Compose.cmd("version", nil, opts) end
 
 ---Low-level escape hatch.
 ---Builds: `(<engine>) compose <argv...>`

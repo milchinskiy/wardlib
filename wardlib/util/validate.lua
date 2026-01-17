@@ -21,9 +21,7 @@ end
 
 -- @param v any
 -- @param label string
-function M.non_empty_string(v, label)
-	assert(type(v) == "string" and #v > 0, label .. " must be a non-empty string")
-end
+function M.non_empty_string(v, label) assert(type(v) == "string" and #v > 0, label .. " must be a non-empty string") end
 
 -- @param v any
 -- @param label string
@@ -37,9 +35,7 @@ end
 -- @param min number|nil
 function M.number_min(v, label, min)
 	assert(type(v) == "number", label .. " must be a number")
-	if min ~= nil then
-		assert(v >= min, label .. " must be >= " .. tostring(min))
-	end
+	if min ~= nil then assert(v >= min, label .. " must be >= " .. tostring(min)) end
 end
 
 -- @param v any
@@ -50,24 +46,18 @@ end
 
 -- @param v any
 -- @param label string
-function M.integer(v, label)
-	assert(type(v) == "number" and math.floor(v) == v, label .. " must be an integer")
-end
+function M.integer(v, label) assert(type(v) == "number" and math.floor(v) == v, label .. " must be an integer") end
 
 -- @param v any
 -- @param label string
 -- @param min integer|nil
 function M.integer_min(v, label, min)
 	M.integer(v, label)
-	if min ~= nil then
-		assert(v >= min, label .. " must be >= " .. tostring(min))
-	end
+	if min ~= nil then assert(v >= min, label .. " must be >= " .. tostring(min)) end
 end
 
 -- @param v any
 -- @param label string
-function M.integer_non_negative(v, label)
-	M.integer_min(v, label, 0)
-end
+function M.integer_non_negative(v, label) M.integer_min(v, label, 0) end
 
 return M

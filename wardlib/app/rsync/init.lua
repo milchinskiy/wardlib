@@ -6,9 +6,9 @@
 -- `ward.process.cmd(...)` objects.
 
 local _cmd = require("ward.process")
-local validate = require("wardlib.util.validate")
-local ensure = require("wardlib.tools.ensure")
 local args_util = require("wardlib.util.args")
+local ensure = require("wardlib.tools.ensure")
+local validate = require("wardlib.util.validate")
 
 ---@class RsyncOpts
 ---@field archive boolean? `-a`
