@@ -73,5 +73,6 @@
 - [dotfiles](./dotfiles.md)
 - [ensure](./ensure.md)
 - [task](./task.md)
+- [platform](./platform.md)
 - [retry](./retry.md)
 - [with](./with.md)
