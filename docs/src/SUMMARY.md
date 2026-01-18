@@ -72,4 +72,5 @@
 - [cli](./cli.md)
 - [dotfiles](./dotfiles.md)
 - [ensure](./ensure.md)
+- [task](./task.md)
 - [with](./with.md)
