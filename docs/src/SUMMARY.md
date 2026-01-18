@@ -69,6 +69,7 @@
 
 # Tools
 
-- [with](./with.md)
-- [ensure](./ensure.md)
 - [cli](./cli.md)
+- [dotfiles](./dotfiles.md)
+- [ensure](./ensure.md)
+- [with](./with.md)
