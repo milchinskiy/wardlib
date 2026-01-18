@@ -70,6 +70,7 @@
 # Tools
 
 - [cli](./cli.md)
+- [config](./config.md)
 - [dotfiles](./dotfiles.md)
 - [ensure](./ensure.md)
 - [task](./task.md)
