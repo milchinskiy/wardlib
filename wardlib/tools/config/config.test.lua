@@ -5,9 +5,7 @@ local fs = require("ward.fs")
 
 local root
 
-t:before_each(function()
-	root = fs.tempdir("wardlib-config")
-end)
+t:before_each(function() root = fs.tempdir("wardlib-config") end)
 
 t:after_each(function()
 	if root then
@@ -16,9 +14,7 @@ t:after_each(function()
 	end
 end)
 
-local function path(...)
-	return fs.join(root, ...)
-end
+local function path(...) return fs.join(root, ...) end
 
 t:test("infer_format recognizes common extensions", function()
 	t:eq(config.infer_format("a.json"), "json")
@@ -49,9 +45,7 @@ end)
 t:test("patch mutates in place by default", function()
 	local f = path("p.json")
 	config.write(f, { a = 1 }, { mkdir = true })
-	config.patch(f, function(doc)
-		doc.b = 2
-	end)
+	config.patch(f, function(doc) doc.b = 2 end)
 	local doc = config.read(f)
 	t:eq(doc.a, 1)
 	t:eq(doc.b, 2)

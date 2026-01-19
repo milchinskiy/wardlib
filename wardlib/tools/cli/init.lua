@@ -1064,7 +1064,8 @@ function Parser:parse(argv, parse_opts)
 							push_unknown("-" .. ch)
 							j = j + 1
 						else
-							return false, format_parse_error(self, "unknown_option", "unknown option: -" .. ch, "-" .. ch)
+							return false,
+								format_parse_error(self, "unknown_option", "unknown option: -" .. ch, "-" .. ch)
 						end
 					else
 						if opt.__internal and opt.id == "__help" then
@@ -1085,7 +1086,13 @@ function Parser:parse(argv, parse_opts)
 								i = i + 1
 								raw = argv[i]
 								if raw == nil then
-									return false, format_parse_error(self, "missing_value", "missing value for option: -" .. ch, "-" .. ch)
+									return false,
+										format_parse_error(
+											self,
+											"missing_value",
+											"missing value for option: -" .. ch,
+											"-" .. ch
+										)
 								end
 							end
 
@@ -1094,7 +1101,13 @@ function Parser:parse(argv, parse_opts)
 								if type(err_apply) == "table" and err_apply.code ~= nil then
 									return false, format_parse_error(self, err_apply.code, err_apply.message, "-" .. ch)
 								end
-								return false, format_parse_error(self, "invalid_value", "invalid value for -" .. ch .. ": " .. tostring(err_apply), "-" .. ch)
+								return false,
+									format_parse_error(
+										self,
+										"invalid_value",
+										"invalid value for -" .. ch .. ": " .. tostring(err_apply),
+										"-" .. ch
+									)
 							end
 							j = #body + 1
 						else
@@ -1103,7 +1116,13 @@ function Parser:parse(argv, parse_opts)
 								if type(err_apply) == "table" and err_apply.code ~= nil then
 									return false, format_parse_error(self, err_apply.code, err_apply.message, "-" .. ch)
 								end
-								return false, format_parse_error(self, "invalid_value", "invalid value for -" .. ch .. ": " .. tostring(err_apply), "-" .. ch)
+								return false,
+									format_parse_error(
+										self,
+										"invalid_value",
+										"invalid value for -" .. ch .. ": " .. tostring(err_apply),
+										"-" .. ch
+									)
 							end
 							j = j + 1
 						end

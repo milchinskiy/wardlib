@@ -12,9 +12,9 @@
 
 local validate = require("wardlib.util.validate")
 
-local host_platform = require("ward.host.platform")
 local env = require("ward.env")
 local fs = require("ward.fs")
+local host_platform = require("ward.host.platform")
 
 local M = {}
 
@@ -154,14 +154,16 @@ function M.linux.os_release(opts)
 	opts = opts or {}
 	local path = opts.path or "/etc/os-release"
 
-	if not M.is_linux() and not opts.force then
-		return nil
-	end
+	if not M.is_linux() and not opts.force then return nil end
 
 	if not fs.is_exists(path) then
 		-- Some distros use /usr/lib/os-release
 		local alt = "/usr/lib/os-release"
-		if fs.is_exists(alt) then path = alt else return nil end
+		if fs.is_exists(alt) then
+			path = alt
+		else
+			return nil
+		end
 	end
 
 	local text = fs.read(path, { mode = "text" })
@@ -170,8 +172,6 @@ function M.linux.os_release(opts)
 end
 
 -- Best-effort: returns os-release info on Linux, otherwise nil.
-function M.os_release(opts)
-	return M.linux.os_release(opts)
-end
+function M.os_release(opts) return M.linux.os_release(opts) end
 
 return M

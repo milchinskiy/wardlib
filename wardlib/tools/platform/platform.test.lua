@@ -1,14 +1,12 @@
 local t = require("wardlib.test.tinytest").new({ name = "tools.platform" })
 
-local platform = require("wardlib.tools.platform")
 local env = require("ward.env")
 local fs = require("ward.fs")
+local platform = require("wardlib.tools.platform")
 
 local restore = {}
 
-local function save_env(k)
-	restore[k] = env.get(k)
-end
+local function save_env(k) restore[k] = env.get(k) end
 
 local function restore_env()
 	for k, v in pairs(restore) do

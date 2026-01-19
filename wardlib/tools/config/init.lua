@@ -26,9 +26,7 @@ local FORMAT_BY_EXT = {
 	ini = "ini",
 }
 
-local function lower(s)
-	return string.lower(tostring(s))
-end
+local function lower(s) return string.lower(tostring(s)) end
 
 local function extname(path)
 	local p = tostring(path)
