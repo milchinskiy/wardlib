@@ -4,6 +4,12 @@
 
 ---
 
+# Examples
+
+- [Cookbook](./examples/cookbook.md)
+
+---
+
 # Apps
 
 - [apk](./app/apk.md)

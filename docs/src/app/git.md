@@ -1,9 +1,15 @@
 # Git
 
+`wardlib.app.git` is a thin wrapper around `git` that returns
+`ward.process.cmd(...)` objects.
+For a predictable way to interpret stdout/stderr, use
+[`wardlib.tools.out`](../tools/out.md).
+
 ## Status in a specific repo directory
 
 ```lua
 local Git = require("wardlib.app.git").Git
+local out = require("wardlib.tools.out")
 
 -- Equivalent to: git -C /home/me/project status -s -b
 local cmd = Git.status({
@@ -12,29 +18,50 @@ local cmd = Git.status({
   branch = true,
 })
 
--- cmd:output()
+local lines = out.cmd(cmd):label("git status"):lines()
+-- lines is a string[] with each status line
 ```
 
 ## Root of repository
 
 ```lua
 local Git = require("wardlib.app.git").Git
+local out = require("wardlib.tools.out")
 
 -- Equivalent to: git -C /home/me/project rev-parse --show-toplevel
-local cmd = Git.root({ dir = "/home/me/project" })
-
--- cmd:output()
+local root = out.cmd(Git.root({ dir = "/home/me/project" }))
+  :label("git rev-parse --show-toplevel")
+  :trim()
+  :line()
 ```
 
 ## Check "is this a git work tree?"
+
+`Git.is_repo()` is intentionally modeled as a command because many scripts want
+exit-code semantics.
 
 ```lua
 local Git = require("wardlib.app.git").Git
 
 -- Equivalent to: git -C /home/me/project rev-parse --is-inside-work-tree
-local cmd = Git.is_repo({ dir = "/home/me/project" })
+local res = Git.is_repo({ dir = "/home/me/project" }):output()
 
 -- Conventionally, exit code 0 means "yes".
+local is_repo = res.ok == true
+```
+
+## Current branch name
+
+Use `git rev-parse --abbrev-ref HEAD` and parse a single line.
+
+```lua
+local Git = require("wardlib.app.git").Git
+local out = require("wardlib.tools.out")
+
+local branch = out.cmd(Git.cmd("rev-parse", { "--abbrev-ref", "HEAD" }, { dir = "/home/me/project" }))
+  :label("git rev-parse --abbrev-ref HEAD")
+  :trim()
+  :line()
 ```
 
 ## Clone (shallow + branch)

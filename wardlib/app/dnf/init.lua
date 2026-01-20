@@ -13,7 +13,6 @@ local ensure = require("wardlib.tools.ensure")
 local validate = require("wardlib.util.validate")
 
 ---@class DnfCommonOpts
----@field sudo boolean? Prefix the command with `sudo`
 ---@field assume_yes boolean? `-y`
 ---@field assume_no boolean? `-n`
 ---@field quiet boolean? `-q`
@@ -32,7 +31,6 @@ local validate = require("wardlib.util.validate")
 
 ---@class Dnf
 ---@field bin string Executable name or path to `dnf`
----@field sudo_bin string Executable name or path to `sudo`
 ---@field cmd fun(subcmd: string, argv: string[]|nil, opts: DnfCommonOpts|nil): ward.Cmd
 ---@field install fun(pkgs: string|string[], opts: DnfCommonOpts|nil): ward.Cmd
 ---@field remove fun(pkgs: string|string[], opts: DnfCommonOpts|nil): ward.Cmd
@@ -45,7 +43,6 @@ local validate = require("wardlib.util.validate")
 ---@field raw fun(argv: string|string[], opts: DnfCommonOpts|nil): ward.Cmd
 local Dnf = {
 	bin = "dnf",
-	sudo_bin = "sudo",
 }
 
 ---@param args string[]
@@ -95,12 +92,7 @@ function Dnf.cmd(subcmd, argv, opts)
 	opts = opts or {}
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
-	local args = {}
-	if opts.sudo then
-		ensure.bin(Dnf.sudo_bin, { label = "sudo binary" })
-		args[#args + 1] = Dnf.sudo_bin
-	end
-	args[#args + 1] = Dnf.bin
+	local args = { Dnf.bin }
 	apply_common(args, opts)
 	args[#args + 1] = subcmd
 

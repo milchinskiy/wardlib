@@ -11,6 +11,19 @@
 local Dnf = require("wardlib.app.dnf").Dnf
 ```
 
+## Running with elevated privileges
+
+Most `dnf` operations require root. Instead of passing `{ sudo = true }` to this
+module (not supported), use `wardlib.tools.with`.
+
+```lua
+local w = require("wardlib.tools.with")
+local Dnf = require("wardlib.app.dnf").Dnf
+
+-- sudo -n dnf -y upgrade
+w.with(w.middleware.sudo(), Dnf.upgrade(nil, { assume_yes = true })):run()
+```
+
 ## API
 
 ### `Dnf.install(pkgs, opts)`
@@ -59,7 +72,6 @@ Builds: `dnf <opts...> <argv...>`
 
 Modeled fields:
 
-- `sudo`: prefix with `sudo`
 - Non-interactive: `assume_yes (-y)`, `assume_no (-n)` (mutually exclusive)
 - Logging: `quiet (-q)`, `verbose (-v)`
 - Metadata/control: `refresh (--refresh)`, `cacheonly (-C)`
@@ -77,8 +89,9 @@ local Dnf = require("wardlib.app.dnf").Dnf
 -- dnf -y --refresh install git ripgrep
 local cmd1 = Dnf.install({ "git", "ripgrep" }, { assume_yes = true, refresh = true })
 
--- sudo dnf -y upgrade
-local cmd2 = Dnf.upgrade(nil, { sudo = true, assume_yes = true })
+-- sudo -n dnf -y upgrade
+local w = require("wardlib.tools.with")
+w.with(w.middleware.sudo(), Dnf.upgrade(nil, { assume_yes = true })):run()
 
 -- dnf --enablerepo=updates search kernel
 local cmd3 = Dnf.search("kernel", { enable_repo = "updates" })

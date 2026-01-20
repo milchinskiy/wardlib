@@ -11,7 +11,6 @@ local ensure = require("wardlib.tools.ensure")
 local validate = require("wardlib.util.validate")
 
 ---@class PacmanCommonOpts
----@field sudo boolean? Prefix with `sudo`
 ---@field extra string[]? Extra args appended after options
 ---@field noconfirm boolean? Add `--noconfirm`
 
@@ -28,7 +27,6 @@ local validate = require("wardlib.util.validate")
 
 ---@class Pacman
 ---@field bin string
----@field sudo_bin string
 ---@field sync fun(opts: PacmanSyncOpts|nil): ward.Cmd
 ---@field upgrade fun(opts: PacmanSyncOpts|nil): ward.Cmd
 ---@field install fun(pkgs: string|string[], opts: PacmanInstallOpts|nil): ward.Cmd
@@ -38,7 +36,6 @@ local validate = require("wardlib.util.validate")
 ---@field list_installed fun(opts: PacmanCommonOpts|nil): ward.Cmd
 local Pacman = {
 	bin = "pacman",
-	sudo_bin = "sudo",
 }
 
 --- @param pkgs string|string[]
@@ -59,12 +56,7 @@ end
 local function build(op, argv, opts)
 	ensure.bin(Pacman.bin, { label = "pacman binary" })
 	opts = opts or {}
-	local args = {}
-	if opts.sudo then
-		ensure.bin(Pacman.sudo_bin, { label = "sudo binary" })
-		table.insert(args, Pacman.sudo_bin)
-	end
-	table.insert(args, Pacman.bin)
+	local args = { Pacman.bin }
 	for _, v in ipairs(argv) do
 		table.insert(args, tostring(v))
 	end

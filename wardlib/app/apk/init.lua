@@ -14,7 +14,6 @@ local ensure = require("wardlib.tools.ensure")
 local validate = require("wardlib.util.validate")
 
 ---@class ApkCommonOpts
----@field sudo boolean? Prefix with `sudo`
 ---@field extra string[]? Extra args appended after options
 
 ---@class ApkAddOpts: ApkCommonOpts
@@ -27,7 +26,6 @@ local validate = require("wardlib.util.validate")
 
 ---@class Apk
 ---@field bin string Executable name or path to `apk`
----@field sudo_bin string Executable name or path to `sudo`
 ---@field cmd fun(subcmd: string, argv: string[]|nil, opts: ApkCommonOpts|nil): ward.Cmd
 ---@field update fun(opts: ApkCommonOpts|nil): ward.Cmd
 ---@field upgrade fun(opts: ApkCommonOpts|nil): ward.Cmd
@@ -37,7 +35,6 @@ local validate = require("wardlib.util.validate")
 ---@field info fun(pkg: string|nil, opts: ApkCommonOpts|nil): ward.Cmd
 local Apk = {
 	bin = "apk",
-	sudo_bin = "sudo",
 }
 
 --- @param pkgs string|string[]
@@ -61,13 +58,7 @@ function Apk.cmd(subcmd, argv, opts)
 	opts = opts or {}
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
-	local args = {}
-	if opts.sudo then
-		ensure.bin(Apk.sudo_bin, { label = "sudo binary" })
-		table.insert(args, Apk.sudo_bin)
-	end
-
-	table.insert(args, Apk.bin)
+	local args = { Apk.bin }
 	table.insert(args, subcmd)
 	if argv ~= nil then
 		for _, v in ipairs(argv) do

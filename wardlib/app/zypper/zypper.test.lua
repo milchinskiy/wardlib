@@ -91,10 +91,10 @@ return function(tinytest)
 		})
 	end)
 
-	t:test("sudo prefixes argv", function()
+	t:test("refresh builds argv", function()
 		local Zypper = require(MODULE).Zypper
-		Zypper.refresh({ sudo = true, quiet = true })
-		t:deep_eq(last_cmd().argv, { "sudo", "zypper", "-q", "refresh" })
+		Zypper.refresh({ quiet = true })
+		t:deep_eq(last_cmd().argv, { "zypper", "-q", "refresh" })
 	end)
 
 	t:test("refresh and no_refresh are mutually exclusive", function()

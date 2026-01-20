@@ -136,12 +136,12 @@ return function(tinytest)
 		t:deep_eq(last_cmd(), { "apt-get", "-qq", "-y", "install", "--no-install-recommends", "curl", "git" })
 	end)
 
-	t:test("remove supports purge and sudo", function()
+	t:test("remove supports purge", function()
 		local mod = load_module()
 		local AptGet = mod.AptGet
 
-		AptGet.remove("vim", { sudo = true, purge = true })
-		t:deep_eq(last_cmd(), { "sudo", "apt-get", "purge", "vim" })
+		AptGet.remove("vim", { purge = true })
+		t:deep_eq(last_cmd(), { "apt-get", "purge", "vim" })
 	end)
 
 	return t

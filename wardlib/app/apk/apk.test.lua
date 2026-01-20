@@ -133,15 +133,14 @@ return function(tinytest)
 	-- Tests
 	-- -------------------------
 
-	t:test("add supports --no-cache and sudo", function()
+	t:test("add supports --no-cache", function()
 		local mod = load_module()
 		local Apk = mod.Apk
 
-		Apk.add({ "curl", "git" }, { sudo = true, no_cache = true })
-		-- validate_bin for apk then sudo
+		Apk.add({ "curl", "git" }, { no_cache = true })
+		-- validate_bin for apk
 		t:eq(calls.is_in_path[1], "apk")
-		t:eq(calls.is_in_path[2], "sudo")
-		t:deep_eq(last_cmd(), { "sudo", "apk", "add", "--no-cache", "curl", "git" })
+		t:deep_eq(last_cmd(), { "apk", "add", "--no-cache", "curl", "git" })
 	end)
 
 	t:test("update forwards extra args", function()

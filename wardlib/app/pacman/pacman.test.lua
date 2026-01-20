@@ -136,12 +136,12 @@ return function(tinytest)
 		t:deep_eq(last_cmd(), { "pacman", "-S", "--needed", "--noconfirm", "curl", "git" })
 	end)
 
-	t:test("remove combines flags and supports sudo", function()
+	t:test("remove combines flags", function()
 		local mod = load_module()
 		local Pacman = mod.Pacman
 
-		Pacman.remove("vim", { sudo = true, recursive = true, nosave = true })
-		t:deep_eq(last_cmd(), { "sudo", "pacman", "-Rns", "vim" })
+		Pacman.remove("vim", { recursive = true, nosave = true })
+		t:deep_eq(last_cmd(), { "pacman", "-Rns", "vim" })
 	end)
 
 	t:test("upgrade supports refresh", function()

@@ -5,15 +5,14 @@
 -- Thin wrappers around `apt-get` that construct CLI invocations and return
 -- `ward.process.cmd(...)` objects.
 --
--- Note: APT often requires root. This module supports `opts.sudo = true` to
--- prefix commands with `sudo`.
+-- Note: APT often requires root. For privilege escalation, use
+-- `wardlib.tools.with` with `with.middleware.sudo()` / `with.middleware.doas()`.
 
 local _cmd = require("ward.process")
 local args_util = require("wardlib.util.args")
 local ensure = require("wardlib.tools.ensure")
 
 ---@class AptGetCommonOpts
----@field sudo boolean? Prefix with `sudo`
 ---@field extra string[]? Extra args appended after options
 ---@field assume_yes boolean? Add `-y`
 ---@field quiet boolean|integer? Add `-q` or `-qq` (true/1 => -q, 2 => -qq)
@@ -26,7 +25,6 @@ local ensure = require("wardlib.tools.ensure")
 
 ---@class AptGet
 ---@field bin string
----@field sudo_bin string
 ---@field cmd fun(subcmd: string, argv: string[]|nil, opts: AptGetCommonOpts|nil): ward.Cmd
 ---@field update fun(opts: AptGetCommonOpts|nil): ward.Cmd
 ---@field upgrade fun(opts: AptGetCommonOpts|nil): ward.Cmd
@@ -37,7 +35,6 @@ local ensure = require("wardlib.tools.ensure")
 ---@field clean fun(opts: AptGetCommonOpts|nil): ward.Cmd
 local AptGet = {
 	bin = "apt-get",
-	sudo_bin = "sudo",
 }
 
 --- @param pkgs string|string[]
@@ -82,13 +79,7 @@ function AptGet.cmd(subcmd, argv, opts)
 	opts = opts or {}
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
-	local args = {}
-	if opts.sudo then
-		ensure.bin(AptGet.sudo_bin, { label = "sudo binary" })
-		table.insert(args, AptGet.sudo_bin)
-	end
-
-	table.insert(args, AptGet.bin)
+	local args = { AptGet.bin }
 	apply_common(args, opts)
 	table.insert(args, subcmd)
 	if argv ~= nil then

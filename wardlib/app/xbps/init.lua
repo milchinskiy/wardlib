@@ -16,7 +16,6 @@ local ensure = require("wardlib.tools.ensure")
 local validate = require("wardlib.util.validate")
 
 ---@class XbpsCommonOpts
----@field sudo boolean? Prefix with `sudo`
 ---@field extra string[]? Extra args appended after options
 ---@field rootdir string? Add `-r <dir>`
 ---@field config string? Add `-C <dir>`
@@ -41,7 +40,6 @@ local validate = require("wardlib.util.validate")
 ---@field install_bin string
 ---@field remove_bin string
 ---@field query_bin string
----@field sudo_bin string
 ---@field install fun(pkgs: string|string[], opts: XbpsInstallOpts|nil): ward.Cmd
 ---@field sync fun(opts: XbpsCommonOpts|nil): ward.Cmd
 ---@field upgrade fun(opts: XbpsInstallOpts|nil): ward.Cmd
@@ -56,7 +54,6 @@ local Xbps = {
 	install_bin = "xbps-install",
 	remove_bin = "xbps-remove",
 	query_bin = "xbps-query",
-	sudo_bin = "sudo",
 }
 
 --- @param pkgs string|string[]
@@ -84,12 +81,7 @@ end
 local function build(bin, label, argv, opts)
 	ensure.bin(bin, { label = tostring(label) .. " binary" })
 	opts = opts or {}
-	local args = {}
-	if opts.sudo then
-		ensure.bin(Xbps.sudo_bin, { label = "sudo binary" })
-		table.insert(args, Xbps.sudo_bin)
-	end
-	table.insert(args, bin)
+	local args = { bin }
 	for _, v in ipairs(argv) do
 		table.insert(args, tostring(v))
 	end

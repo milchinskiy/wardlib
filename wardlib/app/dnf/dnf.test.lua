@@ -77,10 +77,10 @@ return function(tinytest)
 		t:deep_eq(last_cmd().argv, { "dnf", "-y", "--refresh", "--enablerepo=updates", "install", "a", "b" })
 	end)
 
-	t:test("sudo prefixes argv", function()
+	t:test("remove builds argv", function()
 		local Dnf = require(MODULE).Dnf
-		Dnf.remove("a", { sudo = true, assume_yes = true })
-		t:deep_eq(last_cmd().argv, { "sudo", "dnf", "-y", "remove", "a" })
+		Dnf.remove("a", { assume_yes = true })
+		t:deep_eq(last_cmd().argv, { "dnf", "-y", "remove", "a" })
 	end)
 
 	t:test("assume_yes and assume_no are mutually exclusive", function()

@@ -13,7 +13,6 @@ local ensure = require("wardlib.tools.ensure")
 local validate = require("wardlib.util.validate")
 
 ---@class ZypperCommonOpts
----@field sudo boolean? Prefix the command with `sudo`
 ---@field non_interactive boolean? `-n, --non-interactive`
 ---@field quiet boolean? `-q`
 ---@field verbose boolean? `-v`
@@ -27,7 +26,6 @@ local validate = require("wardlib.util.validate")
 
 ---@class Zypper
 ---@field bin string Executable name or path to `zypper`
----@field sudo_bin string Executable name or path to `sudo`
 ---@field cmd fun(subcmd: string, argv: string[]|nil, opts: ZypperCommonOpts|nil): ward.Cmd
 ---@field refresh fun(opts: ZypperCommonOpts|nil): ward.Cmd
 ---@field install fun(pkgs: string|string[], opts: ZypperCommonOpts|nil): ward.Cmd
@@ -42,7 +40,6 @@ local validate = require("wardlib.util.validate")
 ---@field raw fun(argv: string|string[], opts: ZypperCommonOpts|nil): ward.Cmd
 local Zypper = {
 	bin = "zypper",
-	sudo_bin = "sudo",
 }
 
 ---@param args string[]
@@ -87,12 +84,7 @@ function Zypper.cmd(subcmd, argv, opts)
 	opts = opts or {}
 	assert(type(subcmd) == "string" and #subcmd > 0, "subcmd must be a non-empty string")
 
-	local args = {}
-	if opts.sudo then
-		ensure.bin(Zypper.sudo_bin, { label = "sudo binary" })
-		args[#args + 1] = Zypper.sudo_bin
-	end
-	args[#args + 1] = Zypper.bin
+	local args = { Zypper.bin }
 	apply_common(args, opts)
 	args[#args + 1] = subcmd
 	if argv ~= nil then

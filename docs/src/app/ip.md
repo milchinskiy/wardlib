@@ -6,6 +6,22 @@ using your preferred `ward.process` execution stratgy.
 
 > This module intentionally **does not parse** `ip` output.
 
+## Parsing JSON output
+
+The wrapper does not parse output, but `ip` can emit JSON (`-j`). Combine it with `wardlib.tools.out` for a predictable workflow.
+
+```lua
+local Ip = require("wardlib.app.ip").Ip
+local out = require("wardlib.tools.out")
+
+local addrs = out.cmd(Ip.raw({ "addr", "show" }, { json = true }))
+  :label("ip -j addr show")
+  :json()
+
+-- `addrs` is an array of interfaces. Each entry contains `ifname` and `addr_info`.
+-- You can filter it in Lua to find, for example, all IPv4 addresses.
+```
+
 ## Global options: `IpOpts`
 
 These options are accepted anywhere an `opts: IpOpts|nil` argument is present.

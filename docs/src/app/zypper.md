@@ -11,6 +11,19 @@
 local Zypper = require("wardlib.app.zypper").Zypper
 ```
 
+## Running with elevated privileges
+
+Most `zypper` operations require root. Instead of passing `{ sudo = true }` to
+this module (not supported), use `wardlib.tools.with`.
+
+```lua
+local w = require("wardlib.tools.with")
+local Zypper = require("wardlib.app.zypper").Zypper
+
+-- sudo -n zypper refresh
+w.with(w.middleware.sudo(), Zypper.refresh()):run()
+```
+
 ## API
 
 ### `Zypper.refresh(opts)`
@@ -67,7 +80,6 @@ Builds: `zypper <opts...> <argv...>`
 
 Modeled fields:
 
-- `sudo`: prefix with `sudo`
 - Interactivity: `non_interactive (--non-interactive)`
 - Logging: `quiet (-q)`, `verbose (-v)`
 - Metadata: `refresh (--refresh)`, `no_refresh (--no-refresh)` (mutually exclusive)
@@ -84,12 +96,12 @@ local Zypper = require("wardlib.app.zypper").Zypper
 -- zypper --non-interactive refresh
 local cmd1 = Zypper.refresh({ non_interactive = true })
 
--- sudo zypper --non-interactive --auto-agree-with-licenses install curl jq
-local cmd2 = Zypper.install({ "curl", "jq" }, {
-  sudo = true,
+-- sudo -n zypper --non-interactive --auto-agree-with-licenses install curl jq
+local w = require("wardlib.tools.with")
+w.with(w.middleware.sudo(), Zypper.install({ "curl", "jq" }, {
   non_interactive = true,
   auto_agree_with_licenses = true,
-})
+})):run()
 
 -- zypper -r oss -r update search kernel
 local cmd3 = Zypper.search("kernel", { repos = { "oss", "update" } })

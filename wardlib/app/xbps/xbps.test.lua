@@ -141,12 +141,12 @@ return function(tinytest)
 		t:deep_eq(last_cmd(), { "xbps-install", "-y", "-Su" })
 	end)
 
-	t:test("remove_orphans uses xbps-remove -o and supports sudo", function()
+	t:test("remove_orphans uses xbps-remove -o", function()
 		local mod = load_module()
 		local Xbps = mod.Xbps
 
-		Xbps.remove_orphans({ sudo = true, yes = true })
-		t:deep_eq(last_cmd(), { "sudo", "xbps-remove", "-y", "-o" })
+		Xbps.remove_orphans({ yes = true })
+		t:deep_eq(last_cmd(), { "xbps-remove", "-y", "-o" })
 	end)
 
 	t:test("search uses xbps-query -Rs", function()

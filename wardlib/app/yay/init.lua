@@ -14,7 +14,6 @@ local ensure = require("wardlib.tools.ensure")
 local validate = require("wardlib.util.validate")
 
 ---@class YayCommonOpts
----@field sudo boolean? Prefix with `sudo`
 ---@field extra string[]? Extra args appended after options
 ---@field noconfirm boolean? Add `--noconfirm`
 ---@field needed boolean? Add `--needed`
@@ -29,7 +28,6 @@ local validate = require("wardlib.util.validate")
 
 ---@class Yay
 ---@field bin string
----@field sudo_bin string
 ---@field sync fun(opts: YaySyncOpts|nil): ward.Cmd
 ---@field upgrade fun(opts: YaySyncOpts|nil): ward.Cmd
 ---@field install fun(pkgs: string|string[], opts: YayCommonOpts|nil): ward.Cmd
@@ -38,7 +36,6 @@ local validate = require("wardlib.util.validate")
 ---@field info fun(pkg: string, opts: YayCommonOpts|nil): ward.Cmd
 local Yay = {
 	bin = "yay",
-	sudo_bin = "sudo",
 }
 
 --- @param pkgs string|string[]
@@ -58,12 +55,7 @@ end
 local function build(argv, opts)
 	ensure.bin(Yay.bin, { label = "yay binary" })
 	opts = opts or {}
-	local args = {}
-	if opts.sudo then
-		ensure.bin(Yay.sudo_bin, { label = "sudo binary" })
-		table.insert(args, Yay.sudo_bin)
-	end
-	table.insert(args, Yay.bin)
+	local args = { Yay.bin }
 	for _, v in ipairs(argv) do
 		table.insert(args, tostring(v))
 	end

@@ -1,60 +1,129 @@
 # xbps
 
-`app.xbps` is a thin wrapper around Void Linux's XBPS tooling (`xbps-install`, `xbps-remove`, `xbps-query`).
+`app.xbps` is a thin wrapper around Void Linux XBPS tooling
+(`xbps-install`, `xbps-remove`, `xbps-query`) that constructs
+`ward.process.cmd(...)` invocations.
 
-## Sync repositories
+This module does not parse output.
+
+## Import
 
 ```lua
 local Xbps = require("wardlib.app.xbps").Xbps
-
--- Equivalent to: sudo xbps-install -S
-local cmd = Xbps.sync({ sudo = true })
 ```
 
-## Full system upgrade (non-interactive)
+## Running with elevated privileges
+
+Most `xbps-install` / `xbps-remove` operations require root. Instead of passing
+`{ sudo = true }` to this module (not supported), use `wardlib.tools.with`.
 
 ```lua
+local w = require("wardlib.tools.with")
 local Xbps = require("wardlib.app.xbps").Xbps
 
--- Equivalent to: sudo xbps-install -y -Su
-local cmd = Xbps.upgrade({ sudo = true, yes = true })
+-- sudo -n xbps-install -S
+w.with(w.middleware.sudo(), Xbps.sync()):run()
 ```
 
-## Install packages
+## API
+
+All functions return a `ward.Cmd`.
+
+### `Xbps.install(pkgs, opts)`
+
+Builds: `xbps-install <common opts...> <install opts...> <pkgs...>`.
+
+### `Xbps.sync(opts)`
+
+Builds: `xbps-install <common opts...> -S`.
+
+### `Xbps.upgrade(opts)`
+
+Builds: `xbps-install <common opts...> <install opts...> -Su`.
+
+### `Xbps.remove(pkgs, opts)`
+
+Builds: `xbps-remove <common opts...> <remove opts...> <pkgs...>`.
+
+### `Xbps.remove_orphans(opts)`
+
+Builds: `xbps-remove <common opts...> [-y] -o`.
+
+### `Xbps.clean_cache(opts, all)`
+
+Builds: `xbps-remove <common opts...> [-y] -O`.
+
+If `all = true`, uses `-OO`.
+
+### `Xbps.search(pattern, opts)`
+
+Builds: `xbps-query <common opts...> [--regex] -Rs <pattern>`.
+
+### `Xbps.info(pkg, opts)`
+
+Builds: `xbps-query <common opts...> -S <pkg>`.
+
+### `Xbps.list_installed(opts)`
+
+Builds: `xbps-query <common opts...> -l`.
+
+### `Xbps.list_manual(opts)`
+
+Builds: `xbps-query <common opts...> -m`.
+
+## Options
+
+### `XbpsCommonOpts`
+
+Modeled fields:
+
+- `rootdir` (string): `-r <dir>`
+- `config` (string): `-C <dir>`
+- `cachedir` (string): `-c <dir>`
+- `repositories` (string[]): repeatable `--repository <url>`
+- `extra` (string[]): extra args appended after modeled options
+
+### `XbpsInstallOpts`
+
+Extends `XbpsCommonOpts`.
+
+Modeled fields:
+
+- `yes` (boolean): `-y`
+- `automatic` (boolean): `-A`
+- `force` (boolean): `-f`
+
+### `XbpsRemoveOpts`
+
+Extends `XbpsCommonOpts`.
+
+Modeled fields:
+
+- `yes` (boolean): `-y`
+- `recursive` (boolean): `-R`
+- `force` (boolean): `-f`
+- `dry_run` (boolean): `-n`
+
+### `XbpsSearchOpts`
+
+Extends `XbpsCommonOpts`.
+
+Modeled fields:
+
+- `regex` (boolean): `--regex`
+
+## Examples
 
 ```lua
+local w = require("wardlib.tools.with")
 local Xbps = require("wardlib.app.xbps").Xbps
 
--- Equivalent to: sudo xbps-install -y curl git
-local cmd = Xbps.install({ "curl", "git" }, { sudo = true, yes = true })
-```
+-- sudo -n xbps-install -y -Su
+w.with(w.middleware.sudo(), Xbps.upgrade({ yes = true })):run()
 
-## Remove packages recursively
+-- sudo -n xbps-install -y curl git
+w.with(w.middleware.sudo(), Xbps.install({ "curl", "git" }, { yes = true })):run()
 
-```lua
-local Xbps = require("wardlib.app.xbps").Xbps
-
--- Equivalent to: sudo xbps-remove -y -R curl git
-local cmd = Xbps.remove({ "curl", "git" }, { sudo = true, yes = true, recursive = true })
-```
-
-## Search repositories
-
-```lua
-local Xbps = require("wardlib.app.xbps").Xbps
-
--- Equivalent to: xbps-query --regex -Rs '^lua'
-local cmd = Xbps.search("^lua", { regex = true })
-```
-
-## Inspect and list installed
-
-```lua
-local Xbps = require("wardlib.app.xbps").Xbps
-
--- Equivalent to: xbps-query -S curl
-local info = Xbps.info("curl")
-
--- Equivalent to: xbps-query -l
-local list = Xbps.list_installed()
+-- xbps-query --regex -Rs '^lua'
+local r = Xbps.search("^lua", { regex = true }):output()
 ```
