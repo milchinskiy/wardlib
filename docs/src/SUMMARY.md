@@ -73,6 +73,7 @@
 - [config](./tools/config.md)
 - [dotfiles](./tools/dotfiles.md)
 - [ensure](./tools/ensure.md)
+- [out](./tools/out.md)
 - [task](./tools/task.md)
 - [platform](./tools/platform.md)
 - [retry](./tools/retry.md)
