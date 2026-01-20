@@ -1,6 +1,8 @@
 -- Ward-native tiny test toolkit + multi-file runner.
 local term = require("ward.term")
 local time = require("ward.time")
+local string_contains = require("ward.helpers.string").contains
+local table_contains = require("ward.helpers.table").contains
 
 local M = {}
 
@@ -119,9 +121,9 @@ function M.new(opts)
 	end
 	function t:contains(a, b)
 		if type(a) == "string" then
-			return require("ward.helpers.string").contains(a, b)
+			return string_contains(a, b)
 		elseif type(a) == "table" then
-			return require("ward.helpers.table").contains(a, b)
+			return table_contains(a, b)
 		else
 			error("contains: first argument must be string or table", 2)
 		end
