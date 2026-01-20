@@ -1,74 +1,170 @@
 # wardlib
 
-**wardlib** is an external extension (**early stage**) of
-[Ward](https://github.com/milchinskiy/ward)'s "standard library".
+**wardlib** is an external extension of
+[Ward](https://github.com/milchinskiy/ward)'s core module set.
+Ward ships intentionally small; **wardlib** is where we add higher-level
+batteries (apps and tools), iterate quickly, and converge on best-practice
+scripting patterns.
 
-Ward ships with a small core set of modules. **wardlib** lives outside the Ward
-repository and exists to:
+If you are writing Ward scripts and want:
 
-- provide additional batteries (modules, helpers, utilities),
-- experiment and iterate faster than core,
-- give the community a shared place to publish and maintain extensions.
+- stable wrappers around common CLI programs (package managers, system tools, etc.),
+- opinionated tools for CLI parsing, retries, idempotent tasks, and environment checks,
+- cookbook-style examples you can copy into real scripts,
 
-## What you'll find here
+this repository is for you.
 
-- Reusable Ward/Lua modules that can be consumed via `require(...)`
-- Optional integrations and convenience helpers
-- Examples and documentation for contributed packages
+---
+
+## Repository layout
+
+- `wardlib/` — Lua modules exposed via `require("wardlib.…")`
+  - `wardlib/app/*` — wrappers around specific CLI applications
+  - `wardlib/tools/*` — reusable building blocks (ensure, with, out, retry, …)
+- `docs/` — documentation (mdBook)
+
+---
 
 ## Installation
 
-This repository is intended to be used as a *library* alongside Ward projects.
-Common approaches:
+You have a few supported ways to consume wardlib. Choose the one that matches
+your workflow.
 
-- add it via builtin [Ward](https://github.com/milchinskiy/ward)'s `ward.module.git(...)`,
-- add it as a git submodule,
-- vendor/copy the modules you need,
-- or otherwise place it on your Lua/Ward `package.path` so `require(...)` can
-find it.
+### 1) Add as a Ward git module (recommended)
 
-Exact setup may vary by project; see repository folders and module docs for details.
+Use Ward's `ward.module.git(...)` mechanism to pin a version in your project.
 
-## Contract pattern (recommended)
+### 2) Git submodule
 
-Most Ward scripts have implicit assumptions (OS, required binaries, required
-env vars, root privileges). `wardlib.tools.ensure` lets you make those assumptions
-explicit and fail fast with clear errors.
+Add wardlib as a submodule and ensure the `wardlib/` directory is on the
+Lua/Ward `package.path`.
 
-Put this at the top of your script:
+### 3) Vendor / copy
+
+Copy the specific modules you need into your repository.
+
+Notes:
+
+- wardlib is a library: it does not install binaries for you. Use your OS
+package manager.
+- Many app wrappers assume their underlying executable is available
+(see `wardlib.tools.ensure`).
+
+---
+
+## Quick start
+
+### 1) Make assumptions explicit (fail fast)
+
+Most automation scripts have implicit requirements (OS, tools, env vars, privileges).
+Declare them early with `wardlib.tools.ensure`:
 
 ```lua
 local ensure = require("wardlib.tools.ensure")
 
--- Declare assumptions early
 ensure.os("linux")
 ensure.bins({ "git", "tar", "ssh" })
 
 local token = ensure.env("TOKEN")
-
--- If privileged operations are required:
--- ensure.root()
 ```
 
-Many wardlib wrappers also use `tools.ensure.bin(...)` internally to validate
-their underlying binaries.
+### 2) Privilege escalation: use middleware (not `{ sudo = true }`)
+
+wardlib app wrappers intentionally do **not** embed sudo logic. Use
+`wardlib.tools.with` so privilege escalation is explicit, scoped, and predictable:
+
+```lua
+local with = require("wardlib.tools.with")
+local AptGet = require("wardlib.app.aptget").AptGet
+
+with.with(with.middleware.sudo(), function()
+  AptGet.update({ assume_yes = true }):run()
+  AptGet.install({ "curl", "jq" }, { assume_yes = true }):run()
+end)
+```
+
+### 3) Parse command output consistently
+
+Use `wardlib.tools.out` to turn `CmdResult.stdout` into something useful
+(text, lines, JSON, …):
+
+```lua
+local p = require("ward.process")
+local out = require("wardlib.tools.out")
+
+local sha = out.cmd(p.cmd("git", "rev-parse", "HEAD"))
+  :label("git rev-parse HEAD")
+  :trim()
+  :line()
+```
+
+---
+
+## Documentation
+
+The documentation lives under `docs/` (mdBook).
+
+Build it locally:
+
+```sh
+cd docs
+mdbook build
+```
+
+Start a live-reload server:
+
+```sh
+cd docs
+mdbook serve
+```
+
+Or read online: [wardlib docs](https://milchinskiy.github.io/wardlib)
+
+The docs include:
+
+- **Apps**: wrappers around CLI programs (`wardlib.app.*`)
+- **Tools**: reusable primitives (`wardlib.tools.*`)
+- **Cookbook**: real-life, end-to-end examples
+
+---
+
+## Conventions (important)
+
+wardlib aims to keep scripts reliable and predictable. A few conventions are
+enforced by example and documentation:
+
+- **App modules build commands** and return `ward.process.cmd(...)` objects;
+they do not hide side effects.
+- **Privilege escalation is external** (`wardlib.tools.with.middleware.sudo()/doas()`).
+- Prefer **machine-readable output** from CLIs (`--json`, `-J`, etc.), then
+decode it with `wardlib.tools.out`.
+- Validate environment assumptions early (`wardlib.tools.ensure`).
+
+---
 
 ## Tests
 
-Run tests with:
+Run the test suite with:
 
 ```sh
 ward run run-tests.lua -- "**/*.test.lua"
 ```
 
+---
+
 ## Contributing
 
 Contributions are welcome.
 
-- Keep modules small, composable, and Lua-native in style.
-- Include a short doc comment or README for new modules.
-- Add tests/examples when practical.
+- Keep modules small, composable, and Lua-native.
+- Update docs for every public API change.
+- Add tests for non-trivial behavior.
+- Prefer improving existing tools over adding near-duplicates.
+
+See `CONTRIBUTING.md` for more.
+
+---
 
 ## License
 
-See `LICENSE-MIT` and `LICENSE-APACHE` for licensing details.
+Dual-licensed under MIT and Apache-2.0. See `LICENSE-MIT` and `LICENSE-APACHE`.
