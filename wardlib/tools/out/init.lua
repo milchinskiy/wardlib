@@ -293,4 +293,36 @@ function Out:yaml() return decode(self, "yaml", "ward.convert.yaml", "decode") e
 function Out:toml() return decode(self, "toml", "ward.convert.toml", "decode") end
 function Out:ini() return decode(self, "ini", "ward.convert.ini", "decode") end
 
+-- Decode newline-delimited JSON (NDJSON/JSON Lines).
+-- Commonly used by tools like: journalctl -o json
+function Out:json_lines()
+	local ls = self:lines()
+	local ok, mod = pcall(require, "ward.convert.json")
+	if not ok then error("tools.out: missing decoder module: ward.convert.json", 3) end
+	local dec = mod.decode
+	if type(dec) ~= "function" then error("tools.out: decoder missing: ward.convert.json.decode", 3) end
+
+	local out = {}
+	local prefix = self:_error_prefix()
+	for i = 1, #ls do
+		local line = ls[i]
+		if line ~= "" then
+			local ok2, v = pcall(dec, line)
+			if not ok2 then
+				local msg = string.format(
+					"%s: failed to decode json line %d: %s\n%s line preview:\n%s",
+					prefix,
+					i,
+					tostring(v),
+					self._stream,
+					preview_bytes(line, self._max_preview)
+				)
+				error(msg, 3)
+			end
+			out[#out + 1] = v
+		end
+	end
+	return out
+end
+
 return M

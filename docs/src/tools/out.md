@@ -66,6 +66,20 @@ Supported decoders (via `ward.convert.*.decode`):
 - `:toml()`
 - `:ini()`
 
+
+## JSON Lines (NDJSON)
+
+Some commands emit one JSON object per line (also called NDJSON or JSON Lines), for example `journalctl -o json`.
+
+```lua
+local out = require("wardlib.tools.out")
+local Systemd = require("wardlib.app.systemd").Systemd
+
+local entries = out.cmd(Systemd.journal("nginx.service", { output = "json", lines = 50 }))
+  :label("journalctl -o json")
+  :json_lines()
+```
+
 ## Reference
 
 ### Constructors
@@ -93,3 +107,4 @@ when output ends with a newline).
 - `:match(pattern)` returns captures like `string.match` (errors when no match).
 - `:matches(pattern)` returns all matches as an array.
 - `:json()` / `:yaml()` / `:toml()` / `:ini()` decodes structured output.
+- `:json_lines()` decodes newline-delimited JSON into an array.

@@ -190,5 +190,32 @@ return function(tinytest)
 		restore_originals()
 	end)
 
+
+	t:test("json_lines(): decodes each non-empty line", function()
+		install_mocks() -- default decoder echoes input
+		local out = mod()
+		local res = { ok = true, stdout = "{\"a\":1}\n\n{\"b\":2}\n" }
+		local arr = out.res(res):label("ndjson"):json_lines()
+		t:eq(#arr, 2)
+		t:eq(arr[1].decoded, true)
+		t:eq(arr[1].input, "{\"a\":1}")
+		t:eq(arr[2].input, "{\"b\":2}")
+		restore_originals()
+	end)
+
+	t:test("json_lines(): decode error reports line index", function()
+		install_mocks({ decode_error = true })
+		local out = mod()
+		local ok, err = pcall(function()
+			out.res({ ok = true, stdout = "{bad}\n{also}\n" }):label("ndjsoncmd"):json_lines()
+		end)
+		t:eq(ok, false)
+		t:contains(err, "ndjsoncmd")
+		t:contains(err, "json line 1")
+		t:contains(err, "line preview")
+		t:contains(err, "{bad}")
+		restore_originals()
+	end)
+
 	return t
 end
