@@ -1,49 +1,97 @@
-# lsblk
+# app.lsblk
 
-`lsblk` lists block devices and their topology.
+`app.lsblk` is a thin command-construction wrapper around the util-linux
+`lsblk` binary. It returns `ward.process.cmd(...)` objects.
 
-The wrapper constructs a `ward.process.cmd(...)` invocation; it does not parse output.
+`lsblk` supports JSON output (`-J`), and this wrapper models that flag.
 
-## List all devices as JSON
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
+
+## Import
 
 ```lua
 local Lsblk = require("wardlib.app.lsblk").Lsblk
-
--- Equivalent to: lsblk -J -b
-local cmd = Lsblk.list(nil, { json = true, bytes = true })
-
--- local out = cmd:output()
 ```
 
-## List selected columns for a specific device
+## Privilege escalation
+
+Most `lsblk` listing operations are unprivileged, but some environments
+restrict access to block-device metadata. If you need elevation, use
+`wardlib.tools.with`.
 
 ```lua
-local Lsblk = require("wardlib.app.lsblk").Lsblk
+local with = require("wardlib.tools.with")
 
--- Equivalent to: lsblk -o NAME,SIZE,FSTYPE,MOUNTPOINT /dev/sda
-local cmd = Lsblk.list("/dev/sda", {
-  output = { "NAME", "SIZE", "FSTYPE", "MOUNTPOINT" },
-})
+local cmd = Lsblk.list(nil, { json = true })
+local data = with.with(with.middleware.sudo(), cmd):output()
 ```
 
-## Raw, no headings (useful for scripts)
+## Options: `LsblkOpts`
+
+- `json: boolean?` — `-J` / `--json`
+- `output: string|string[]?` — `-o <cols>` (string or array joined by commas)
+- `bytes: boolean?` — `-b`
+- `paths: boolean?` — `-p`
+- `fs: boolean?` — `-f`
+- `all: boolean?` — `-a`
+- `nodeps: boolean?` — `-d`
+- `list: boolean?` — `-l`
+- `raw: boolean?` — `-r`
+- `noheadings: boolean?` — `-n`
+- `sort: string?` — `--sort <col>`
+- `tree: boolean?` — `--tree`
+- `extra: string[]?` — appended after modeled options
+
+## API
+
+### `Lsblk.list(devices, opts)`
+
+Construct an `lsblk` command.
+
+Builds: `lsblk <opts...> [devices...]`
 
 ```lua
-local Lsblk = require("wardlib.app.lsblk").Lsblk
-
--- Equivalent to: lsblk -r -n -o NAME,TYPE /dev/sda
-local cmd = Lsblk.list("/dev/sda", {
-  raw = true,
-  noheadings = true,
-  output = { "NAME", "TYPE" },
-})
+Lsblk.list(devices: string|string[]|nil, opts: LsblkOpts|nil) -> ward.Cmd
 ```
 
-## Use an explicit lsblk binary
+Notes:
+
+- If `devices` is `nil`, `lsblk` enumerates all block devices.
+
+## Examples
+
+### Parse JSON output
 
 ```lua
-local Lsblk = require("wardlib.app.lsblk").Lsblk
-Lsblk.bin = "/usr/bin/lsblk"
+local out = require("wardlib.tools.out")
 
-local cmd = Lsblk.list(nil, { list = true })
+local data = out.cmd(Lsblk.list(nil, { json = true }))
+  :label("lsblk -J")
+  :json()
+
+-- util-linux typically returns: { blockdevices = [...] }
+local devs = data.blockdevices or {}
+```
+
+### Select specific columns
+
+```lua
+-- lsblk -o NAME,SIZE,TYPE,MOUNTPOINT -J
+local out = require("wardlib.tools.out")
+
+local data = out.cmd(Lsblk.list(nil, {
+  json = true,
+  output = { "NAME", "SIZE", "TYPE", "MOUNTPOINT" },
+}))
+  :label("lsblk -o ... -J")
+  :json()
+```
+
+### Raw, no headings
+
+```lua
+-- lsblk -nrp -o NAME,SIZE
+Lsblk.list(nil, { noheadings = true, raw = true, paths = true, output = { "NAME", "SIZE" } }):run()
 ```

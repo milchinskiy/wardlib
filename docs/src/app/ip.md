@@ -4,11 +4,30 @@
 binary. It returns `ward.process.cmd(...)` objects so you can execute them
 using your preferred `ward.process` execution stratgy.
 
-> This module intentionally **does not parse** `ip` output.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
+
+## Privilege escalation
+
+Many `ip` subcommands require elevated privileges (for example, `link set`,
+`addr add/del`, `route add/del`, and most `netns` operations). Prefer
+`wardlib.tools.with` so privilege escalation is explicit and scoped.
+
+```lua
+local Ip = require("wardlib.app.ip").Ip
+local with = require("wardlib.tools.with")
+
+with.with(with.middleware.sudo(), function()
+  -- ip link set dev eth0 up
+  Ip.link_set("eth0", { up = true }):run()
+end)
+```
 
 ## Parsing JSON output
 
-The wrapper does not parse output, but `ip` can emit JSON (`-j`). Combine it with `wardlib.tools.out` for a predictable workflow.
+The wrapper does not parse output, but `ip` can emit JSON (`-j`).
+Combine it with `wardlib.tools.out` for a predictable workflow.
 
 ```lua
 local Ip = require("wardlib.app.ip").Ip

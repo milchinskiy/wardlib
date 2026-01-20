@@ -1,9 +1,8 @@
 # Git
 
-`wardlib.app.git` is a thin wrapper around `git` that returns
-`ward.process.cmd(...)` objects.
-For a predictable way to interpret stdout/stderr, use
-[`wardlib.tools.out`](../tools/out.md).
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
 ## Status in a specific repo directory
 

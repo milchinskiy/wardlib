@@ -2,8 +2,9 @@
 
 `find` walks directory trees and evaluates an expression against each entry.
 
-> This wrapper constructs a `ward.process.cmd(...)` invocation; it does not
-> parse output.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
 Notes:
 
@@ -70,4 +71,16 @@ local cmd2 = Find.run("/var/log", { "-name", "*.log", "-print" }, {
   follow_mode = "L",
   xdev = true,
 })
+```
+
+### Parse output
+
+```lua
+local Find = require("wardlib.app.find").Find
+local out = require("wardlib.tools.out")
+
+-- find -- . -maxdepth 1 -type f -name '*.lua'
+local files = out.cmd(Find.search(".", { maxdepth = 1, type = "f", name = "*.lua" }))
+  :label("find lua files")
+  :lines()
 ```

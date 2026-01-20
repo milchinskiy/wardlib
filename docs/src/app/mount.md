@@ -1,50 +1,108 @@
-# mount
+# app.mount
 
-Thin wrappers around `mount` and `umount` that build command invocations.
+`app.mount` provides thin command-construction wrappers around util-linux
+`mount` and `umount`.
 
-Use `opts.extra` to pass flags not modeled yet.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
-## Mount a block device
+This module models a small set of commonly used options. Everything unmodeled
+can be passed through via `opts.extra`.
+
+## Import
 
 ```lua
 local Mount = require("wardlib.app.mount").Mount
-
--- Equivalent to: mount -t ext4 -o noatime /dev/sda1 /mnt/data
-local cmd = Mount.mount("/dev/sda1", "/mnt/data", {
-  fstype = "ext4",
-  options = { "noatime" },
-})
 ```
 
-## Mount read-only
+## Privilege escalation
+
+Mounting and unmounting typically require elevated privileges. Prefer
+`wardlib.tools.with` so escalation is explicit and scoped.
 
 ```lua
-local Mount = require("wardlib.app.mount").Mount
+local with = require("wardlib.tools.with")
 
--- Equivalent to: mount -o ro /dev/sda1 /mnt/data
-local cmd = Mount.mount("/dev/sda1", "/mnt/data", {
-  readonly = true,
-})
+with.with(with.middleware.sudo(), function()
+  Mount.mount("/dev/sdb1", "/mnt/data", { fstype = "ext4" }):run()
+end)
 ```
 
-## Bind mount
+## Options
+
+### `MountOpts`
+
+- `fstype: string?` — adds `-t <fstype>`
+- `options: string|string[]?` — adds `-o <opts>` (string or list joined by commas)
+- `readonly: boolean?` — adds `ro` to `-o`
+- `bind: boolean?` — adds `--bind`
+- `rbind: boolean?` — adds `--rbind`
+- `move: boolean?` — adds `--move`
+- `verbose: boolean?` — adds `-v`
+- `fake: boolean?` — adds `-f`
+- `extra: string[]?` — appended before positional args
+
+### `UmountOpts`
+
+- `lazy: boolean?` — adds `-l`
+- `force: boolean?` — adds `-f`
+- `recursive: boolean?` — adds `-R`
+- `verbose: boolean?` — adds `-v`
+- `extra: string[]?` — appended before positional args
+
+## API
+
+### `Mount.mount(source, target, opts)`
+
+Builds: `mount [opts] [source] [target]`
 
 ```lua
-local Mount = require("wardlib.app.mount").Mount
-
--- Equivalent to: mount --bind /src /dst
-local cmd = Mount.mount("/src", "/dst", {
-  bind = true,
-})
+Mount.mount(source: string|nil, target: string|nil, opts: MountOpts|nil) -> ward.Cmd
 ```
 
-## Umount
+Notes:
+
+- If both `source` and `target` are `nil`, this corresponds to plain `mount`
+  (printing the current mount table).
+
+### `Mount.umount(target, opts)`
+
+Builds: `umount [opts] <target>`
 
 ```lua
-local Mount = require("wardlib.app.mount").Mount
+Mount.umount(target: string, opts: UmountOpts|nil) -> ward.Cmd
+```
 
--- Equivalent to: umount -l /mnt/data
-local cmd = Mount.umount("/mnt/data", {
-  lazy = true,
-})
+## Examples
+
+### Show current mounts
+
+```lua
+local out = require("wardlib.tools.out")
+
+local mounts = out.cmd(Mount.mount(nil, nil))
+  :label("mount")
+  :lines()
+```
+
+### Mount a device read-only
+
+```lua
+-- mount -t ext4 -o ro /dev/sdb1 /mnt/data
+Mount.mount("/dev/sdb1", "/mnt/data", { fstype = "ext4", readonly = true }):run()
+```
+
+### Bind mount
+
+```lua
+-- mount --bind /src /dst
+Mount.mount("/src", "/dst", { bind = true }):run()
+```
+
+### Unmount recursively
+
+```lua
+-- umount -R /mnt/data
+Mount.umount("/mnt/data", { recursive = true }):run()
 ```

@@ -2,8 +2,9 @@
 
 `zypper` is the package manager for openSUSE and SUSE Linux Enterprise.
 
-> This wrapper constructs a `ward.process.cmd(...)` invocation; it does not
-> parse output.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
 ## Import
 

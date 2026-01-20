@@ -3,7 +3,9 @@
 `app.aptget` is a thin wrapper around Debian/Ubuntu's `apt-get` that constructs
 `ward.process.cmd(...)` invocations.
 
-This module does not parse output.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
 ## Import
 

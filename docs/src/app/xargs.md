@@ -2,12 +2,14 @@
 
 `xargs` builds and executes command lines from standard input.
 
-> This wrapper constructs a `ward.process.cmd(...)` invocation; it does not
-> parse output.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
 Notes:
 
 - GNU/BSD `xargs` differ slightly. Use `extra` to access unmodeled features.
+- When using NUL-separated input (`-0`), ensure the producer uses `-print0` / `--print0`.
 
 ## Import
 
@@ -50,4 +52,17 @@ local cmd1 = Xargs.run({ "echo", "{}" }, { max_args = 10, verbose = true })
 
 -- xargs -0 -P 4 -- rm -f
 local cmd2 = Xargs.run({ "rm", "-f" }, { null_input = true, max_procs = 4 })
+```
+
+### Pairing with NUL-separated producers
+
+```lua
+local Find = require("wardlib.app.find").Find
+local Xargs = require("wardlib.app.xargs").Xargs
+
+-- find . -type f -name "*.tmp" -print0 | xargs -0 -- rm -f
+local find = Find.run(".", { type = "f", name = "*.tmp", print0 = true })
+local xargs = Xargs.run({ "rm", "-f" }, { null_input = true })
+
+-- Pipeline wiring depends on your Ward build; the important part is the argv construction.
 ```

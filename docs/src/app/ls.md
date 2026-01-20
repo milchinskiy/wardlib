@@ -1,15 +1,11 @@
-# ls
+# app.ls
 
-`ls` lists directory contents.
+`app.ls` is a thin command-construction wrapper around the `ls` binary.
+It returns `ward.process.cmd(...)` objects.
 
-> This wrapper constructs a `ward.process.cmd(...)` invocation; it does not
-> parse output.
-
-Notes:
-
-- `ls` option sets differ across GNU/BSD/macOS. This wrapper models a
-conservative core and provides `extra` for everything else.
-- The wrapper always inserts `--` before paths.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
 ## Import
 
@@ -17,39 +13,90 @@ conservative core and provides `extra` for everything else.
 local Ls = require("wardlib.app.ls").Ls
 ```
 
+## Options: `LsOpts`
+
+- `all: boolean?` — `-a`
+- `almost_all: boolean?` — `-A` (mutually exclusive with `all`)
+- `long: boolean?` — `-l`
+- `human: boolean?` — `-h` (GNU; typically used with `-l`)
+- `classify: boolean?` — `-F`
+- `one_per_line: boolean?` — `-1`
+- `recursive: boolean?` — `-R`
+- `directory: boolean?` — `-d` (list directories themselves, not contents)
+- `reverse: boolean?` — `-r`
+
+Sorting (mutually exclusive):
+
+- `sort_time: boolean?` — `-t`
+- `sort_size: boolean?` — `-S` (GNU)
+- `no_sort: boolean?` — `-U` (BSD); GNU uses `-f` (use `extra` for portability)
+
+GNU-only formatting:
+
+- `color: 'auto'|'always'|'never'?` — `--color=<mode>`
+- `time_style: string?` — `--time-style=<style>`
+
+Extra:
+
+- `extra: string[]?` — appended after modeled options
+
 ## API
 
 ### `Ls.list(paths, opts)`
 
+List directory contents.
+
 Builds: `ls <opts...> -- [paths...]`
 
-If `paths` is nil, defaults to `{"."}`.
+```lua
+Ls.list(paths: string|string[]|nil, opts: LsOpts|nil) -> ward.Cmd
+```
+
+Notes:
+
+- If `paths` is `nil`, defaults to `{ "." }`.
 
 ### `Ls.raw(argv, opts)`
 
-Builds: `ls <opts...> <argv...>`
+Low-level escape hatch.
 
-## Options (`LsOpts`)
+Builds: `ls <modeled-opts...> <argv...>`
 
-Common fields:
-
-- Visibility: `all (-a)` or `almost_all (-A)` (mutually exclusive)
-- Format: `long (-l)`, `human (-h)`, `classify (-F)`, `one_per_line (-1)`
-- Traversal: `recursive (-R)`, `directory (-d)`
-- Sorting: `sort_time (-t)`, `sort_size (-S)`, `no_sort (-U)` (mutually exclusive)
-- Misc: `reverse (-r)`
-- GNU-only: `color` (`--color=<mode>`), `time_style` (`--time-style=<style>`) -
-use `extra` on BSD/macOS.
-- Escape hatch: `extra`
+```lua
+Ls.raw(argv: string|string[], opts: LsOpts|nil) -> ward.Cmd
+```
 
 ## Examples
 
+### Long listing with human-readable sizes
+
 ```lua
-local Ls = require("wardlib.app.ls").Ls
+-- ls -lh -- /var/log
+Ls.list("/var/log", { long = true, human = true }):run()
+```
 
--- ls -a -l -- .
-local cmd1 = Ls.list(nil, { all = true, long = true })
+### List one entry per line and parse output
 
--- ls -t -- /var/log
-local cmd2 = Ls.list("/var/log", { sort_time = true })
+```lua
+local out = require("wardlib.tools.out")
+
+local files = out.cmd(Ls.list(".", { one_per_line = true }))
+  :label("ls -1")
+  :lines()
+```
+
+### Recursive listing
+
+```lua
+-- ls -R -- ./src
+Ls.list("./src", { recursive = true }):run()
+```
+
+### Use extra flags for platform-specific behavior
+
+```lua
+-- GNU: ls -f (do not sort)
+Ls.list(".", { extra = { "-f" } }):run()
+
+-- BSD/macOS color flags differ; use extra for portability as needed.
 ```

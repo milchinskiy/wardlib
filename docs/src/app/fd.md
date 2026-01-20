@@ -2,8 +2,9 @@
 
 `fd` is a simple, fast and user-friendly alternative to `find`.
 
-> This wrapper constructs a `ward.process.cmd(...)` invocation; it does
-> not parse output.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
 ## Import
 
@@ -71,4 +72,24 @@ local cmd2 = Fd.search("needle", ".", {
 local cmd3 = Fd.search(".", nil, {
   exec = { "echo", "{}" },
 })
+```
+
+### Parse results with `wardlib.tools.out`
+
+```lua
+local Fd = require("wardlib.app.fd").Fd
+local out = require("wardlib.tools.out")
+
+-- fd -t f -e lua --hidden --print0 needle .
+local res = Fd.search("needle", ".", {
+  type = "f",
+  extension = "lua",
+  hidden = true,
+  print0 = true,
+}):output()
+
+-- Note: `print0` produces NUL-separated output. If you use `print0`, you must split on `\0`.
+local raw = out.res(res):label("fd print0"):text()
+local files = {}
+for s in raw:gmatch("([^\0]+)\0") do files[#files + 1] = s end
 ```

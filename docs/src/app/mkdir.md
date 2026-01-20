@@ -1,24 +1,67 @@
-# mkdir
+# app.mkdir
 
-`mkdir` creates directories.
+`app.mkdir` is a thin command-construction wrapper around the `mkdir` binary.
+It returns `ward.process.cmd(...)` objects.
 
-> The wrapper constructs a `ward.process.cmd(...)` invocation; it does
-> not parse output.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
-## Create a directory tree
+## Import
 
 ```lua
 local Mkdir = require("wardlib.app.mkdir").Mkdir
-
--- Equivalent to: mkdir -p -- a/b/c
-local cmd = Mkdir.make("a/b/c", { parents = true })
 ```
 
-## Create multiple directories with a mode
+## Options: `MkdirOpts`
+
+- `parents: boolean?` — `-p`
+- `verbose: boolean?` — `-v`
+- `mode: string?` — `-m <mode>`
+- `dry_run: boolean?` — `--dry-run` (GNU)
+- `extra: string[]?` — appended after modeled options
+
+## API
+
+### `Mkdir.make(paths, opts)`
+
+Create one or more directories.
+
+Builds: `mkdir <opts...> -- <paths...>`
 
 ```lua
-local Mkdir = require("wardlib.app.mkdir").Mkdir
+Mkdir.make(paths: string|string[], opts: MkdirOpts|nil) -> ward.Cmd
+```
 
--- Equivalent to: mkdir -p -m 0755 -- bin lib
-local cmd = Mkdir.make({ "bin", "lib" }, { parents = true, mode = "0755" })
+### `Mkdir.raw(argv, opts)`
+
+Low-level escape hatch.
+
+Builds: `mkdir <modeled-opts...> <argv...>`
+
+```lua
+Mkdir.raw(argv: string|string[], opts: MkdirOpts|nil) -> ward.Cmd
+```
+
+## Examples
+
+### Create nested directories
+
+```lua
+-- mkdir -p -- /var/lib/myapp/data
+Mkdir.make("/var/lib/myapp/data", { parents = true }):run()
+```
+
+### Set directory mode
+
+```lua
+-- mkdir -m 0750 -- /var/lib/myapp
+Mkdir.make("/var/lib/myapp", { mode = "0750" }):run()
+```
+
+### Dry-run (GNU)
+
+```lua
+-- mkdir --dry-run -p -- ./a/b
+Mkdir.make("./a/b", { dry_run = true, parents = true }):run()
 ```

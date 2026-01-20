@@ -2,100 +2,130 @@
 
 Thin wrapper around `efibootmgr` (UEFI Boot Manager configuration).
 
-This module intentionally models only the most common flags; use `opts.extra`
-for everything else.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
-## List current configuration
+This module intentionally models only the most common flags;
+use `opts.extra` for everything else.
+
+## Import
 
 ```lua
 local E = require("wardlib.app.efibootmgr").Efibootmgr
-
--- efibootmgr
-E.list():run()
-
--- efibootmgr -v
-E.list({ verbose = true }):run()
 ```
 
-## Set BootNext (one-time next boot)
+## Running with elevated privileges
+
+Most `efibootmgr` operations require root. Use `wardlib.tools.with` middleware:
 
 ```lua
+local with = require("wardlib.tools.with")
 local E = require("wardlib.app.efibootmgr").Efibootmgr
 
--- efibootmgr -n 0004
-E.set_bootnext(4):run()
-
--- efibootmgr -N
-E.delete_bootnext():run()
+with.with(with.middleware.sudo(), function()
+  E.list({ verbose = true }):run()
+end)
 ```
 
-## Set BootOrder
+## API
+
+### `E.cmd(opts)`
+
+Builds: `efibootmgr <opts...>`
+
+### `E.list(opts)`
+
+Alias for `E.cmd(opts)`.
+
+### `E.set_bootnext(bootnum, opts)` / `E.delete_bootnext(opts)`
+
+Builds: `efibootmgr -n XXXX` and `efibootmgr -N`.
+
+### `E.set_bootorder(order, opts)` / `E.delete_bootorder(opts)`
+
+Builds: `efibootmgr -o 0001,0002,...` and `efibootmgr -O`.
+
+### `E.set_timeout(seconds, opts)` / `E.delete_timeout(opts)`
+
+Builds: `efibootmgr -t <seconds>` and `efibootmgr -T`.
+
+### `E.delete(bootnum, opts)`
+
+Builds: `efibootmgr -b XXXX -B`.
+
+### `E.create_entry(opts)`
+
+Convenience: sets `opts.create=true` and builds:
+
+`efibootmgr -c -d <disk> -p <part> -l <loader> -L <label> ...`
+
+All functions return a `ward.process.cmd(...)` object.
+
+## Options (`EfibootmgrOpts`)
+
+Common fields:
+
+- Binary: `bin` (override executable name/path)
+- Output: `verbose` (`-v`), `quiet` (`-q`)
+- Entry selection: `bootnum` (`-b XXXX`) where `XXXX` is a 4-hex-digit boot number
+- Entry state: `active` (`-a`), `inactive` (`-A`)
+- Entry deletion: `delete_bootnum` (`-B`)
+- Entry creation: `create` (`-c`), `create_only` (`-C`)
+- Entry parameters: `disk` (`-d <disk>`), `part` (`-p <part>`),
+`loader` (`-l <loader>`), `label` (`-L <label>`)
+- One-time next boot: `bootnext` (`-n XXXX`), `delete_bootnext` (`-N`)
+- Boot order: `bootorder` (`-o ...`), `delete_bootorder` (`-O`)
+  - `bootorder` accepts a comma-separated string or an array of boot numbers.
+- Timeout: `timeout` (`-t <sec>`), `delete_timeout` (`-T`)
+- Other flags: `unicode` (`-u`), `write_signature` (`-w`), `remove_dups` (`-D`),
+`driver` (`-r`), `sysprep` (`-y`)
+- Device path flags: `full_dev_path` (`--full-dev-path`), `file_dev_path` (`--file-dev-path`)
+- Append extra loader args: `append_binary_args`
+(`-@ <file>`; use `-` to read from stdin)
+- Escape hatch: `extra`
+
+## Examples
+
+### List current configuration
 
 ```lua
+local with = require("wardlib.tools.with")
 local E = require("wardlib.app.efibootmgr").Efibootmgr
 
--- efibootmgr -o 0003,0004,0001
-E.set_bootorder({ 3, 4, 1 }):run()
-
--- efibootmgr -O
-E.delete_bootorder():run()
+with.with(with.middleware.sudo(), function()
+  -- efibootmgr -v
+  E.list({ verbose = true }):run()
+end)
 ```
 
-## Set Timeout
+### Set BootNext (one-time next boot)
 
 ```lua
+local with = require("wardlib.tools.with")
 local E = require("wardlib.app.efibootmgr").Efibootmgr
 
--- efibootmgr -t 5
-E.set_timeout(5):run()
+with.with(with.middleware.sudo(), function()
+  -- efibootmgr -n 0004
+  E.set_bootnext(4):run()
 
--- efibootmgr -T
-E.delete_timeout():run()
+  -- efibootmgr -N
+  E.delete_bootnext():run()
+end)
 ```
 
-## Delete a boot entry
+### Create a boot entry
 
 ```lua
+local with = require("wardlib.tools.with")
 local E = require("wardlib.app.efibootmgr").Efibootmgr
 
--- efibootmgr -b 0004 -B
-E.delete(4):run()
-```
-
-## Create a boot entry
-
-```lua
-local E = require("wardlib.app.efibootmgr").Efibootmgr
-
--- Equivalent to (example):
---   efibootmgr -c -d /dev/sda -p 1 -l "\\EFI\\Linux\\grubx64.efi" -L "Linux"
-E.create_entry({
-  disk = "/dev/sda",
-  part = 1,
-  loader = "\\EFI\\Linux\\grubx64.efi",
-  label = "Linux",
-}):run()
-```
-
-## Append loader arguments from a file (or stdin)
-
-`efibootmgr` supports appending binary/extra loader arguments from a file via
-`-@ <file>`, where `<file>` can be `-` to read from stdin.
-
-```lua
-local E = require("wardlib.app.efibootmgr").Efibootmgr
-
--- Read extra args from stdin:
---   printf '...binary or text...' | efibootmgr -c ... -@ -
---
--- In ward, you can do the same by providing `append_binary_args = "-"` and
--- building your own pipeline.
-E.create_entry({
-  disk = "/dev/sda",
-  part = 1,
-  loader = "\\EFI\\Linux\\grubx64.efi",
-  label = "Linux",
-  append_binary_args = "-",
-  unicode = true,
-}):run()
+with.with(with.middleware.sudo(), function()
+  E.create_entry({
+    disk = "/dev/sda",
+    part = 1,
+    loader = "\\\\EFI\\\\Linux\\\\grubx64.efi",
+    label = "Linux",
+  }):run()
+end)
 ```

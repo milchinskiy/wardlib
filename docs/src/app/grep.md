@@ -2,8 +2,9 @@
 
 `grep` searches text for regular expressions (or fixed strings).
 
-> This wrapper constructs a `ward.process.cmd(...)` invocation; it does
-> not parse output.
+> This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
+> consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
+> result.
 
 ## Import
 
@@ -92,4 +93,25 @@ local cmd = Grep.search({ "foo", "bar" }, { "a.txt", "b.txt" }, {
 
 -- grep -F -c -e needle file
 local count = Grep.count_matches("needle", "file", { fixed = true })
+```
+
+### Handling "no matches" (exit code 1)
+
+Many `grep` modes exit with status `1` when no matches are found (which may be expected).
+You can handle this by allowing failure and interpreting the output.
+
+```lua
+local Grep = require("wardlib.app.grep").Grep
+local out = require("wardlib.tools.out")
+
+local res = Grep.search("needle", "file", { fixed = true }):output()
+local o = out.res(res):label("grep needle")
+
+-- If you expect "no matches" to be ok:
+local ok = o:allow_fail():ok()
+local lines = o:allow_fail():lines()
+```
+
+-- ok is true for exit code 0; if exit code is 1, lines will be empty.
+-- If you want strict success for any non-zero exit, omit :allow_fail().
 ```
