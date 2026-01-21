@@ -32,12 +32,7 @@ local function preview_bytes(s, max_bytes)
 	if s == nil then return "<nil>" end
 	max_bytes = max_bytes or 2048
 	if #s <= max_bytes then return string.format("%d bytes:\n%s", #s, s) end
-	return string.format(
-		"%d bytes (showing first %d bytes):\n%s\n...<truncated>",
-		#s,
-		max_bytes,
-		s:sub(1, max_bytes)
-	)
+	return string.format("%d bytes (showing first %d bytes):\n%s\n...<truncated>", #s, max_bytes, s:sub(1, max_bytes))
 end
 
 local function fmt_status(res)
@@ -50,16 +45,14 @@ local Out = {}
 Out.__index = Out
 
 local pack = table.pack
-if pack == nil then
-	pack = function(...)
-		local t = { ... }
-		t.n = select("#", ...)
-		return t
-	end
-end
+if pack == nil then pack = function(...)
+	local t = { ... }
+	t.n = select("#", ...)
+	return t
+end end
 
-local function is_cmd(x) return type(x) == "table" and type(x.output) == "function" end
-local function is_res(x) return type(x) == "table" and (x.ok ~= nil or x.stdout ~= nil or x.stderr ~= nil) end
+local function is_cmd(x) return type(x.output) == "function" end
+local function is_res(x) return (x.ok ~= nil or x.stdout ~= nil or x.stderr ~= nil) end
 
 local function new_from_cmd(cmd)
 	if not is_cmd(cmd) then error("tools.out.cmd: expected ward.process cmd object (missing :output())", 3) end
@@ -160,9 +153,7 @@ function Out:_ensure_res()
 	return res
 end
 
-function Out:_error_prefix()
-	return self._label or (self._stream .. " output")
-end
+function Out:_error_prefix() return self._label or (self._stream .. " output") end
 
 function Out:_assert_ok(res)
 	if not self._require_ok then return end
