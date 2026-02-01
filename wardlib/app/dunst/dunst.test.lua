@@ -275,5 +275,76 @@ return function(tinytest)
 		t:deep_eq(argv, { "dunstify", "--serverinfo" })
 	end)
 
+	-- -------------------------
+	-- dunstctl
+	-- -------------------------
+
+	t:test("dunstctl close builds correct argv", function()
+		local mod = load_module()
+		local DunstCtl = mod.DunstCtl
+		DunstCtl.bin = "dunstctl"
+
+		DunstCtl.close()
+
+		t:eq(#calls.is_in_path, 1)
+		t:eq(calls.is_in_path[1], "dunstctl")
+		local argv = last_cmd()
+		t:deep_eq(argv, { "dunstctl", "close" })
+	end)
+
+	t:test("dunstctl historyPop supports optional id", function()
+		local mod = load_module()
+		local DunstCtl = mod.DunstCtl
+		DunstCtl.bin = "dunstctl"
+
+		DunstCtl.historyPop()
+		t:deep_eq(last_cmd(), { "dunstctl", "history-pop" })
+
+		DunstCtl.historyPop(12)
+		t:deep_eq(last_cmd(), { "dunstctl", "history-pop", "12" })
+	end)
+
+	t:test("dunstctl setPaused normalizes booleans and validates strings", function()
+		local mod = load_module()
+		local DunstCtl = mod.DunstCtl
+		DunstCtl.bin = "dunstctl"
+
+		DunstCtl.setPaused(true)
+		t:deep_eq(last_cmd(), { "dunstctl", "set-paused", "true" })
+
+		DunstCtl.setPaused(false)
+		t:deep_eq(last_cmd(), { "dunstctl", "set-paused", "false" })
+
+		DunstCtl.setPaused("toggle")
+		t:deep_eq(last_cmd(), { "dunstctl", "set-paused", "toggle" })
+
+		local ok = pcall(function() DunstCtl.setPaused("maybe") end)
+		t:falsy(ok)
+	end)
+
+	t:test("dunstctl count validates scope", function()
+		local mod = load_module()
+		local DunstCtl = mod.DunstCtl
+		DunstCtl.bin = "dunstctl"
+
+		DunstCtl.count()
+		t:deep_eq(last_cmd(), { "dunstctl", "count" })
+
+		DunstCtl.count("history")
+		t:deep_eq(last_cmd(), { "dunstctl", "count", "history" })
+
+		local ok = pcall(function() DunstCtl.count("all") end)
+		t:falsy(ok)
+	end)
+
+	t:test("dunstctl reload accepts string[]", function()
+		local mod = load_module()
+		local DunstCtl = mod.DunstCtl
+		DunstCtl.bin = "dunstctl"
+
+		DunstCtl.reload({ "/a", "/b" })
+		t:deep_eq(last_cmd(), { "dunstctl", "reload", "/a", "/b" })
+	end)
+
 	return t
 end

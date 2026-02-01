@@ -1,6 +1,9 @@
 # dunst
 
-`dunstify` is a CLI client for the Dunst notification daemon.
+This module wraps two CLI tools used with the Dunst notification daemon:
+
+- `dunstify` – send notifications (client)
+- `dunstctl` – control a running `dunst` instance
 
 > This module constructs `ward.process.cmd(...)` invocations; it does not parse output.
 > consumers can use `wardlib.tools.out` (or their own parsing) on the `:output()`
@@ -10,6 +13,7 @@
 
 ```lua
 local Dunst = require("wardlib.app.dunst").Dunst
+local DunstCtl = require("wardlib.app.dunst").DunstCtl
 ```
 
 ## API
@@ -35,6 +39,31 @@ Builds: `dunstify --serverinfo`
 
 All functions return a `ward.process.cmd(...)` object.
 
+### `DunstCtl.*` (dunstctl)
+
+> These functions build `dunstctl <command> ...`.
+
+- `DunstCtl.close()` → `dunstctl close`
+- `DunstCtl.closeAll()` → `dunstctl close-all`
+- `DunstCtl.context()` → `dunstctl context`
+- `DunstCtl.historyPop([id])` → `dunstctl history-pop [id]`
+- `DunstCtl.historyRm(id)` → `dunstctl history-rm <id>`
+- `DunstCtl.historyClear()` → `dunstctl history-clear`
+- `DunstCtl.isPaused()` → `dunstctl is-paused`
+- `DunstCtl.setPaused(v)` → `dunstctl set-paused <true|false|toggle>`
+  - `v` may be boolean (`true`/`false`) or a string (`"true"|"false"|"toggle"`)
+- `DunstCtl.getPauseLevel()` → `dunstctl get-pause-level`
+- `DunstCtl.setPauseLevel(level)` → `dunstctl set-pause-level <0..100>`
+- `DunstCtl.count([scope])` → `dunstctl count [displayed|history|waiting]`
+- `DunstCtl.action(notification_position)` → `dunstctl action <pos>`
+- `DunstCtl.rule(rule_name, action)` → `dunstctl rule <name> <enable|disable|toggle>`
+- `DunstCtl.rules([opts])` → `dunstctl rules [--json]`
+  - `opts.json = true` adds `--json`
+- `DunstCtl.reload([files])` → `dunstctl reload [dunstrc ...]`
+  - `files` may be a string or `string[]`
+- `DunstCtl.debug()` → `dunstctl debug`
+- `DunstCtl.help()` → `dunstctl help`
+
 ## Options (`DunstifyOptions`)
 
 - Content: `body`
@@ -53,6 +82,7 @@ All functions return a `ward.process.cmd(...)` object.
 
 ```lua
 local Dunst = require("wardlib.app.dunst").Dunst
+local DunstCtl = require("wardlib.app.dunst").DunstCtl
 local out = require("wardlib.tools.out")
 
 -- Simple notification
@@ -74,4 +104,19 @@ Dunst.close(id):run()
 -- Inspect server info / capabilities
 local caps = out.cmd(Dunst.capabilities()):label("dunstify --capabilities"):lines()
 local info = out.cmd(Dunst.serverInfo()):label("dunstify --serverinfo"):text()
+
+-- Pause / resume notifications (dunstctl)
+DunstCtl.setPaused(true):run()
+-- ... later
+DunstCtl.setPaused(false):run()
+
+-- Query paused status
+local paused = out.cmd(DunstCtl.isPaused()):label("dunstctl is-paused"):trim():text()
+-- Typical output is "true" or "false" (depends on dunstctl version)
+
+-- Pop last closed notification from history
+DunstCtl.historyPop():run()
+
+-- Reload config
+DunstCtl.reload({ os.getenv("HOME") .. "/.config/dunst/dunstrc" }):run()
 ```
