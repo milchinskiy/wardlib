@@ -53,6 +53,7 @@
 - [ping](./app/ping.md)
 - [playerctl](./app/playerctl.md)
 - [podman](./app/podman.md)
+- [qemu](./app/qemu.md)
 - [rg](./app/rg.md)
 - [rm](./app/rm.md)
 - [rofi](./app/rofi.md)
